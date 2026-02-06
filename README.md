@@ -22,7 +22,7 @@
 
 | Plugin           | Description                                                                                    |
 | ---------------- | ---------------------------------------------------------------------------------------------- |
-| **social-media** | Generate high-engagement posts for Twitter, LinkedIn, Instagram, Facebook with trend analysis |
+| **social-media** | Generate high-engagement posts for Twitter, LinkedIn, Instagram, Facebook with trend analysis  |
 
 ### 🔧 DevOps & Infrastructure
 
