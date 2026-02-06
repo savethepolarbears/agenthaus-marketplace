@@ -1,0 +1,245 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, Terminal, Download, Package } from "lucide-react";
+import { sql } from "@/lib/db";
+import { STATIC_PLUGINS } from "@/lib/plugins-static";
+import type { StaticPlugin } from "@/lib/plugins-static";
+
+interface PluginDetail extends StaticPlugin {
+  env_vars: { var_name: string; description: string; required: boolean }[];
+}
+
+async function getPlugin(slug: string): Promise<PluginDetail | null> {
+  if (sql) {
+    try {
+      const rows = await sql`SELECT * FROM plugins WHERE slug = ${slug}`;
+      if (rows.length > 0) {
+        const p = rows[0];
+
+        const capabilities = await sql`
+          SELECT type, name, description
+          FROM plugin_capabilities
+          WHERE plugin_id = ${p.id}
+        `;
+
+        const envVars = await sql`
+          SELECT var_name, description, required
+          FROM plugin_env_vars
+          WHERE plugin_id = ${p.id}
+        `;
+
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          description: p.description,
+          version: p.version,
+          category: p.category,
+          author: p.author,
+          tags: p.tags || [],
+          install_count: p.install_count,
+          icon: p.icon || "",
+          capabilities: capabilities as PluginDetail["capabilities"],
+          env_vars: envVars as PluginDetail["env_vars"],
+        };
+      }
+    } catch {
+      // Fall through to static
+    }
+  }
+
+  const found = STATIC_PLUGINS.find((p) => p.slug === slug);
+  if (!found) return null;
+  return { ...found };
+}
+
+export default async function PluginDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const plugin = await getPlugin(slug);
+
+  if (!plugin) notFound();
+
+  const capsByType = plugin.capabilities.reduce<
+    Record<string, { name: string; description: string }[]>
+  >((acc, cap) => {
+    if (!acc[cap.type]) acc[cap.type] = [];
+    acc[cap.type].push({ name: cap.name, description: cap.description });
+    return acc;
+  }, {});
+
+  const typeLabels: Record<string, string> = {
+    command: "Commands",
+    agent: "Agents",
+    skill: "Skills",
+    hook: "Hooks",
+    mcp: "MCP Servers",
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
+      <nav className="border-b border-white/10 p-6 flex justify-between bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/25">
+            <Terminal size={20} className="text-white" />
+          </div>
+          <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            AgentHaus
+          </span>
+        </div>
+      </nav>
+
+      <main className="max-w-4xl mx-auto px-6 py-12">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors mb-8"
+        >
+          <ArrowLeft size={16} />
+          Back to marketplace
+        </Link>
+
+        {/* Header */}
+        <div className="flex items-start gap-6 mb-10">
+          <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl shrink-0">
+            <Package className="text-cyan-400" size={36} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap mb-2">
+              <h1 className="text-3xl font-bold">{plugin.name}</h1>
+              <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded">
+                v{plugin.version}
+              </span>
+              <span className="text-xs font-mono bg-black/50 px-3 py-1 rounded-lg text-gray-400 border border-white/5 capitalize">
+                {plugin.category}
+              </span>
+            </div>
+            <p className="text-gray-400 text-lg mb-3">{plugin.description}</p>
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <span>by {plugin.author}</span>
+              <span className="flex items-center gap-1">
+                <Download size={14} />
+                {plugin.install_count} installs
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tags */}
+        {plugin.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-10">
+            {plugin.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg text-gray-400"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Install command */}
+        <div className="bg-gradient-to-r from-white/5 to-white/10 border border-white/10 px-6 py-4 rounded-xl font-mono text-cyan-400 mb-12 shadow-xl shadow-cyan-500/5">
+          <span className="text-gray-500">$ </span>
+          /plugin install {plugin.slug}
+        </div>
+
+        {/* Capabilities */}
+        {Object.keys(capsByType).length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-xl font-bold mb-6">Capabilities</h2>
+            {Object.entries(capsByType).map(([type, items]) => (
+              <div key={type} className="mb-6">
+                <h3 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-3">
+                  {typeLabels[type] || type}
+                </h3>
+                <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                          Name
+                        </th>
+                        <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                          Description
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item) => (
+                        <tr
+                          key={item.name}
+                          className="border-b border-white/5 last:border-0"
+                        >
+                          <td className="px-4 py-2.5 font-mono text-white">
+                            {item.name}
+                          </td>
+                          <td className="px-4 py-2.5 text-gray-400">
+                            {item.description}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {/* Environment variables */}
+        {plugin.env_vars.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-xl font-bold mb-6">
+              Required Environment Variables
+            </h2>
+            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                      Variable
+                    </th>
+                    <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                      Description
+                    </th>
+                    <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                      Required
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {plugin.env_vars.map((ev) => (
+                    <tr
+                      key={ev.var_name}
+                      className="border-b border-white/5 last:border-0"
+                    >
+                      <td className="px-4 py-2.5 font-mono text-cyan-400">
+                        {ev.var_name}
+                      </td>
+                      <td className="px-4 py-2.5 text-gray-400">
+                        {ev.description}
+                      </td>
+                      <td className="px-4 py-2.5 text-gray-400">
+                        {ev.required ? "Yes" : "No"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+      </main>
+
+      <footer className="border-t border-white/10 py-12 mt-20">
+        <div className="max-w-7xl mx-auto px-6 text-center text-gray-500 text-sm">
+          &copy; 2026 AgentHaus Team. Built for Claude Code & Cowork.
+        </div>
+      </footer>
+    </div>
+  );
+}

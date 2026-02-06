@@ -1,7 +1,11 @@
 {
   "name": "vercel-deploy",
-  "description": "Manage Vercel projects and deployments.",
   "version": "1.0.0",
+  "description": "Manage Vercel projects and deployments.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["deployment", "hosting", "vercel"],
   "commands": [
     "./commands/deploy.md"
   ],

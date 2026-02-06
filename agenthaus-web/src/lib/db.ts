@@ -1,7 +1,7 @@
-import { neon } from '@neondatabase/serverless';
+import { neon } from "@neondatabase/serverless";
 
-// Connects to Neon Serverless Postgres.  During deployment, set
-// DATABASE_URL in the environment to your Neon connection string.  Without
-// this, the application will throw at startup.
-if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
-export const sql = neon(process.env.DATABASE_URL);
+// Returns a neon sql tagged-template client when DATABASE_URL is set.
+// Without it, sql is null so callers can fall back to static data.
+export const sql = process.env.DATABASE_URL
+  ? neon(process.env.DATABASE_URL)
+  : null;

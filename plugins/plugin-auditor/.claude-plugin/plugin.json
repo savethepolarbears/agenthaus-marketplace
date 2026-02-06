@@ -1,0 +1,12 @@
+{
+  "name": "plugin-auditor",
+  "version": "1.0.0",
+  "description": "Audit plugins for security risks before installation.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["security", "audit", "validation"],
+  "commands": ["./commands/audit.md"],
+  "agents": ["./agents/security-reviewer.md"],
+  "skills": ["./skills/audit-checks/SKILL.md"]
+}

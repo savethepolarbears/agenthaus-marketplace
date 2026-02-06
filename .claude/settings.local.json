@@ -3,7 +3,29 @@
     "allow": [
       "Bash(find:*)",
       "Bash(git -C /Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace log --oneline --max-count=10)",
-      "Bash(git -C /Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace remote -v)"
+      "Bash(git -C /Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace remote -v)",
+      "mcp__github__get_me",
+      "mcp__github__create_repository",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx next lint:*)",
+      "Bash(for f in /Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/plugins/*/.claude-plugin/plugin.json)",
+      "Bash(do python3 -c \"import json; d=json.load\\(open\\(''$f''\\)\\); missing=[k for k in [''name'',''version'',''description'',''author'',''homepage'',''license'',''tags''] if k not in d]; print\\(f''{d[\"\"name\"\"]}: missing={missing}'' if missing else f''{d[\"\"name\"\"]}: OK''\\)\")",
+      "Bash(python3:*)",
+      "Bash(for sh in plugins/*/hooks/scripts/*.sh)",
+      "Bash(do if [ ! -x \"$sh\" ])",
+      "Bash(then echo \"NOT EXECUTABLE: $sh\")",
+      "Bash(fi)"
     ]
   }
 }

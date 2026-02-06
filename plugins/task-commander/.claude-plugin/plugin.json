@@ -2,13 +2,42 @@
   "name": "task-commander",
   "version": "1.1.0",
   "description": "ClickUp task management with Slack, Gmail and Calendar notifications.",
-  "mcp_servers": [
-    "clickup",
-    "slack",
-    "gmail",
-    "google-calendar"
-  ],
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["productivity", "task-management", "notifications"],
   "commands": [
     "./commands/todo.md"
-  ]
+  ],
+  "mcpServers": {
+    "clickup": {
+      "command": "npx",
+      "args": ["-y", "@taazkareem/clickup-mcp-server"],
+      "env": {
+        "CLICKUP_API_KEY": "${CLICKUP_KEY}"
+      }
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_TOKEN}",
+        "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
+      }
+    },
+    "gmail": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-gmail"],
+      "env": {
+        "GMAIL_CREDENTIALS": "${GMAIL_CREDS}"
+      }
+    },
+    "google-calendar": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-google-calendar"],
+      "env": {
+        "GOOGLE_CALENDAR_TOKEN": "${GOOGLE_CALENDAR_TOKEN}"
+      }
+    }
+  }
 }
