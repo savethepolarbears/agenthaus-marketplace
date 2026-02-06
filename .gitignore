@@ -54,5 +54,8 @@ __pycache__/
 venv/
 .venv/
 
+# Claude Code settings
+.claude/settings.local.json
+
 # Generated files
 *.zip

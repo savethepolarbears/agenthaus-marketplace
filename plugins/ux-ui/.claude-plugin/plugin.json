@@ -1,0 +1,18 @@
+{
+  "name": "ux-ui",
+  "version": "1.0.0",
+  "description": "Polish and improve your front‑end UX/UI, accessibility, design and responsiveness for Tailwind CSS projects.",
+  "permissions": {
+    // File edit permissions determine whether Claude will automatically apply code changes.
+    // Ask before editing any files under src/, public/, or app/ to keep changes under review.
+    "fileEdits": "ask",
+    // Disallow arbitrary shell commands from running in this plugin — there is no need for bash access when improving UI.
+    "bash": "deny",
+    // Disallow network access by default for UI improvements. Tailwind CSS and design work should operate on local files.
+    "network": "deny"
+  },
+  // Register the slash command that developers can invoke with `/improve-ui` to run automated UI/UX audits and improvements.
+  "commands": ["./commands/improve-ui.md"],
+  // Register a specialized subagent who can hold a conversation with the user about design best practices and actionable suggestions.
+  "agents": ["./agents/ui-expert.md"]
+}
