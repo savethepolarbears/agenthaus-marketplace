@@ -1,0 +1,32 @@
+---
+name: {{COMMAND_NAME}}
+description: {{COMMAND_DESCRIPTION}}
+---
+
+# {{COMMAND_NAME}} Command
+
+## Purpose
+{{Describe what this command does and when to use it}}
+
+## Usage
+`/{{PLUGIN_NAME}}:{{COMMAND_NAME}} <arguments>`
+
+## Instructions
+When this command is invoked:
+
+1. {{First step Claude should take}}
+2. {{Second step Claude should take}}
+3. {{Third step Claude should take}}
+
+## Arguments
+- `<arg1>`: {{Description of first argument}}
+- `<arg2>`: {{Description of second argument (optional)}}
+
+## Examples
+```
+/{{PLUGIN_NAME}}:{{COMMAND_NAME}} example-arg
+```
+
+## Notes
+- {{Any important notes or constraints}}
+- {{Error handling instructions}}
