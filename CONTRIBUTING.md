@@ -6,7 +6,7 @@ Thank you for your interest in contributing to AgentHaus! This guide will help y
 
 Each plugin should follow this directory structure:
 
-```
+```text
 plugins/your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json          # Required: Plugin manifest
@@ -32,7 +32,7 @@ Create `.claude-plugin/plugin.json` with:
   "version": "1.0.0",
   "description": "Brief description of your plugin",
   "author": "Your Name",
-  "homepage": "https://github.com/your-org/your-plugin",
+  "homepage": "https://github.com/savethepolarbears/your-plugin",
   "capabilities": ["commands", "agents", "mcp"],
   "tags": ["category1", "category2"]
 }
@@ -85,7 +85,7 @@ When the user runs /your-command, do the following:
 
 ## Submitting Your Plugin
 
-1. Fork this repository
+1. Fork this repository at <https://github.com/savethepolarbears/agenthaus-marketplace>
 2. Create your plugin under `plugins/`
 3. Add an entry to `.claude-plugin/marketplace.json`
 4. Submit a pull request with:

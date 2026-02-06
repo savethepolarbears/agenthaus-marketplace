@@ -18,7 +18,7 @@ Set the `CLICKUP_API_KEY` environment variable to a ClickUp personal access toke
 
 ### Example usage
 
-```
+```text
 Create a task "Write marketing plan" in the product backlog and assign it to Alice with high priority, due next Friday.
 
 List all tasks in the "Sprint 12" list tagged "frontend" and summarise their status.

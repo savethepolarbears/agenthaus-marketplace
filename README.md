@@ -10,7 +10,7 @@
 
 ```bash
 # Add the marketplace to Claude Code
-/plugin marketplace add https://github.com/agenthaus/agenthaus-marketplace
+/plugin marketplace add https://github.com/savethepolarbears/agenthaus-marketplace
 
 # Install any plugin
 /plugin install social-media@AgentHaus
@@ -20,53 +20,53 @@
 
 ### 📝 Content & Communication
 
-| Plugin | Description |
-|--------|-------------|
+| Plugin           | Description                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------- |
 | **social-media** | Generate high-engagement posts for Twitter, LinkedIn, Instagram, Facebook with trend analysis |
 
 ### 🔧 DevOps & Infrastructure
 
-| Plugin | Description |
-|--------|-------------|
-| **github-integration** | Manage GitHub issues and PRs via MCP server |
-| **cloudflare-platform** | Deploy Workers, manage KV storage, AI Gateway |
-| **vercel-deploy** | Manage Vercel projects and deployments |
-| **devops-flow** | Integrated Cloudflare + GitHub + Slack workflows with hooks |
+| Plugin                  | Description                                                    |
+| ----------------------- | -------------------------------------------------------------- |
+| **github-integration**  | Manage GitHub issues and PRs via MCP server                    |
+| **cloudflare-platform** | Deploy Workers, manage KV storage, AI Gateway                  |
+| **vercel-deploy**       | Manage Vercel projects and deployments                         |
+| **devops-flow**         | Integrated Cloudflare + GitHub + Slack workflows with hooks    |
 
 ### 📚 Knowledge & Documentation
 
-| Plugin | Description |
-|--------|-------------|
-| **notion-workspace** | Search and update Notion pages via MCP |
-| **context7-docs** | Fetch hallucination-free library documentation |
-| **knowledge-synapse** | Context7 + Notion + Google Drive RAG system |
+| Plugin                | Description                                      |
+| --------------------- | ------------------------------------------------ |
+| **notion-workspace**  | Search and update Notion pages via MCP           |
+| **context7-docs**     | Fetch hallucination-free library documentation   |
+| **knowledge-synapse** | Context7 + Notion + Google Drive RAG system      |
 
 ### ✅ Productivity
 
-| Plugin | Description |
-|--------|-------------|
-| **clickup-tasks** | Manage ClickUp tasks, lists, and time tracking |
-| **task-commander** | ClickUp + Slack + Gmail + Calendar integration |
+| Plugin             | Description                                      |
+| ------------------ | ------------------------------------------------ |
+| **clickup-tasks**  | Manage ClickUp tasks, lists, and time tracking   |
+| **task-commander** | ClickUp + Slack + Gmail + Calendar integration   |
 
 ### 🧪 Testing & QA
 
-| Plugin | Description |
-|--------|-------------|
-| **playwright-testing** | E2E browser tests with QA engineer agent |
-| **qa-droid** | Automated testing with Slack/Gmail notifications |
+| Plugin                 | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| **playwright-testing** | E2E browser tests with QA engineer agent         |
+| **qa-droid**           | Automated testing with Slack/Gmail notifications |
 
 ### 🗄️ Database
 
-| Plugin | Description |
-|--------|-------------|
-| **neon-db** | Serverless Postgres via MCP |
-| **data-core** | Advanced Neon/Postgres with migrations |
+| Plugin        | Description                               |
+| ------------- | ----------------------------------------- |
+| **neon-db**   | Serverless Postgres via MCP               |
+| **data-core** | Advanced Neon/Postgres with migrations    |
 
 ### 🛠️ Utilities
 
-| Plugin | Description |
-|--------|-------------|
-| **marketplace-cli** | CLI for managing AgentHaus plugins |
+| Plugin              | Description                          |
+| ------------------- | ------------------------------------ |
+| **marketplace-cli** | CLI for managing AgentHaus plugins   |
 
 ## Configuration
 
