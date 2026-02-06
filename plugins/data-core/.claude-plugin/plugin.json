@@ -2,7 +2,15 @@
   "name": "data-core",
   "version": "1.0.0",
   "description": "Serverless Postgres database management via Neon.",
-  "mcp_servers": [
-    "postgres"
-  ]
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["database", "postgres", "migrations"],
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${NEON_DATABASE_URL}"],
+      "env": {}
+    }
+  }
 }

@@ -6,7 +6,7 @@ This file provides guidance to AI coding assistants working in this repository.
 
 # AgentHaus Marketplace
 
-A marketplace of 15 production-ready plugins for Claude Code and Claude Cowork. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend AI assistant capabilities.
+A marketplace of 23 production-ready plugins for Claude Code and Claude Cowork. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend AI assistant capabilities.
 
 **Repository:** https://github.com/savethepolarbears/agenthaus-marketplace
 
@@ -15,7 +15,7 @@ A marketplace of 15 production-ready plugins for Claude Code and Claude Cowork. 
 ```text
 agenthaus-marketplace/
 ├── agenthaus-web/          # Next.js 16 storefront (React 19, Tailwind 4, Neon Postgres)
-├── plugins/                # 15 production plugins
+├── plugins/                # 23 production plugins
 │   ├── social-media/       # Content: Twitter, LinkedIn, Instagram, Facebook posts
 │   ├── github-integration/ # DevOps: GitHub issues & PRs via MCP
 │   ├── cloudflare-platform/# Cloud: Workers, KV storage, AI Gateway
@@ -30,7 +30,17 @@ agenthaus-marketplace/
 │   ├── qa-droid/           # Testing: Automated tests + notifications
 │   ├── neon-db/            # Database: Serverless Postgres via MCP
 │   ├── data-core/          # Database: Advanced Postgres with migrations
+│   ├── ux-ui/              # UX: UI/UX audits, accessibility, Tailwind CSS
+│   ├── agent-handoff/      # Orchestration: Blackboard protocol task handoff
+│   ├── circuit-breaker/    # Safety: Deploy gates, test checks, budget guards
+│   ├── agent-memory/       # Memory: Persistent recall via Neon Postgres
+│   ├── shadow-mode/        # Training: Review queue for agent actions
+│   ├── fleet-commander/    # Orchestration: Agent session monitoring
+│   ├── plugin-auditor/     # Security: Plugin code security scanner
+│   ├── openclaw-bridge/    # Integration: OpenClaw format conversion
 │   └── marketplace-cli/    # Utility: Plugin management CLI
+├── schemas/                # JSON schemas for validation
+├── scripts/                # Validation and utility scripts
 ├── reports/                # All project reports and documentation
 ├── .env.example            # Required environment variables
 ├── CONTRIBUTING.md         # Plugin development guide
@@ -150,6 +160,7 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 | task-commander | `CLICKUP_KEY`, `SLACK_TOKEN`, `SLACK_CHANNEL`, `GMAIL_CREDS`, `GOOGLE_CALENDAR_TOKEN` |
 | qa-droid | `SLACK_TOKEN`, `SLACK_CHANNEL`, `GMAIL_CREDS` |
 | neon-db / data-core | `DATABASE_URL`, `NEON_API_KEY` |
+| agent-memory | `NEON_DATABASE_URL` |
 | agenthaus-web | `DATABASE_URL`, `NEXT_PUBLIC_API_URL` |
 
 ## Configuration
@@ -220,6 +231,9 @@ These agents are defined within plugins and available when the corresponding plu
 | trend-analyzer | social-media | claude-3-7-sonnet | Analyze social media trends and engagement patterns |
 | qa-engineer | playwright-testing | sonnet | Design and execute E2E browser test suites |
 | sdet-agent | qa-droid | claude-3-7-sonnet | Automated test development with notification workflows |
+| ui-expert | ux-ui | sonnet | UI/UX design and accessibility consulting |
+| fleet-monitor | fleet-commander | haiku | Background agent session monitoring |
+| security-reviewer | plugin-auditor | sonnet | Deep security analysis of plugin code |
 
 ## Directory Structure & File Organization
 

@@ -1,7 +1,11 @@
 {
   "name": "cloudflare-platform",
-  "description": "Manage Cloudflare Workers, KV storage and AI Gateway resources.",
   "version": "1.0.0",
+  "description": "Manage Cloudflare Workers, KV storage and AI Gateway resources.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["cloud", "deployment", "serverless"],
   "commands": [
     "./commands/deploy.md",
     "./commands/kv.md"

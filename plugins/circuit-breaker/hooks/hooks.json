@@ -1,0 +1,37 @@
+[
+  {
+    "type": "PreToolUse",
+    "matcher": {
+      "tool_name": "Bash",
+      "command_pattern": "(deploy|push|publish|release)"
+    },
+    "action": {
+      "type": "shell",
+      "command": "./hooks/scripts/block-prod-deploy.sh"
+    },
+    "description": "Block deployments outside business hours (Mon-Fri 9am-5pm)"
+  },
+  {
+    "type": "PreToolUse",
+    "matcher": {
+      "tool_name": "Bash",
+      "command_pattern": "git commit"
+    },
+    "action": {
+      "type": "shell",
+      "command": "./hooks/scripts/require-tests.sh"
+    },
+    "description": "Require test files in staged changes before committing"
+  },
+  {
+    "type": "PreToolUse",
+    "matcher": {
+      "tool_name": "*"
+    },
+    "action": {
+      "type": "shell",
+      "command": "./hooks/scripts/budget-guard.sh"
+    },
+    "description": "Track tool usage and warn when threshold is exceeded"
+  }
+]

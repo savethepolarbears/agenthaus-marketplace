@@ -1,12 +1,15 @@
 {
-  "hooks": [
-    {
-      "event": "PreToolUse",
-      "matcher": "cloudflare.*deploy",
-      "action": {
-        "type": "script",
-        "command": "echo 'Are you sure you want to deploy to production? (yes/no)'"
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "cloudflare.*deploy",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[pre-deploy] Confirm: you are about to deploy to Cloudflare. Proceeding...' && exit 0"
+          }
+        ]
       }
-    }
-  ]
+    ]
+  }
 }

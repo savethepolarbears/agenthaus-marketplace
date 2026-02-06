@@ -1,0 +1,35 @@
+[
+  {
+    "type": "PreToolUse",
+    "matcher": {
+      "tool_name": "Write"
+    },
+    "action": {
+      "type": "shell",
+      "command": "./hooks/scripts/shadow-intercept.sh Write"
+    },
+    "description": "Intercept file writes when shadow mode is active"
+  },
+  {
+    "type": "PreToolUse",
+    "matcher": {
+      "tool_name": "Edit"
+    },
+    "action": {
+      "type": "shell",
+      "command": "./hooks/scripts/shadow-intercept.sh Edit"
+    },
+    "description": "Intercept file edits when shadow mode is active"
+  },
+  {
+    "type": "PreToolUse",
+    "matcher": {
+      "tool_name": "Bash"
+    },
+    "action": {
+      "type": "shell",
+      "command": "./hooks/scripts/shadow-intercept.sh Bash"
+    },
+    "description": "Intercept shell commands when shadow mode is active"
+  }
+]

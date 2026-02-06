@@ -2,13 +2,40 @@
   "name": "devops-flow",
   "version": "2.0.0",
   "description": "Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.",
-  "mcp_servers": [
-    "cloudflare",
-    "github",
-    "slack"
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["devops", "deployment", "notifications"],
+  "commands": [
+    "./commands/deploy.md"
   ],
   "hooks": [
-    "pre-deploy-confirmation",
-    "post-deploy-notify"
-  ]
+    "./hooks/pre-deploy-confirmation.json",
+    "./hooks/post-deploy-notify.json"
+  ],
+  "mcpServers": {
+    "cloudflare": {
+      "command": "npx",
+      "args": ["-y", "@cloudflare/mcp-server-cloudflare"],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_TOKEN}",
+        "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
+      }
+    }
+  }
 }

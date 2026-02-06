@@ -1,7 +1,7 @@
 {
   "name": "AgentHaus",
-  "version": "2.0.0",
-  "description": "A comprehensive marketplace of production-ready Claude agents and plugins for Claude Code and Cowork. Features specialized plugins for development, productivity, content creation, and cloud management.",
+  "version": "3.0.0",
+  "description": "A comprehensive marketplace of 23 production-ready plugins for Claude Code and Cowork. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, and safety.",
   "owner": {
     "name": "AgentHaus Team",
     "email": "support@agenthaus.dev",
@@ -12,7 +12,7 @@
       "name": "social-media",
       "source": "./plugins/social-media",
       "category": "content",
-      "description": "Generate high-engagement social posts for Twitter, LinkedIn, Instagram and Facebook with trend analysis and content-writer agents."
+      "description": "Generate high-engagement posts for Twitter, LinkedIn, Instagram and Facebook with trend analysis and content-writer agents."
     },
     {
       "name": "github-integration",
@@ -96,7 +96,55 @@
       "name": "marketplace-cli",
       "source": "./plugins/marketplace-cli",
       "category": "utility",
-      "description": "CLI utilities for searching, browsing, and managing AgentHaus marketplace plugins."
+      "description": "CLI utilities for searching, browsing, validating, and managing AgentHaus marketplace plugins."
+    },
+    {
+      "name": "ux-ui",
+      "source": "./plugins/ux-ui",
+      "category": "ux",
+      "description": "Polish and improve front-end UX/UI, accessibility, design and responsiveness for Tailwind CSS projects."
+    },
+    {
+      "name": "agent-handoff",
+      "source": "./plugins/agent-handoff",
+      "category": "orchestration",
+      "description": "State-based task handoff between agents using a shared blackboard protocol for multi-agent workflows."
+    },
+    {
+      "name": "circuit-breaker",
+      "source": "./plugins/circuit-breaker",
+      "category": "safety",
+      "description": "Pre-built safety guardrails as reusable hooks: deploy gates, test requirements, and budget warnings."
+    },
+    {
+      "name": "agent-memory",
+      "source": "./plugins/agent-memory",
+      "category": "memory",
+      "description": "Shared persistent memory across agent sessions using Neon Postgres for recall and learning."
+    },
+    {
+      "name": "shadow-mode",
+      "source": "./plugins/shadow-mode",
+      "category": "training",
+      "description": "Training mode where agents draft outputs to a review queue instead of executing directly."
+    },
+    {
+      "name": "fleet-commander",
+      "source": "./plugins/fleet-commander",
+      "category": "orchestration",
+      "description": "Visualization and control of running agent sessions with task board monitoring and dispatch."
+    },
+    {
+      "name": "plugin-auditor",
+      "source": "./plugins/plugin-auditor",
+      "category": "security",
+      "description": "Security scanner that audits plugins for risks including shell injection, credential exposure, and unsafe patterns."
+    },
+    {
+      "name": "openclaw-bridge",
+      "source": "./plugins/openclaw-bridge",
+      "category": "integration",
+      "description": "Convert AgentHaus plugins to OpenClaw skill format and provide remote control via messaging."
     }
   ]
 }

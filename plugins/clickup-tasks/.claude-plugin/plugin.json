@@ -1,8 +1,11 @@
 {
   "name": "clickup-tasks",
-  "description": "Manage ClickUp tasks, lists and time tracking.",
   "version": "1.0.0",
-  "commands": [],
+  "description": "Manage ClickUp tasks, lists and time tracking.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["productivity", "task-management"],
   "mcpServers": {
     "clickup": {
       "command": "npx",
