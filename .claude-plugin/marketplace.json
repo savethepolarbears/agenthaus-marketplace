@@ -1,12 +1,11 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "AgentHaus",
   "version": "2.0.0",
   "description": "A comprehensive marketplace of production-ready Claude agents and plugins for Claude Code and Cowork. Features specialized plugins for development, productivity, content creation, and cloud management.",
   "owner": {
     "name": "AgentHaus Team",
     "email": "support@agenthaus.dev",
-    "url": "https://github.com/agenthaus/agenthaus-marketplace"
+    "url": "https://github.com/savethepolarbears/agenthaus-marketplace"
   },
   "plugins": [
     {

@@ -170,7 +170,7 @@ export default function Home() {
         <div className="flex justify-center mb-16">
           <div className="bg-gradient-to-r from-white/5 to-white/10 border border-white/10 px-6 py-4 rounded-xl font-mono text-cyan-400 flex gap-3 shadow-xl shadow-cyan-500/5 hover:shadow-cyan-500/10 transition-shadow">
             <span className="text-gray-500">$</span>
-            <span>/plugin marketplace add https://github.com/agenthaus/marketplace</span>
+            <span>/plugin marketplace add https://github.com/savethepolarbears/agenthaus-marketplace</span>
           </div>
         </div>
 
