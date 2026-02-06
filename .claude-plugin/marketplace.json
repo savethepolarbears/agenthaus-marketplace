@@ -1,0 +1,103 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "AgentHaus",
+  "version": "2.0.0",
+  "description": "A comprehensive marketplace of production-ready Claude agents and plugins for Claude Code and Cowork. Features specialized plugins for development, productivity, content creation, and cloud management.",
+  "owner": {
+    "name": "AgentHaus Team",
+    "email": "support@agenthaus.dev",
+    "url": "https://github.com/agenthaus/agenthaus-marketplace"
+  },
+  "plugins": [
+    {
+      "name": "social-media",
+      "source": "./plugins/social-media",
+      "category": "content",
+      "description": "Generate high-engagement social posts for Twitter, LinkedIn, Instagram and Facebook with trend analysis and content-writer agents."
+    },
+    {
+      "name": "github-integration",
+      "source": "./plugins/github-integration",
+      "category": "devops",
+      "description": "Manage GitHub issues and pull requests through custom commands and the GitHub MCP server."
+    },
+    {
+      "name": "notion-workspace",
+      "source": "./plugins/notion-workspace",
+      "category": "knowledge",
+      "description": "Search and update Notion pages and databases via the Notion MCP server."
+    },
+    {
+      "name": "clickup-tasks",
+      "source": "./plugins/clickup-tasks",
+      "category": "productivity",
+      "description": "Create and manage ClickUp tasks, lists and time tracking using the ClickUp MCP server."
+    },
+    {
+      "name": "playwright-testing",
+      "source": "./plugins/playwright-testing",
+      "category": "qa",
+      "description": "Write and execute end-to-end browser tests with Playwright and a QA engineer subagent."
+    },
+    {
+      "name": "context7-docs",
+      "source": "./plugins/context7-docs",
+      "category": "docs",
+      "description": "Fetch hallucination-free documentation for any library using Context7."
+    },
+    {
+      "name": "cloudflare-platform",
+      "source": "./plugins/cloudflare-platform",
+      "category": "cloud",
+      "description": "Deploy Cloudflare Workers, manage KV storage and interact with AI Gateway via Cloudflare MCP servers."
+    },
+    {
+      "name": "neon-db",
+      "source": "./plugins/neon-db",
+      "category": "database",
+      "description": "Interact with serverless Postgres databases on Neon using the Postgres MCP server."
+    },
+    {
+      "name": "vercel-deploy",
+      "source": "./plugins/vercel-deploy",
+      "category": "deployment",
+      "description": "Manage Vercel projects and deployments through the Vercel MCP server."
+    },
+    {
+      "name": "devops-flow",
+      "source": "./plugins/devops-flow",
+      "category": "devops",
+      "description": "Integrated DevOps workflow combining Cloudflare deployments, GitHub PR management, and Slack notifications with hooks."
+    },
+    {
+      "name": "knowledge-synapse",
+      "source": "./plugins/knowledge-synapse",
+      "category": "rag",
+      "description": "Knowledge retrieval combining Context7 documentation, Notion notes, and Google Drive with intelligent synthesis."
+    },
+    {
+      "name": "task-commander",
+      "source": "./plugins/task-commander",
+      "category": "productivity",
+      "description": "Unified task management with ClickUp, Slack notifications, Gmail integration, and Google Calendar scheduling."
+    },
+    {
+      "name": "qa-droid",
+      "source": "./plugins/qa-droid",
+      "category": "qa",
+      "description": "Automated QA workflow with Playwright testing, Slack/Gmail result notifications, and test report generation."
+    },
+    {
+      "name": "data-core",
+      "source": "./plugins/data-core",
+      "category": "database",
+      "description": "Advanced Neon/Postgres database operations with migration support and query optimization."
+    },
+    {
+      "name": "marketplace-cli",
+      "source": "./plugins/marketplace-cli",
+      "category": "utility",
+      "description": "CLI utilities for searching, browsing, and managing AgentHaus marketplace plugins."
+    }
+  ]
+}

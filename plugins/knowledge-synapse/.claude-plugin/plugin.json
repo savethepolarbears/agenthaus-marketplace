@@ -1,0 +1,13 @@
+{
+  "name": "knowledge-synapse",
+  "version": "1.1.0",
+  "description": "RAG Agent combining Context7 docs, Notion memory and Google Drive search.",
+  "mcp_servers": [
+    "context7",
+    "notion",
+    "google-drive"
+  ],
+  "skills": [
+    "./skills/research.md"
+  ]
+}

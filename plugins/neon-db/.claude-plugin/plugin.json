@@ -1,0 +1,17 @@
+{
+  "name": "neon-db",
+  "description": "Interact with Neon serverless Postgres databases.",
+  "version": "1.0.0",
+  "commands": [
+    "./commands/query.md"
+  ],
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "DATABASE_URL": "${NEON_DATABASE_URL}"
+      }
+    }
+  }
+}

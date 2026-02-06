@@ -1,0 +1,17 @@
+{
+  "name": "vercel-deploy",
+  "description": "Manage Vercel projects and deployments.",
+  "version": "1.0.0",
+  "commands": [
+    "./commands/deploy.md"
+  ],
+  "mcpServers": {
+    "vercel": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-vercel"],
+      "env": {
+        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
+      }
+    }
+  }
+}

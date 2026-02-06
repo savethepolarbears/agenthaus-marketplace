@@ -1,0 +1,18 @@
+{
+  "name": "github-integration",
+  "description": "Full GitHub management: create/search issues and pull requests using GitHub’s MCP server.",
+  "version": "1.0.0",
+  "commands": [
+    "./commands/issue.md",
+    "./commands/pr.md"
+  ],
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}
