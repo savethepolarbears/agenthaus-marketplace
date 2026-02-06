@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(git -C /Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace log --oneline --max-count=10)",
+      "Bash(git -C /Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace remote -v)"
+    ]
+  }
+}

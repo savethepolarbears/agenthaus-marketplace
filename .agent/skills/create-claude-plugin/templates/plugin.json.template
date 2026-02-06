@@ -1,0 +1,20 @@
+{
+  "name": "{{PLUGIN_NAME}}",
+  "description": "{{PLUGIN_DESCRIPTION}}",
+  "version": "1.0.0",
+  "commands": [
+    "./commands/*.md"
+  ],
+  "agents": "./agents",
+  "skills": "./skills",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": {
+    "{{MCP_SERVER_NAME}}": {
+      "command": "npx",
+      "args": ["-y", "{{MCP_PACKAGE}}"],
+      "env": {
+        "{{ENV_VAR_NAME}}": "${{{ENV_VAR_PLACEHOLDER}}}"
+      }
+    }
+  }
+}
