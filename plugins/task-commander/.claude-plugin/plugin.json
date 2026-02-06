@@ -1,0 +1,14 @@
+{
+  "name": "task-commander",
+  "version": "1.1.0",
+  "description": "ClickUp task management with Slack, Gmail and Calendar notifications.",
+  "mcp_servers": [
+    "clickup",
+    "slack",
+    "gmail",
+    "google-calendar"
+  ],
+  "commands": [
+    "./commands/todo.md"
+  ]
+}

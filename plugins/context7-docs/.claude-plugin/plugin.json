@@ -1,0 +1,17 @@
+{
+  "name": "context7-docs",
+  "description": "Fetch up‑to‑date, hallucination‑free documentation for any library via Context7.",
+  "version": "1.0.0",
+  "commands": [
+    "./commands/docs.md"
+  ],
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-context7"],
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
+    }
+  }
+}

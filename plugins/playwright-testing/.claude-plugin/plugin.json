@@ -1,0 +1,14 @@
+{
+  "name": "playwright-testing",
+  "description": "End‑to‑end browser automation and testing using Playwright.",
+  "version": "1.0.0",
+  "agents": [
+    "./agents/qa-engineer.md"
+  ],
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-playwright"]
+    }
+  }
+}

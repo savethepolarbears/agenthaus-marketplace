@@ -1,0 +1,18 @@
+{
+  "name": "notion-workspace",
+  "description": "Interact with your Notion workspace – search pages, query databases and create new content.",
+  "version": "1.0.0",
+  "commands": [
+    "./commands/search.md",
+    "./commands/create-page.md"
+  ],
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-notion"],
+      "env": {
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
+      }
+    }
+  }
+}

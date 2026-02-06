@@ -1,0 +1,12 @@
+{
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "matcher": "cloudflare.*deploy",
+      "action": {
+        "type": "script",
+        "command": "echo 'Are you sure you want to deploy to production? (yes/no)'"
+      }
+    }
+  ]
+}

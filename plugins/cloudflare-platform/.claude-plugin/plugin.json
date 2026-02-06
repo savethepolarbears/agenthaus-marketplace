@@ -1,0 +1,19 @@
+{
+  "name": "cloudflare-platform",
+  "description": "Manage Cloudflare Workers, KV storage and AI Gateway resources.",
+  "version": "1.0.0",
+  "commands": [
+    "./commands/deploy.md",
+    "./commands/kv.md"
+  ],
+  "mcpServers": {
+    "cloudflare": {
+      "command": "npx",
+      "args": ["-y", "@cloudflare/mcp-server-cloudflare"],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
+      }
+    }
+  }
+}

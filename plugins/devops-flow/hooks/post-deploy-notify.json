@@ -1,0 +1,12 @@
+{
+  "hooks": [
+    {
+      "event": "PostToolUse",
+      "matcher": "cloudflare.*deploy",
+      "action": {
+        "type": "command",
+        "command": "echo '[deploy] Deployment completed. Notifying Slack\u2026' && exit 0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "qa-droid",
+  "version": "2.1.0",
+  "description": "Automated Playwright tests with Slack/Gmail notifications.",
+  "agents": [
+    "./agents/sdet-agent.md"
+  ],
+  "mcp_servers": [
+    "playwright-local",
+    "slack",
+    "gmail"
+  ]
+}

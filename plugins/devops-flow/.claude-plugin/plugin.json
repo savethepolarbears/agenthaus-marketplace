@@ -1,0 +1,14 @@
+{
+  "name": "devops-flow",
+  "version": "2.0.0",
+  "description": "Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.",
+  "mcp_servers": [
+    "cloudflare",
+    "github",
+    "slack"
+  ],
+  "hooks": [
+    "pre-deploy-confirmation",
+    "post-deploy-notify"
+  ]
+}

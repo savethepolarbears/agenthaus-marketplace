@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "playwright-local": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/index.js"
+      ]
+    },
+    "slack": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-slack"
+      ],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_TOKEN}",
+        "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
+      }
+    },
+    "gmail": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-gmail"
+      ],
+      "env": {
+        "GMAIL_CREDENTIALS": "${GMAIL_CREDS}"
+      }
+    }
+  }
+}
