@@ -30,9 +30,9 @@ plugin-name/.claude-plugin/plugin.json
 
 | Field         | Type   | Description                          |
 | ------------- | ------ | ------------------------------------ |
-| `name`        | string | Plugin identifier in kebab-case     |
-| `description` | string | Brief description of functionality  |
-| `version`     | string | Semantic version (e.g., "1.0.0")    |
+| `name`        | string | Plugin identifier in kebab-case      |
+| `description` | string | Brief description of functionality   |
+| `version`     | string | Semantic version (e.g., "1.0.0")     |
 
 ### Optional Fields
 

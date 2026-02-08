@@ -46,12 +46,12 @@ The `marketplace.json` file defines a collection of plugins for distribution.
 
 ### Plugin Entry Fields
 
-| Field         | Type   | Description                              |
-| ------------- | ------ | ---------------------------------------- |
-| `name`        | string | Plugin identifier (match plugin.json)   |
-| `source`      | string | Relative path to plugin directory        |
-| `category`    | string | Plugin category for filtering            |
-| `description` | string | User-facing description                  |
+| Field         | Type   | Description                           |
+| ------------- | ------ | ------------------------------------- |
+| `name`        | string | Plugin identifier (match plugin.json) |
+| `source`      | string | Relative path to plugin directory     |
+| `category`    | string | Plugin category for filtering         |
+| `description` | string | User-facing description               |
 
 ## Categories
 

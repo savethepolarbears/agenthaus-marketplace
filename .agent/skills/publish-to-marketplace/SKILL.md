@@ -1,6 +1,6 @@
 ---
 name: publish-to-marketplace
-description: Register and publish a Claude plugin to the AgentHaus marketplace. Triggers on "publish plugin", "add to marketplace", "register plugin".
+description: Use when registering a validated Claude plugin with the AgentHaus marketplace, adding a plugin entry to marketplace.json, or updating the web storefront catalog. Triggers on "publish plugin", "add to marketplace", "register plugin", "submit plugin".
 ---
 
 # Publish to Marketplace Skill
@@ -44,16 +44,25 @@ Before publishing, ensure:
 
 Select the appropriate category from:
 
-- `devops` - CI/CD, deployment, infrastructure
-- `productivity` - Task management, scheduling
 - `content` - Content creation, social media
-- `qa` - Testing, quality assurance
-- `docs` - Documentation, knowledge retrieval
+- `devops` - CI/CD, infrastructure
 - `cloud` - Cloud platform integrations
-- `database` - Database operations
-- `rag` - RAG patterns, knowledge synthesis
+- `deployment` - Deploy and hosting tools
 - `knowledge` - Note-taking, wikis
+- `docs` - Documentation, knowledge retrieval
+- `rag` - RAG patterns, knowledge synthesis
+- `productivity` - Task management, scheduling
+- `qa` - Quality assurance
+- `testing` - Automated testing, E2E
+- `database` - Database operations
 - `utility` - General-purpose tools
+- `ux` - UI/UX audits, accessibility
+- `orchestration` - Agent coordination, handoff
+- `safety` - Deploy gates, circuit breakers
+- `memory` - Persistent recall, session memory
+- `training` - Agent review queues
+- `security` - Code scanning, plugin auditing
+- `integration` - Cross-platform bridges
 
 ### Step 3: Add to Marketplace Registry
 
@@ -74,13 +83,16 @@ Select the appropriate category from:
 
 ### Step 4: Update Web Storefront (if applicable)
 
-1. Check if storefront needs updating:
+1. Read the storefront page at `agenthaus-web/src/app/page.tsx`
 
-   ```bash
-   ls agenthaus-web/src/
-   ```
+2. Add the new plugin to the plugins data array with:
+   - `name`: Plugin display name
+   - `description`: User-facing description (same as marketplace.json)
+   - `category`: Matching category from Step 2
+   - `tags`: Array of relevant tags from plugin.json
+   - `icon`: Appropriate Lucide React icon name
 
-2. Add plugin card to the storefront catalog if present
+3. Verify the plugin card renders correctly in the storefront grid
 
 ### Step 5: Commit Changes
 
@@ -117,6 +129,17 @@ After publishing:
 - [ ] JSON is valid (no syntax errors)
 - [ ] git status shows expected changes
 - [ ] Commit message follows conventional commits
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Plugin name mismatch between plugin.json and marketplace.json | Copy the exact `name` value from plugin.json |
+| Using developer jargon in the marketplace description | Write user-facing language — "Manage GitHub issues and PRs" not "MCP server wrapper for GitHub API" |
+| Forgetting to stage marketplace.json in the commit | Always `git add .claude-plugin/marketplace.json` alongside the plugin directory |
+| Using an absolute path for `source` in marketplace.json | Source must be relative: `"./plugins/<name>"` not `"/Users/.../plugins/<name>"` |
+| Not validating JSON after editing marketplace.json | Parse with `jq` or a JSON validator before committing — a single trailing comma breaks everything |
+| Skipping the storefront update | If `agenthaus-web/` exists, the plugin should appear in the web catalog too |
 
 ## Rollback
 

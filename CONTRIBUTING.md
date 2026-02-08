@@ -154,6 +154,7 @@ bash scripts/validate-plugins.sh
 ```
 
 This checks:
+
 - Valid JSON for plugin.json and .mcp.json
 - Required fields present (name, version, description)
 - All referenced files exist
@@ -184,6 +185,7 @@ Your plugin must also conform to `schemas/plugin.schema.json`.
 ## CI/CD
 
 Pull requests automatically run:
+
 - Plugin validation (all plugins checked)
 - Web storefront lint and build
 

@@ -85,13 +85,13 @@ export default async function Home() {
   const categories = getCategories(plugins);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-linear-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
       <nav className="border-b border-white/10 p-6 flex justify-between bg-black/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/25">
+          <div className="w-10 h-10 bg-linear-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/25">
             <Terminal size={20} className="text-white" />
           </div>
-          <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold tracking-tight bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
             AgentHaus
           </span>
         </div>
@@ -109,7 +109,7 @@ export default async function Home() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-6 py-20">
-        <h1 className="text-6xl font-extrabold mb-6 text-center bg-gradient-to-br from-white via-gray-200 to-gray-500 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-6xl font-extrabold mb-6 text-center bg-linear-to-br from-white via-gray-200 to-gray-500 bg-clip-text text-transparent leading-tight">
           Dock your agents.
           <br />
           Extend your intelligence.
@@ -120,7 +120,7 @@ export default async function Home() {
         </p>
 
         <div className="flex justify-center mb-16">
-          <div className="bg-gradient-to-r from-white/5 to-white/10 border border-white/10 px-6 py-4 rounded-xl font-mono text-cyan-400 flex gap-3 shadow-xl shadow-cyan-500/5 hover:shadow-cyan-500/10 transition-shadow">
+          <div className="bg-linear-to-r from-white/5 to-white/10 border border-white/10 px-6 py-4 rounded-xl font-mono text-cyan-400 flex gap-3 shadow-xl shadow-cyan-500/5 hover:shadow-cyan-500/10 transition-shadow">
             <span className="text-gray-500">$</span>
             <span>
               /plugin marketplace add
