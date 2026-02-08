@@ -1,3 +1,8 @@
+---
+name: audit-checks
+description: Systematic security checklist for auditing Claude Code plugins before installation. Use when reviewing a plugin for hook script injection risks, validating plugin.json manifests, checking for hardcoded secrets or API keys, verifying MCP server trust, or scoring plugin safety. Covers manifest validation, hook security, env var safety, MCP trust, external references, and file permissions with weighted scoring.
+---
+
 # Audit Checks
 
 A systematic checklist for auditing Claude Code plugins before installation.
@@ -76,3 +81,25 @@ In commands and agents:
 **Pass**: Score >= 80% with no Critical findings
 **Review Recommended**: Score 60-79% or any Warning findings
 **Fail**: Score < 60% or any Critical finding
+
+## Quick Reference
+
+| Check | What to Look For | Severity |
+|-------|-------------------|----------|
+| Manifest | Valid JSON, required fields, semver, file paths exist | Medium |
+| Hooks | `eval`, backticks, unquoted vars, network calls, system dir writes | Critical |
+| Env Vars | Hardcoded secrets, API keys in plaintext, missing `${VAR}` syntax | Critical |
+| MCP Trust | Unknown publishers, custom binaries, hardcoded credentials in args | High |
+| External Refs | Remote code download, prompt injection, file access outside project | High |
+| Permissions | SUID/SGID bits, world-writable files, executable JSON/Markdown | Medium |
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Only checking `plugin.json` and skipping hook scripts | Hooks are the highest-risk component (40% weight) — always audit them first |
+| Trusting MCP servers from unknown npm packages | Only trust known publishers (`@modelcontextprotocol/*`, `@cloudflare/*`, `@upstash/*`, `@taazkareem/*`) |
+| Missing `set -euo pipefail` in hook scripts | Without strict mode, scripts silently continue after errors |
+| Accepting `$VAR` instead of `"$VAR"` in shell scripts | Unquoted variables allow word splitting and injection |
+| Not verifying that referenced files actually exist | Check every path in `commands`, `agents`, `skills`, `hooks` arrays against the filesystem |
+| Ignoring file permissions on non-script files | JSON and Markdown files should never be executable |

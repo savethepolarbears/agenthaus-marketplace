@@ -7,7 +7,7 @@
   "license": "MIT",
   "tags": ["rag", "knowledge", "research"],
   "skills": [
-    "./skills/research.md"
+    "./skills/deep-research/SKILL.md"
   ],
   "mcpServers": {
     "context7": {

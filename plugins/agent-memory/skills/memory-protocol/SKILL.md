@@ -1,3 +1,8 @@
+---
+name: memory-protocol
+description: Persist session learnings to shared Postgres memory for cross-session knowledge retention. Use when storing decisions, errors, patterns, or environment specifics at end of a task, recalling previous session context before starting work, or managing a CRUD lifecycle for agent memories via SQL. Covers tagging, querying, and memory cleanup.
+---
+
 # Memory Protocol
 
 Automatically persist session learnings to shared memory for cross-session knowledge retention.
@@ -61,6 +66,26 @@ This provides context from previous sessions and avoids re-discovering known inf
 - **Read**: Query before starting work in a known area
 - **Update**: If a previous memory is outdated, delete the old one and create a new one
 - **Delete**: Remove memories that are no longer relevant (deprecated APIs, removed code)
+
+## Quick Reference
+
+| Operation | SQL | When |
+|-----------|-----|------|
+| Store | `INSERT INTO memories (content, tags, session_id, context) VALUES (...)` | End of task with new learnings |
+| Recall | `SELECT ... FROM memories WHERE content ILIKE '%keyword%' OR 'tag' = ANY(tags)` | Start of task in familiar area |
+| Update | DELETE old + INSERT new | Memory is outdated |
+| Delete | `DELETE FROM memories WHERE id = <id>` | Deprecated API, removed code |
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Storing trivial or obvious information | Only store what's non-obvious or was hard-won — decisions, gotchas, error resolutions |
+| Using vague tags like `#general` | Use specific tags from the guidelines: `#error`, `#architecture`, `#config`, etc. |
+| Not querying memories before starting work | Always check for existing context — avoids re-discovering known issues |
+| Storing multiple unrelated learnings in one row | One memory per insight — makes recall and deletion precise |
+| Forgetting `session_id` when inserting | Include session ID for traceability across conversations |
+| Not cleaning up outdated memories | Periodically delete memories for deprecated APIs, removed code, or changed configs |
 
 ## Table Schema
 

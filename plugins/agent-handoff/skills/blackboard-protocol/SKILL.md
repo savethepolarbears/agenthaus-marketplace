@@ -1,3 +1,8 @@
+---
+name: blackboard-protocol
+description: Shared-state coordination protocol for multi-agent task handoff using the filesystem as a message bus. Use when coordinating work between multiple agents, dispatching tasks to worker agents, implementing agent-to-agent handoff, or building a task queue with claim/execute/report lifecycle. Covers dispatch, claim, execute, and failure-retry patterns.
+---
+
 # Blackboard Protocol
 
 A shared-state coordination protocol for multi-agent task handoff using the filesystem as a message bus.
@@ -76,6 +81,28 @@ If execution fails:
   completed/    # Finished tasks (success or failure)
   audit.log     # Append-only log of all task transitions
 ```
+
+## Quick Reference
+
+| Phase | Location | Status | Action |
+|-------|----------|--------|--------|
+| Dispatch | `.context/inbox/` | `pending` | Coordinator creates task JSON |
+| Claim | `.context/active/` | `in_progress` | Worker moves file from inbox |
+| Execute | `.context/active/` | `in_progress` | Worker performs requirements |
+| Complete | `.context/completed/` | `completed` | Worker writes result, moves file |
+| Fail+Retry | `.context/inbox/` | `pending` | Increment retries, re-queue |
+| Fail+Give Up | `.context/completed/` | `failed` | Max retries exceeded |
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Two agents claim the same task | Use file move as a lock — if the file is gone from inbox, another agent took it |
+| Not setting `assigned_to` when claiming | Always write your agent identifier so other agents know who owns the task |
+| Leaving completed tasks in `.context/active/` | Always move to `.context/completed/` on success or final failure |
+| Writing vague `requirements` | Requirements must be clear and actionable — a worker agent has no additional context |
+| Not incrementing `retries` before re-queuing | Without incrementing, failed tasks retry infinitely |
+| Forgetting to create `.context/` subdirectories | Create `inbox/`, `active/`, `completed/` before dispatching the first task |
 
 ## Concurrency Notes
 

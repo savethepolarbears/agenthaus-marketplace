@@ -1,3 +1,8 @@
+---
+name: agenthaus-to-openclaw
+description: Convert AgentHaus plugins to OpenClaw skill format. Use when migrating plugin configurations between AgentHaus and OpenClaw platforms, mapping commands to actions, agents to personas, or MCP servers to tool providers. Covers env var syntax conversion and validation of converted output.
+---
+
 # AgentHaus to OpenClaw Conversion
 
 Step-by-step workflow for converting AgentHaus plugins to OpenClaw skill format.
@@ -54,10 +59,10 @@ For each agent markdown file:
 | Markdown body | Persona `system_prompt` |
 
 Model mapping:
-- `sonnet` -> `claude-3-sonnet`
-- `haiku` -> `claude-3-haiku`
-- `opus` -> `claude-3-opus`
-- `claude-3-7-sonnet` -> `claude-3.7-sonnet`
+- `sonnet` -> `claude-sonnet-4-5`
+- `haiku` -> `claude-haiku-4-5`
+- `opus` -> `claude-opus-4-6`
+- `claude-3-7-sonnet` -> `claude-sonnet-4-5` (legacy alias)
 
 ## Step 4: Map MCP Servers to OpenClaw Tool Providers
 
@@ -104,6 +109,27 @@ Check for completeness:
 - [ ] Environment variable syntax is converted (`${VAR}` to `{{env.VAR}}`)
 - [ ] No AgentHaus-specific syntax remains in output files
 - [ ] All file references are valid
+
+## Quick Reference
+
+| AgentHaus Component | OpenClaw Equivalent | Key Syntax Change |
+|---------------------|--------------------|--------------------|
+| Command (`.md` + YAML) | Action (`.yaml`) | `$ARGUMENTS` → `{{args}}` |
+| Agent (`.md` + YAML) | Persona (`.yaml`) | `model` field mapped to current models |
+| MCP Server (JSON) | Tool Provider (YAML) | `${ENV_VAR}` → `{{env.ENV_VAR}}` |
+| Hook (JSON) | Middleware (manual) | No direct equivalent |
+| Skill (`SKILL.md`) | Skill (embedded) | Inline in `skill.yaml` |
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Leaving `${ENV_VAR}` syntax in OpenClaw output | Convert all to `{{env.ENV_VAR}}` format |
+| Forgetting to map `$ARGUMENTS` to `{{args}}` in command bodies | Search-and-replace in all converted action instructions |
+| Using stale model identifiers | Always use current model mapping table above |
+| Not validating output files after conversion | Run the Step 6 checklist — check every component has a corresponding output |
+| Converting hooks directly instead of flagging for manual work | Hooks have no OpenClaw equivalent — flag in README.md as requiring manual migration |
+| Skipping the README.md migration notes | Always generate migration notes documenting what was auto-converted vs. needs manual work |
 
 ## Known Limitations
 

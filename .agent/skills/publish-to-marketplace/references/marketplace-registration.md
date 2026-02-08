@@ -21,7 +21,7 @@ flowchart TD
 
 The marketplace registry is located at:
 
-```
+```text
 .claude-plugin/marketplace.json
 ```
 
@@ -42,18 +42,18 @@ Each plugin in the registry requires:
 
 Choose the most specific applicable category:
 
-| Category | Use When Plugin... |
-|----------|-------------------|
-| `devops` | Manages deployments, CI/CD, infrastructure |
-| `productivity` | Handles tasks, calendars, notifications |
-| `content` | Creates social posts, articles, marketing |
-| `qa` | Runs tests, validates quality |
-| `docs` | Retrieves or manages documentation |
-| `cloud` | Integrates with cloud providers |
-| `database` | Manages database operations |
-| `rag` | Implements RAG patterns |
-| `knowledge` | Works with wikis, notes, knowledge bases |
-| `utility` | General-purpose tools |
+| Category       | Use When Plugin...                         |
+| -------------- | ------------------------------------------ |
+| `devops`       | Manages deployments, CI/CD, infrastructure |
+| `productivity` | Handles tasks, calendars, notifications    |
+| `content`      | Creates social posts, articles, marketing  |
+| `qa`           | Runs tests, validates quality              |
+| `docs`         | Retrieves or manages documentation         |
+| `cloud`        | Integrates with cloud providers            |
+| `database`     | Manages database operations                |
+| `rag`          | Implements RAG patterns                    |
+| `knowledge`    | Works with wikis, notes, knowledge bases   |
+| `utility`      | General-purpose tools                      |
 
 ## Description Best Practices
 

@@ -1,6 +1,6 @@
 ---
 name: create-claude-plugin
-description: Create a complete Claude Code or Claude Cowork plugin with proper structure, manifest, and marketplace configuration. Triggers on "create plugin", "new claude plugin", "build plugin".
+description: Use when creating a new Claude Code or Claude Cowork plugin for the AgentHaus marketplace, scaffolding a plugin directory structure, generating a plugin.json manifest, or bootstrapping commands, agents, skills, hooks, and MCP integrations. Triggers on "create plugin", "new plugin", "scaffold plugin", "build plugin".
 ---
 
 # Create Claude Plugin Skill
@@ -17,7 +17,7 @@ Ask the user for:
 
 - Plugin name (kebab-case, e.g., `my-awesome-plugin`)
 - Brief description of what the plugin does
-- Target category: `devops`, `productivity`, `content`, `qa`, `docs`, `cloud`, `database`, `rag`, `knowledge`, `utility`
+- Target category: `content`, `devops`, `cloud`, `deployment`, `knowledge`, `docs`, `rag`, `productivity`, `qa`, `testing`, `database`, `utility`, `ux`, `orchestration`, `safety`, `memory`, `training`, `security`, `integration`
 
 ### Phase 2: Component Planning
 
@@ -50,13 +50,19 @@ Generate `plugins/<plugin-name>/.claude-plugin/plugin.json`:
   "name": "<plugin-name>",
   "description": "<description>",
   "version": "1.0.0",
-  "commands": ["./commands/*.md"],
-  "agents": ["./agents/*.md"],
-  "skills": ["./skills/*"],
-  "hooks": "./hooks/hooks.json",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["<category>"],
+  "commands": ["./commands/command-name.md"],
+  "agents": ["./agents/agent-name.md"],
+  "skills": ["./skills/skill-name/SKILL.md"],
+  "hooks": ["./hooks/hooks.json"],
   "mcpServers": {}
 }
 ```
+
+**Important:** Use explicit file paths, not glob patterns. List each file individually (e.g., `"./commands/deploy.md"` not `"./commands/*.md"`).
 
 ### Phase 5: Create Commands
 
@@ -149,6 +155,18 @@ Result: plugins/slack-notify/
 └── README.md
 (with Slack MCP server configured)
 ```
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Using glob patterns in plugin.json paths | Use explicit file paths: `"./commands/deploy.md"` not `"./commands/*.md"` |
+| Missing `author`, `homepage`, `license` fields | All are required by the marketplace standard — include them in every manifest |
+| Skills not in `skill-name/SKILL.md` directory format | Skills must be a directory containing `SKILL.md`, not a standalone `.md` file |
+| Skill SKILL.md missing YAML frontmatter | Every SKILL.md needs `name` and `description` in YAML frontmatter for discovery |
+| Hardcoding API keys in MCP server configs | Always use `${ENV_VAR}` interpolation syntax |
+| Not adding the plugin to marketplace.json after creation | The plugin isn't discoverable until registered in `.claude-plugin/marketplace.json` |
+| Creating empty directories with no files | Only create directories for components the plugin actually uses |
 
 ## References
 
