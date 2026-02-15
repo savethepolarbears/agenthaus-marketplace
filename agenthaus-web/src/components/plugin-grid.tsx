@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import {
@@ -68,18 +68,22 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
 
+  // Bolt ⚡ Optimization: Defer the search query to prevent blocking the UI while typing
+  // This keeps the input responsive even if filtering becomes expensive
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
   const filtered = useMemo(() => {
     return plugins.filter((p) => {
       const matchesCategory =
         activeCategory === "all" || p.category === activeCategory;
       const matchesSearch =
-        searchQuery === "" ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+        deferredSearchQuery === "" ||
+        p.name.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+        p.tags.some((t) => t.toLowerCase().includes(deferredSearchQuery.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
-  }, [plugins, searchQuery, activeCategory]);
+  }, [plugins, deferredSearchQuery, activeCategory]);
 
   return (
     <>
