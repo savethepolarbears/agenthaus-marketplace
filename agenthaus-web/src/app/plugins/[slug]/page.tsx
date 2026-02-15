@@ -4,9 +4,11 @@ import { ArrowLeft, Terminal, Download, Package } from "lucide-react";
 import { sql } from "@/lib/db";
 import { STATIC_PLUGINS } from "@/lib/plugins-static";
 import type { StaticPlugin } from "@/lib/plugins-static";
+import { ShareButton } from "@/components/share-button";
 
 interface PluginDetail extends StaticPlugin {
   env_vars: { var_name: string; description: string; required: boolean }[];
+  share_count?: number;
 }
 
 async function getPlugin(slug: string): Promise<PluginDetail | null> {
@@ -38,6 +40,7 @@ async function getPlugin(slug: string): Promise<PluginDetail | null> {
           author: p.author,
           tags: p.tags || [],
           install_count: p.install_count,
+          share_count: p.share_count || 0,
           icon: p.icon || "",
           capabilities: capabilities as PluginDetail["capabilities"],
           env_vars: envVars as PluginDetail["env_vars"],
@@ -50,7 +53,7 @@ async function getPlugin(slug: string): Promise<PluginDetail | null> {
 
   const found = STATIC_PLUGINS.find((p) => p.slug === slug);
   if (!found) return null;
-  return { ...found };
+  return { ...found, share_count: 0 };
 }
 
 export default async function PluginDetailPage({
@@ -117,12 +120,19 @@ export default async function PluginDetailPage({
               </span>
             </div>
             <p className="text-gray-400 text-lg mb-3">{plugin.description}</p>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <span>by {plugin.author}</span>
-              <span className="flex items-center gap-1">
-                <Download size={14} />
-                {plugin.install_count} installs
-              </span>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <span>by {plugin.author}</span>
+                <span className="flex items-center gap-1">
+                  <Download size={14} />
+                  {plugin.install_count} installs
+                </span>
+              </div>
+              <ShareButton
+                slug={plugin.slug}
+                name={plugin.name}
+                initialShareCount={plugin.share_count}
+              />
             </div>
           </div>
         </div>

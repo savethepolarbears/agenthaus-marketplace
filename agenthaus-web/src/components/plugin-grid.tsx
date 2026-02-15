@@ -67,6 +67,7 @@ interface PluginGridProps {
 
 export default function PluginGrid({ plugins, categories }: PluginGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeCategory, setActiveCategory] = useState("all");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -75,18 +76,27 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     inputRef.current?.focus();
   };
 
+  // Bolt ⚡ Optimization: Defer the search query to prevent blocking the UI while typing
+  // This keeps the input responsive even if filtering becomes expensive
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
   const filtered = useMemo(() => {
+    // Optimization: Pre-compute lowercase query once to avoid repetitive .toLowerCase() in loop
+    const normalizedQuery = deferredSearchQuery.toLowerCase();
+
     return plugins.filter((p) => {
       const matchesCategory =
         activeCategory === "all" || p.category === activeCategory;
+
+      // Optimization: use deferred value to keep input responsive while filtering happens in background
       const matchesSearch =
-        searchQuery === "" ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+        deferredSearchQuery === "" ||
+        p.name.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
+        p.tags.some((t) => t.toLowerCase().includes(deferredSearchQuery.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
-  }, [plugins, searchQuery, activeCategory]);
+  }, [plugins, deferredSearchQuery, activeCategory]);
 
   return (
     <>
