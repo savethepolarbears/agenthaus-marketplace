@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useDeferredValue } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import {
@@ -66,20 +66,26 @@ interface PluginGridProps {
 
 export default function PluginGrid({ plugins, categories }: PluginGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeCategory, setActiveCategory] = useState("all");
 
   const filtered = useMemo(() => {
+    // Optimization: Pre-compute lowercase query once to avoid repetitive .toLowerCase() in loop
+    const normalizedQuery = deferredSearchQuery.toLowerCase();
+
     return plugins.filter((p) => {
       const matchesCategory =
         activeCategory === "all" || p.category === activeCategory;
+
+      // Optimization: use deferred value to keep input responsive while filtering happens in background
       const matchesSearch =
-        searchQuery === "" ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+        normalizedQuery === "" ||
+        p.name.toLowerCase().includes(normalizedQuery) ||
+        p.description.toLowerCase().includes(normalizedQuery) ||
+        p.tags.some((t) => t.toLowerCase().includes(normalizedQuery));
       return matchesCategory && matchesSearch;
     });
-  }, [plugins, searchQuery, activeCategory]);
+  }, [plugins, deferredSearchQuery, activeCategory]);
 
   return (
     <>
