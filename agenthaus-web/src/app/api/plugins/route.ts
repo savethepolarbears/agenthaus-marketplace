@@ -1,6 +1,9 @@
 import { sql } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
+// Security limit for input parameters
+const MAX_INPUT_LENGTH = 100;
+
 export async function GET(request: NextRequest) {
   if (!sql) {
     return NextResponse.json(
@@ -14,6 +17,18 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search");
   const tag = searchParams.get("tag");
 
+  // Input validation: prevent DoS via excessively long inputs
+  if (
+    (category && category.length > MAX_INPUT_LENGTH) ||
+    (search && search.length > MAX_INPUT_LENGTH) ||
+    (tag && tag.length > MAX_INPUT_LENGTH)
+  ) {
+    return NextResponse.json(
+      { error: "Input parameters too long" },
+      { status: 400 }
+    );
+  }
+
   const conditions: string[] = [];
   const params: unknown[] = [];
   let paramIdx = 1;
@@ -23,10 +38,14 @@ export async function GET(request: NextRequest) {
     params.push(category);
   }
   if (search) {
+    // Sanitize search input: escape wildcards to treat as literal string search
+    // This prevents ReDoS or expensive wildcard queries if users input many % or _
+    const sanitizedSearch = search.replace(/[%_]/g, "\\$&");
+
     conditions.push(
       `(p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx})`
     );
-    params.push(`%${search}%`);
+    params.push(`%${sanitizedSearch}%`);
     paramIdx++;
   }
   if (tag) {
@@ -34,7 +53,8 @@ export async function GET(request: NextRequest) {
     params.push(tag);
   }
 
-  const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
+  const where =
+    conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
 
   const query = `
     SELECT p.*,
