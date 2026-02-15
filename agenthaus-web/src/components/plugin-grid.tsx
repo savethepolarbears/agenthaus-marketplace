@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useDeferredValue } from "react";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import {
@@ -27,6 +27,7 @@ import {
   Shield,
   Plug,
   Package,
+  X,
 } from "lucide-react";
 import type { StaticPlugin } from "@/lib/plugins-static";
 
@@ -68,6 +69,12 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeCategory, setActiveCategory] = useState("all");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    inputRef.current?.focus();
+  };
 
   // Bolt ⚡ Optimization: Defer the search query to prevent blocking the UI while typing
   // This keeps the input responsive even if filtering becomes expensive
@@ -99,14 +106,26 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
             size={20}
+            aria-hidden="true"
           />
           <input
+            ref={inputRef}
             type="text"
             placeholder="Search plugins by name, description, or tag..."
+            aria-label="Search plugins"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors"
+            className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors"
           />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+              aria-label="Clear search"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -116,6 +135,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
+            aria-pressed={activeCategory === cat}
             className={clsx(
               "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize",
               activeCategory === cat
