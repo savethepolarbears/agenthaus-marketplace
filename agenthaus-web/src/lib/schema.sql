@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS plugins (
   icon TEXT,
   tags TEXT[] DEFAULT '{}',
   install_count INTEGER DEFAULT 0,
+  share_count INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
