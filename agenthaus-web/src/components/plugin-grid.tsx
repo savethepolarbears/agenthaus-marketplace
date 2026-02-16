@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useDeferredValue } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import {
@@ -67,6 +67,8 @@ interface PluginGridProps {
 
 export default function PluginGrid({ plugins, categories }: PluginGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  // Bolt ⚡ Optimization: Defer the search query to prevent blocking the UI while typing
+  // This keeps the input responsive even if filtering becomes expensive
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [activeCategory, setActiveCategory] = useState("all");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,10 +77,6 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     setSearchQuery("");
     inputRef.current?.focus();
   };
-
-  // Bolt ⚡ Optimization: Defer the search query to prevent blocking the UI while typing
-  // This keeps the input responsive even if filtering becomes expensive
-  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const filtered = useMemo(() => {
     // Optimization: Pre-compute lowercase query once to avoid repetitive .toLowerCase() in loop
@@ -91,9 +89,9 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
       // Optimization: use deferred value to keep input responsive while filtering happens in background
       const matchesSearch =
         deferredSearchQuery === "" ||
-        p.name.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
-        p.tags.some((t) => t.toLowerCase().includes(deferredSearchQuery.toLowerCase()));
+        p.name.toLowerCase().includes(normalizedQuery) ||
+        p.description.toLowerCase().includes(normalizedQuery) ||
+        p.tags.some((t) => t.toLowerCase().includes(normalizedQuery));
       return matchesCategory && matchesSearch;
     });
   }, [plugins, deferredSearchQuery, activeCategory]);
@@ -111,6 +109,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           <input
             ref={inputRef}
             type="text"
+            maxLength={100}
             placeholder="Search plugins by name, description, or tag..."
             aria-label="Search plugins"
             value={searchQuery}
