@@ -108,7 +108,7 @@ export default async function Home() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-20">
+      <main id="main-content" className="max-w-7xl mx-auto px-6 py-20 scroll-mt-24">
         <h1 className="text-6xl font-extrabold mb-6 text-center bg-linear-to-br from-white via-gray-200 to-gray-500 bg-clip-text text-transparent leading-tight">
           Dock your agents.
           <br />

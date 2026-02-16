@@ -110,6 +110,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           <input
             ref={inputRef}
             type="text"
+            maxLength={100}
             placeholder="Search plugins by name, description, or tag..."
             aria-label="Search plugins"
             value={searchQuery}
