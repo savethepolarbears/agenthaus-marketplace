@@ -1,4 +1,5 @@
 import { sql } from "@/lib/db";
+import { isValidSlug } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -13,6 +14,10 @@ export async function GET(
   }
 
   const { slug } = await params;
+
+  if (!isValidSlug(slug)) {
+    return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
+  }
 
   const plugins = await sql`SELECT * FROM plugins WHERE slug = ${slug}`;
   if (plugins.length === 0) {
