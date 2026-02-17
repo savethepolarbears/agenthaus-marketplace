@@ -79,23 +79,34 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     inputRef.current?.focus();
   };
 
+  // Bolt ⚡ Optimization: Pre-compute lowercase search fields once to avoid repetitive .toLowerCase() in filter loop
+  // This reduces filter complexity from O(N * Fields) string operations to O(N) simple includes
+  const searchablePlugins = useMemo(() => {
+    return plugins.map((p) => ({
+      ...p,
+      _searchName: p.name.toLowerCase(),
+      _searchDesc: p.description.toLowerCase(),
+      _searchTags: p.tags.map((t) => t.toLowerCase()),
+    }));
+  }, [plugins]);
+
   const filtered = useMemo(() => {
     // Optimization: Pre-compute lowercase query once to avoid repetitive .toLowerCase() in loop
     const normalizedQuery = deferredSearchQuery.toLowerCase();
 
-    return plugins.filter((p) => {
+    return searchablePlugins.filter((p) => {
       const matchesCategory =
         activeCategory === "all" || p.category === activeCategory;
 
       // Optimization: use deferred value to keep input responsive while filtering happens in background
       const matchesSearch =
         normalizedQuery === "" ||
-        p.name.toLowerCase().includes(normalizedQuery) ||
-        p.description.toLowerCase().includes(normalizedQuery) ||
-        p.tags.some((t) => t.toLowerCase().includes(normalizedQuery));
+        p._searchName.includes(normalizedQuery) ||
+        p._searchDesc.includes(normalizedQuery) ||
+        p._searchTags.some((t) => t.includes(normalizedQuery));
       return matchesCategory && matchesSearch;
     });
-  }, [plugins, deferredSearchQuery, activeCategory]);
+  }, [searchablePlugins, deferredSearchQuery, activeCategory]);
 
   return (
     <>
