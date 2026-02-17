@@ -1,4 +1,5 @@
 import { sql } from "@/lib/db";
+import { isValidSlug } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -6,6 +7,10 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
+
+  if (!isValidSlug(slug)) {
+    return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
+  }
 
   if (!sql) {
     return NextResponse.json(
