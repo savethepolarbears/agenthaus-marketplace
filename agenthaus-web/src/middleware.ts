@@ -17,6 +17,29 @@ export function middleware(request: NextRequest) {
     "max-age=31536000; includeSubDomains"
   );
 
+  // Content Security Policy
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data:;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `;
+  // Replace newlines with spaces
+  const contentSecurityPolicyHeaderValue = cspHeader
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  response.headers.set(
+    "Content-Security-Policy",
+    contentSecurityPolicyHeaderValue
+  );
+
   return response;
 }
 
