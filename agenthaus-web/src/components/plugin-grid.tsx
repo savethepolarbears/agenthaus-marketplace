@@ -160,7 +160,11 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
       </div>
 
       {/* Results count */}
-      <p className="text-gray-500 text-sm mb-6 text-center">
+      <p
+        className="text-gray-500 text-sm mb-6 text-center"
+        role="status"
+        aria-live="polite"
+      >
         {filtered.length} plugin{filtered.length !== 1 ? "s" : ""} found
       </p>
 
@@ -176,7 +180,11 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl group-hover:from-cyan-500/30 group-hover:to-blue-500/30 transition-colors">
-                  <Icon className="text-cyan-400" size={22} />
+                  <Icon
+                    className="text-cyan-400"
+                    size={22}
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono bg-black/50 px-3 py-1.5 rounded-lg text-gray-400 border border-white/5 capitalize">
@@ -218,6 +226,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             onClick={() => {
               setSearchQuery("");
               setActiveCategory("all");
+              inputRef.current?.focus();
             }}
             className="mt-4 text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
           >
