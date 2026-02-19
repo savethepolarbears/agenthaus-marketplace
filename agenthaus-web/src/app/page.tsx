@@ -10,16 +10,8 @@ async function getPlugins(): Promise<StaticPlugin[]> {
 
   try {
     const rows = await sql`
-      SELECT p.*,
-        COALESCE(
-          json_agg(
-            json_build_object('type', pc.type, 'name', pc.name, 'description', pc.description)
-          ) FILTER (WHERE pc.id IS NOT NULL),
-          '[]'
-        ) as capabilities
+      SELECT p.*
       FROM plugins p
-      LEFT JOIN plugin_capabilities pc ON p.id = pc.plugin_id
-      GROUP BY p.id
       ORDER BY p.install_count DESC, p.name
     `;
 
@@ -36,10 +28,9 @@ async function getPlugins(): Promise<StaticPlugin[]> {
       tags: r.tags || [],
       install_count: r.install_count,
       icon: r.icon || guessIcon(r.slug),
-      capabilities:
-        typeof r.capabilities === "string"
-          ? JSON.parse(r.capabilities)
-          : r.capabilities || [],
+      // Bolt ⚡ Optimization: Don't fetch capabilities for list view
+      // This avoids expensive JOIN/GROUP BY operations on the main page
+      capabilities: [],
       env_vars: [],
     }));
   } catch {
