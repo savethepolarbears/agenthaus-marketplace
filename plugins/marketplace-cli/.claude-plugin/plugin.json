@@ -4,8 +4,12 @@
   "description": "Utility commands for searching and installing AgentHaus plugins.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["utility", "marketplace"],
+  "tags": [
+    "utility",
+    "marketplace"
+  ],
   "commands": [
     "./commands/search.md",
     "./commands/install.md",
