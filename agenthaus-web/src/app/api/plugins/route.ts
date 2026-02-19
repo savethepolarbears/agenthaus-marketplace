@@ -1,17 +1,11 @@
 import { sql } from "@/lib/db";
+import { isValidSlug } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 
 // Security limit for input parameters
 const MAX_INPUT_LENGTH = 100;
 
 export async function GET(request: NextRequest) {
-  if (!sql) {
-    return NextResponse.json(
-      { error: "Database not configured" },
-      { status: 503 }
-    );
-  }
-
   const { searchParams } = request.nextUrl;
   const category = searchParams.get("category");
   const search = searchParams.get("search");
@@ -26,6 +20,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { error: "Input parameters too long" },
       { status: 400 }
+    );
+  }
+
+  // Validate category and tag format to prevent injection or malformed queries
+  // We use isValidSlug because categories and tags follow slug format (lowercase, alphanumeric, hyphens)
+  if (category && !isValidSlug(category)) {
+    return NextResponse.json(
+      { error: "Invalid category format" },
+      { status: 400 }
+    );
+  }
+
+  if (tag && !isValidSlug(tag)) {
+    return NextResponse.json({ error: "Invalid tag format" }, { status: 400 });
+  }
+
+  if (!sql) {
+    return NextResponse.json(
+      { error: "Database not configured" },
+      { status: 503 }
     );
   }
 
