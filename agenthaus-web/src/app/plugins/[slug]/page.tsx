@@ -5,6 +5,7 @@ import { sql } from "@/lib/db";
 import { STATIC_PLUGINS } from "@/lib/plugins-static";
 import type { StaticPlugin } from "@/lib/plugins-static";
 import { ShareButton } from "@/components/share-button";
+import { isValidSlug } from "@/lib/validation";
 
 interface PluginDetail extends StaticPlugin {
   env_vars: { var_name: string; description: string; required: boolean }[];
@@ -12,6 +13,11 @@ interface PluginDetail extends StaticPlugin {
 }
 
 async function getPlugin(slug: string): Promise<PluginDetail | null> {
+  // Security: Validate slug format before database query to prevent DoS/abuse
+  if (!isValidSlug(slug)) {
+    return null;
+  }
+
   if (sql) {
     try {
       const rows = await sql`SELECT * FROM plugins WHERE slug = ${slug}`;
