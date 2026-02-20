@@ -2,101 +2,175 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/savethepolarbears/agenthaus-marketplace/schemas/plugin.schema.json",
   "title": "AgentHaus Plugin Manifest",
-  "description": "Schema for .claude-plugin/plugin.json in AgentHaus marketplace plugins",
+  "description": "Schema for .claude-plugin/plugin.json in AgentHaus marketplace plugins. Aligned with the official Claude Code plugin manifest specification.",
   "type": "object",
   "required": ["name", "version", "description"],
   "properties": {
     "name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]*$",
-      "description": "Plugin identifier in kebab-case"
+      "description": "Plugin identifier in kebab-case. Used as the skill namespace prefix (e.g., /my-plugin:command)."
     },
     "version": {
       "type": "string",
       "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-([0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*))?(\\+([0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*))?$",
-      "description": "Semantic version string"
+      "description": "Semantic version string (semver)"
     },
     "description": {
       "type": "string",
       "minLength": 10,
-      "description": "Human-readable plugin description"
+      "description": "Human-readable plugin description shown in the plugin manager"
     },
     "author": {
-      "type": "string",
-      "description": "Plugin author name or organization"
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Author name or organization"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Author contact email"
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Plugin author — string or object with name and optional email"
     },
     "homepage": {
       "type": "string",
       "format": "uri",
-      "description": "Plugin homepage or repository URL"
+      "description": "Plugin homepage or documentation URL"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "Source code repository URL"
     },
     "license": {
       "type": "string",
-      "description": "SPDX license identifier"
+      "description": "SPDX license identifier (e.g., MIT, Apache-2.0)"
     },
     "tags": {
       "type": "array",
-      "items": {
-        "type": "string"
-      },
+      "items": { "type": "string" },
       "description": "Categorization tags for marketplace discovery"
     },
-    "commands": {
+    "keywords": {
       "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Relative paths to command Markdown files"
+      "items": { "type": "string" },
+      "description": "Keywords for plugin search and categorization"
+    },
+    "commands": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      ],
+      "description": "Relative paths to command Markdown files or directories"
     },
     "agents": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      ],
       "description": "Relative paths to agent definition files"
     },
     "skills": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Relative paths to skill Markdown files"
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      ],
+      "description": "Relative paths to skill Markdown files (skills/<name>/SKILL.md)"
     },
     "hooks": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Relative paths to hook JSON files"
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        {
+          "type": "object",
+          "description": "Inline hooks configuration",
+          "additionalProperties": true
+        }
+      ],
+      "description": "Relative paths to hook JSON files or inline hooks configuration"
     },
     "mcpServers": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "required": ["command"],
-        "properties": {
-          "command": {
-            "type": "string",
-            "description": "Executable command to start the MCP server"
-          },
-          "args": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Arguments passed to the command"
-          },
-          "env": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "additionalProperties": {
             "type": "object",
-            "additionalProperties": {
-              "type": "string"
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Executable command to start the MCP server"
+              },
+              "args": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Arguments passed to the command"
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": { "type": "string" },
+                "description": "Environment variables for the MCP server. Use ${ENV_VAR} for secrets."
+              }
             },
-            "description": "Environment variables for the MCP server"
+            "additionalProperties": false
           }
-        },
-        "additionalProperties": false
-      },
-      "description": "MCP server configurations"
+        }
+      ],
+      "description": "MCP server configurations or path to .mcp.json"
+    },
+    "lspServers": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "LSP server executable command"
+              },
+              "args": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Arguments passed to the LSP server"
+              },
+              "extensionToLanguage": {
+                "type": "object",
+                "additionalProperties": { "type": "string" },
+                "description": "Map of file extensions to language identifiers"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ],
+      "description": "LSP server configurations for code intelligence"
     },
     "permissions": {
       "type": "object",

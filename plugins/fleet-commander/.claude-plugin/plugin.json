@@ -4,8 +4,19 @@
   "description": "Visualization and control of running agent sessions.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["orchestration", "monitoring", "multi-agent"],
-  "commands": ["./commands/fleet-status.md", "./commands/takeover.md", "./commands/dispatch.md"],
-  "agents": ["./agents/fleet-monitor.md"]
+  "tags": [
+    "orchestration",
+    "monitoring",
+    "multi-agent"
+  ],
+  "commands": [
+    "./commands/fleet-status.md",
+    "./commands/takeover.md",
+    "./commands/dispatch.md"
+  ],
+  "agents": [
+    "./agents/fleet-monitor.md"
+  ]
 }

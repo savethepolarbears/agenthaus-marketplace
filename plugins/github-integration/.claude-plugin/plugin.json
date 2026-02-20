@@ -4,8 +4,13 @@
   "description": "Full GitHub management: create/search issues and pull requests using GitHub's MCP server.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["devops", "github", "version-control"],
+  "tags": [
+    "devops",
+    "github",
+    "version-control"
+  ],
   "commands": [
     "./commands/issue.md",
     "./commands/pr.md"
@@ -13,7 +18,10 @@
   "mcpServers": {
     "github": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }

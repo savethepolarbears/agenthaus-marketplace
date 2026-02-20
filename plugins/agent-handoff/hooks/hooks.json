@@ -1,14 +1,15 @@
-[
-  {
-    "type": "PostToolUse",
-    "matcher": {
-      "tool_name": "Write",
-      "path_pattern": ".context/**/*.json"
-    },
-    "action": {
-      "type": "shell",
-      "command": "echo \"$(date -u +%Y-%m-%dT%H:%M:%SZ) | TASK_TRANSITION | file=$TOOL_INPUT_FILE_PATH\" >> .context/audit.log"
-    },
-    "description": "Log task file transitions to the audit log"
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | grep -q '\\.context/.*\\.json$' && echo \"$(date -u +%Y-%m-%dT%H:%M:%SZ) | TASK_TRANSITION | file=$(jq -r '.tool_input.file_path')\" >> .context/audit.log || true"
+          }
+        ]
+      }
+    ]
   }
-]
+}

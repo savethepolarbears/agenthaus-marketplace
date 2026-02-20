@@ -1,8 +1,8 @@
 # AgentHaus Marketplace
 
-> A comprehensive marketplace of **23 production-ready plugins** for Claude Code and Claude Cowork.
+> A comprehensive marketplace of **23 production-ready plugins** for [Claude Code](https://code.claude.com/docs/en/plugins).
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](./CHANGELOG.md)
 [![Plugins](https://img.shields.io/badge/plugins-23-green.svg)](#available-plugins)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
 
@@ -12,9 +12,14 @@
 # Add the marketplace to Claude Code
 /plugin marketplace add https://github.com/savethepolarbears/agenthaus-marketplace
 
-# Install any plugin
+# Browse available plugins
 /plugin install social-media@AgentHaus
+
+# Or install any plugin by name
+/plugin install circuit-breaker@AgentHaus
 ```
+
+> Requires Claude Code 1.0.33+. See the [official plugin docs](https://code.claude.com/docs/en/plugins) for setup help.
 
 ## Available Plugins
 
@@ -107,9 +112,24 @@ AgentHaus plugins use five capability types:
 
 - **Commands** — Slash commands (`/plugin:command`) defined as Markdown with YAML frontmatter
 - **Agents** — Subagents with dedicated models for specialized tasks
-- **Skills** — Multi-step workflow instructions that orchestrate MCP tools
+- **Skills** — Multi-step workflow instructions that Claude invokes based on context
 - **Hooks** — Event-driven shell commands triggered by `PreToolUse`/`PostToolUse` events
 - **MCP Servers** — Model Context Protocol servers providing tool access to external services
+
+### Plugin Directory Structure
+
+```text
+plugins/your-plugin/
+├── .claude-plugin/
+│   └── plugin.json          # Required: name, version, description
+├── .mcp.json                 # Optional: MCP server configs
+├── commands/                 # Optional: slash commands (Markdown)
+├── agents/                   # Optional: subagent definitions (Markdown)
+├── skills/                   # Optional: skill instructions (skills/<name>/SKILL.md)
+├── hooks/                    # Optional: event hooks (hooks.json)
+├── .lsp.json                 # Optional: LSP server configs
+└── README.md                 # Required: plugin documentation
+```
 
 ### Strategic Plugin Categories
 
@@ -128,6 +148,23 @@ cp .env.example .env
 ```
 
 See each plugin's README for specific environment variables.
+
+### Team Configuration
+
+Automatically prompt team members to install the marketplace when they trust the project folder by adding to `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "AgentHaus": {
+      "source": {
+        "source": "github",
+        "repo": "savethepolarbears/agenthaus-marketplace"
+      }
+    }
+  }
+}
+```
 
 ## Web Storefront
 
@@ -149,9 +186,22 @@ Run the plugin validation script to check all 23 plugins:
 bash scripts/validate-plugins.sh
 ```
 
+Or use Claude Code's built-in validation:
+
+```
+/plugin validate .
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the plugin development guide.
+
+## Resources
+
+- [Claude Code Plugin Docs](https://code.claude.com/docs/en/plugins) — Official plugin creation guide
+- [Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces) — Marketplace distribution guide
+- [Plugins Reference](https://code.claude.com/docs/en/plugins-reference) — Complete technical specification
+- [MCP Specification](https://spec.modelcontextprotocol.io/) — Model Context Protocol standard
 
 ## License
 
