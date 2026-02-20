@@ -99,14 +99,16 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 
 ### Plugin Files
 
-- **Manifest:** JSON in `.claude-plugin/plugin.json` with name, version, description, capabilities, tags
-- **Commands:** Markdown with YAML frontmatter (`name`, `description` fields)
+- **Manifest:** JSON in `.claude-plugin/plugin.json` with name, version, description, author, capabilities, tags
+- **Commands:** Markdown with YAML frontmatter (`description` field required; file/folder name becomes command name)
 - **Agents:** Markdown with YAML frontmatter (`name`, `description`, `model` fields)
-- **Skills:** Plain Markdown with step-by-step instructions
-- **Hooks:** JSON with event type (`PreToolUse`, `PostToolUse`), matchers, and shell command actions
+- **Skills:** Markdown in `skills/<name>/SKILL.md` with YAML frontmatter (`name`, `description` fields)
+- **Hooks:** JSON with `{ "hooks": { "PreToolUse": [...], "PostToolUse": [...] } }` format (object, not array)
 - **MCP configs:** JSON in `.mcp.json` with `mcpServers` object; use `${ENV_VAR}` for secrets
+- **LSP configs:** JSON in `.lsp.json` for language server protocol integrations
 - **Naming:** kebab-case for plugin directories and file names
 - **Versioning:** Semantic versioning (semver) for all plugins
+- **Path references:** Use `${CLAUDE_PLUGIN_ROOT}` for plugin-local scripts in hooks/MCP configs
 
 ### General Rules
 
@@ -125,7 +127,9 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 
 ### Plugin Testing
 
-- Manual testing via Claude Code: install plugin and verify commands/agents/MCP servers work
+- **Local testing:** Use `claude --plugin-dir ./plugins/your-plugin` to test without installation
+- **Built-in validation:** Run `/plugin validate .` or `claude plugin validate .`
+- **Repo validation:** Run `bash scripts/validate-plugins.sh` to check all plugins and marketplace
 - Verify `.claude-plugin/plugin.json` is valid JSON with required fields
 - Verify `.mcp.json` (if present) has valid `mcpServers` configuration
 - Test all environment variable references resolve correctly
@@ -142,9 +146,12 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 - **Never commit** API keys, tokens, or credentials
 - **Environment variables** for all secrets (see `.env.example` for full list)
 - Use `${ENV_VAR}` interpolation in MCP configs; never inline credentials
+- Use `${CLAUDE_PLUGIN_ROOT}` for plugin-local script references in hooks and MCP configs
 - `.env` and `.env.local` are in `.gitignore`
 - Validate inputs at system boundaries (user input, external APIs)
 - Plugin hooks run shell commands — review carefully for injection risks
+- Only use MCP servers from trusted providers; Anthropic does not audit third-party MCP servers
+- Don't reference files outside plugin directories — plugins are cached, `../` paths won't resolve
 
 ### Required Environment Variables by Plugin
 
@@ -209,8 +216,9 @@ plugins/your-plugin/
 ├── .mcp.json                # Optional: MCP server configs
 ├── commands/                # Optional: Slash commands (Markdown + YAML frontmatter)
 ├── agents/                  # Optional: Subagent definitions (Markdown + YAML frontmatter)
-├── skills/                  # Optional: Skill instructions (Markdown)
-├── hooks/                   # Optional: Event hooks (JSON)
+├── skills/                  # Optional: Skill instructions (skills/<name>/SKILL.md)
+├── hooks/                   # Optional: Event hooks (JSON, object format with "hooks" key)
+├── .lsp.json                # Optional: LSP server configs
 └── README.md                # Required: Plugin documentation
 ```
 

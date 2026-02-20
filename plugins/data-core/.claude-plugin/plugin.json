@@ -4,12 +4,21 @@
   "description": "Serverless Postgres database management via Neon.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["database", "postgres", "migrations"],
+  "tags": [
+    "database",
+    "postgres",
+    "migrations"
+  ],
   "mcpServers": {
     "postgres": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres", "${NEON_DATABASE_URL}"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${NEON_DATABASE_URL}"
+      ],
       "env": {}
     }
   }

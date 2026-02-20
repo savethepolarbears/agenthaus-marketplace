@@ -4,8 +4,13 @@
   "description": "Interact with your Notion workspace - search pages, query databases and create new content.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["knowledge", "notes", "wiki"],
+  "tags": [
+    "knowledge",
+    "notes",
+    "wiki"
+  ],
   "commands": [
     "./commands/search.md",
     "./commands/create-page.md"
@@ -13,7 +18,10 @@
   "mcpServers": {
     "notion": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-notion"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-notion"
+      ],
       "env": {
         "NOTION_API_KEY": "${NOTION_API_KEY}"
       }

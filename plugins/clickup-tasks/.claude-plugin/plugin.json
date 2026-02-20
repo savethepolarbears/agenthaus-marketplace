@@ -4,12 +4,19 @@
   "description": "Manage ClickUp tasks, lists and time tracking.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["productivity", "task-management"],
+  "tags": [
+    "productivity",
+    "task-management"
+  ],
   "mcpServers": {
     "clickup": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-clickup"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-clickup"
+      ],
       "env": {
         "CLICKUP_API_KEY": "${CLICKUP_API_KEY}"
       }

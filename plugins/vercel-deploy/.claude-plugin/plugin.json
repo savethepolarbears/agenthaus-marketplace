@@ -4,15 +4,23 @@
   "description": "Manage Vercel projects and deployments.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["deployment", "hosting", "vercel"],
+  "tags": [
+    "deployment",
+    "hosting",
+    "vercel"
+  ],
   "commands": [
     "./commands/deploy.md"
   ],
   "mcpServers": {
     "vercel": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-vercel"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-vercel"
+      ],
       "env": {
         "VERCEL_TOKEN": "${VERCEL_TOKEN}"
       }

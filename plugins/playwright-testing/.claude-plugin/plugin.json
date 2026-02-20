@@ -4,15 +4,23 @@
   "description": "End-to-end browser automation and testing using Playwright.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["testing", "e2e", "browser-automation"],
+  "tags": [
+    "testing",
+    "e2e",
+    "browser-automation"
+  ],
   "agents": [
     "./agents/qa-engineer.md"
   ],
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-playwright"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-playwright"
+      ]
     }
   }
 }

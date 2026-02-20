@@ -4,14 +4,29 @@
   "description": "Shared persistent memory across agent sessions using Neon Postgres.",
   "author": "AgentHaus Team",
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["memory", "persistence", "vector-search"],
-  "commands": ["./commands/remember.md", "./commands/recall.md", "./commands/forget.md"],
-  "skills": ["./skills/memory-protocol/SKILL.md"],
+  "tags": [
+    "memory",
+    "persistence",
+    "vector-search"
+  ],
+  "commands": [
+    "./commands/remember.md",
+    "./commands/recall.md",
+    "./commands/forget.md"
+  ],
+  "skills": [
+    "./skills/memory-protocol/SKILL.md"
+  ],
   "mcpServers": {
     "postgres": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres", "${NEON_DATABASE_URL}"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${NEON_DATABASE_URL}"
+      ],
       "env": {}
     }
   }
