@@ -4,39 +4,17 @@ import { STATIC_PLUGINS } from "@/lib/plugins-static";
 import type { StaticPlugin } from "@/lib/plugins-static";
 import PluginGrid from "@/components/plugin-grid";
 import { CommandCopy } from "@/components/command-copy";
+import { unstable_cache } from "next/cache";
 
-async function getPlugins(): Promise<StaticPlugin[]> {
-  if (!sql) return STATIC_PLUGINS;
-
-  try {
-    const rows = await sql`
-      SELECT p.*
-      FROM plugins p
-      ORDER BY p.install_count DESC, p.name
-    `;
-
-    if (rows.length === 0) return STATIC_PLUGINS;
-
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      slug: r.slug,
-      description: r.description,
-      version: r.version,
-      category: r.category,
-      author: r.author,
-      tags: r.tags || [],
-      install_count: r.install_count,
-      icon: r.icon || guessIcon(r.slug),
-      // Bolt ⚡ Optimization: Don't fetch capabilities for list view
-      // This avoids expensive JOIN/GROUP BY operations on the main page
-      capabilities: [],
-      env_vars: [],
-    }));
-  } catch {
-    return STATIC_PLUGINS;
-  }
-}
+// Helper to strip unused fields from static plugins
+// Bolt ⚡ Optimization: Strip capabilities and env_vars to reduce hydration payload size
+const getStaticPlugins = () => {
+  return STATIC_PLUGINS.map((p) => ({
+    ...p,
+    capabilities: [],
+    env_vars: [],
+  }));
+};
 
 function guessIcon(slug: string): string {
   const map: Record<string, string> = {
@@ -65,6 +43,54 @@ function guessIcon(slug: string): string {
     "openclaw-bridge": "Plug",
   };
   return map[slug] || "Package";
+}
+
+const fetchPluginsFromDB = async () => {
+  if (!sql) throw new Error("No database connection");
+
+  const rows = await sql`
+      SELECT p.*
+      FROM plugins p
+      ORDER BY p.install_count DESC, p.name
+    `;
+
+  if (rows.length === 0) return getStaticPlugins();
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    description: r.description,
+    version: r.version,
+    category: r.category,
+    author: r.author,
+    tags: r.tags || [],
+    install_count: r.install_count,
+    icon: r.icon || guessIcon(r.slug),
+    // Bolt ⚡ Optimization: Don't fetch capabilities for list view
+    // This avoids expensive JOIN/GROUP BY operations on the main page
+    capabilities: [],
+    env_vars: [],
+  }));
+};
+
+// Bolt ⚡ Optimization: Cache DB results to avoid round trips
+// Revalidate every hour
+const getCachedPluginsFromDB = unstable_cache(
+  fetchPluginsFromDB,
+  ["plugins-list"],
+  { revalidate: 3600, tags: ["plugins"] }
+);
+
+async function getPlugins(): Promise<StaticPlugin[]> {
+  if (!sql) return getStaticPlugins();
+
+  try {
+    return await getCachedPluginsFromDB();
+  } catch (error) {
+    console.error("Failed to fetch plugins from DB:", error);
+    return getStaticPlugins();
+  }
 }
 
 function getCategories(plugins: StaticPlugin[]): string[] {
