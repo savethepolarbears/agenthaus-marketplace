@@ -22,3 +22,13 @@ export function isValidSlug(slug: string): boolean {
   const slugRegex = /^[a-z0-9-]+$/;
   return slugRegex.test(slug);
 }
+
+// Removes control characters (like null bytes) and trims whitespace
+// to prevent injection attacks or database errors.
+export function sanitizeQuery(query: string): string {
+  if (!query || typeof query !== "string") {
+    return "";
+  }
+  // Remove ASCII control characters (0-31) and DEL (127)
+  return query.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+}
