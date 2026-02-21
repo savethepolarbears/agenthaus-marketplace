@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db";
-import { isValidSlug } from "@/lib/validation";
+import { isValidSlug, sanitizeQuery } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 
 // Security limit for input parameters
@@ -52,9 +52,10 @@ export async function GET(request: NextRequest) {
     params.push(category);
   }
   if (search) {
-    // Sanitize search input: escape wildcards to treat as literal string search
-    // This prevents ReDoS or expensive wildcard queries if users input many % or _
-    const sanitizedSearch = search.replace(/[%_]/g, "\\$&");
+    // Sanitize search input: remove control chars, trim, and escape wildcards
+    // This prevents null byte injection errors and ReDoS/expensive wildcard queries
+    const cleanSearch = sanitizeQuery(search);
+    const sanitizedSearch = cleanSearch.replace(/[%_]/g, "\\$&");
 
     conditions.push(
       `(p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx})`
