@@ -1,11 +1,21 @@
 import { sql } from "@/lib/db";
 import { isValidSlug } from "@/lib/validation";
+import { rateLimiter } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  // Rate limiting to prevent abuse
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  if (!rateLimiter.check(ip)) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    );
+  }
+
   const { slug } = await params;
 
   if (!isValidSlug(slug)) {
