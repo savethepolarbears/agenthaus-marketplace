@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useDeferredValue } from "react";
 import Link from "next/link";
 import clsx from "clsx";
+import { GridCommandCopy } from "@/components/grid-command-copy";
 import {
   Search,
   Download,
@@ -169,10 +170,9 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         {filtered.map((p) => {
           const Icon = getIcon(p.icon);
           return (
-            <Link
-              href={`/plugins/${p.slug}`}
+            <div
               key={p.slug}
-              className="group bg-gradient-to-br from-white/5 to-transparent border border-white/10 p-6 rounded-2xl hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 block"
+              className="group relative bg-gradient-to-br from-white/5 to-transparent border border-white/10 p-6 rounded-2xl hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl group-hover:from-cyan-500/30 group-hover:to-blue-500/30 transition-colors">
@@ -190,13 +190,18 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
               </div>
 
               <h3 className="text-lg font-bold mb-2 group-hover:text-cyan-400 transition-colors">
-                {p.name}
+                <Link
+                  href={`/plugins/${p.slug}`}
+                  className="before:absolute before:inset-0 focus:outline-none"
+                >
+                  {p.name}
+                </Link>
               </h3>
               <p className="text-gray-400 text-sm mb-4 leading-relaxed line-clamp-2">
                 {p.description}
               </p>
 
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 mt-auto">
                 <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded">
                   v{p.version}
                 </span>
@@ -206,10 +211,8 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
                 </span>
               </div>
 
-              <div className="bg-black/80 p-3 rounded-lg text-xs font-mono text-gray-500 border border-white/5 group-hover:border-cyan-500/20 transition-colors">
-                /plugin install {p.slug}
-              </div>
-            </Link>
+              <GridCommandCopy command={`/plugin install ${p.slug}`} />
+            </div>
           );
         })}
       </div>
