@@ -7,11 +7,67 @@ import type { StaticPlugin } from "@/lib/plugins-static";
 import { ShareButton } from "@/components/share-button";
 import { CommandCopy } from "@/components/command-copy";
 import { isValidSlug } from "@/lib/validation";
+import { unstable_cache } from "next/cache";
 
 interface PluginDetail extends StaticPlugin {
   env_vars: { var_name: string; description: string; required: boolean }[];
   share_count?: number;
 }
+
+const fetchPluginFromDB = async (
+  slug: string
+): Promise<PluginDetail | null> => {
+  if (!sql) return null;
+
+  try {
+    const rows = await sql`SELECT * FROM plugins WHERE slug = ${slug}`;
+    if (rows.length === 0) return null;
+
+    const p = rows[0];
+
+    // Bolt ⚡ Optimization: Fetch capabilities and env vars in parallel
+    // This reduces latency by running independent queries concurrently
+    const [capabilities, envVars] = await Promise.all([
+      sql`
+          SELECT type, name, description
+          FROM plugin_capabilities
+          WHERE plugin_id = ${p.id}
+        `,
+      sql`
+          SELECT var_name, description, required
+          FROM plugin_env_vars
+          WHERE plugin_id = ${p.id}
+        `,
+    ]);
+
+    return {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      description: p.description,
+      version: p.version,
+      category: p.category,
+      author: p.author,
+      tags: p.tags || [],
+      install_count: p.install_count,
+      share_count: p.share_count || 0,
+      icon: p.icon || "",
+      capabilities: capabilities as PluginDetail["capabilities"],
+      env_vars: envVars as PluginDetail["env_vars"],
+    };
+  } catch (error) {
+    console.error("Error fetching plugin from DB:", error);
+    return null;
+  }
+};
+
+// Bolt ⚡ Optimization: Cache plugin details to avoid repeated DB hits
+// Revalidate every hour
+const getCachedPluginFromDB = unstable_cache(
+  fetchPluginFromDB,
+  ["plugin-detail"],
+  { revalidate: 3600, tags: ["plugin"] }
+);
 
 async function getPlugin(slug: string): Promise<PluginDetail | null> {
   // Security: Validate slug format before database query to prevent DoS/abuse
@@ -20,42 +76,8 @@ async function getPlugin(slug: string): Promise<PluginDetail | null> {
   }
 
   if (sql) {
-    try {
-      const rows = await sql`SELECT * FROM plugins WHERE slug = ${slug}`;
-      if (rows.length > 0) {
-        const p = rows[0];
-
-        const capabilities = await sql`
-          SELECT type, name, description
-          FROM plugin_capabilities
-          WHERE plugin_id = ${p.id}
-        `;
-
-        const envVars = await sql`
-          SELECT var_name, description, required
-          FROM plugin_env_vars
-          WHERE plugin_id = ${p.id}
-        `;
-
-        return {
-          id: p.id,
-          name: p.name,
-          slug: p.slug,
-          description: p.description,
-          version: p.version,
-          category: p.category,
-          author: p.author,
-          tags: p.tags || [],
-          install_count: p.install_count,
-          share_count: p.share_count || 0,
-          icon: p.icon || "",
-          capabilities: capabilities as PluginDetail["capabilities"],
-          env_vars: envVars as PluginDetail["env_vars"],
-        };
-      }
-    } catch {
-      // Fall through to static
-    }
+    const plugin = await getCachedPluginFromDB(slug);
+    if (plugin) return plugin;
   }
 
   const found = STATIC_PLUGINS.find((p) => p.slug === slug);
