@@ -31,8 +31,7 @@ export function GridCommandCopy({ command, className }: GridCommandCopyProps) {
         "w-full text-left bg-black/80 p-3 rounded-lg text-xs font-mono text-gray-500 border border-white/5 group-hover:border-cyan-500/20 transition-all cursor-pointer flex items-center justify-between gap-2 hover:text-gray-300 hover:bg-black/90 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-cyan-500/50 relative z-10",
         className
       )}
-      aria-label="Copy install command"
-      title="Click to copy"
+      aria-label={`Copy command: ${command}`}
     >
       <span className="truncate font-mono select-all">{command}</span>
       <span className="shrink-0 text-cyan-500" aria-hidden="true">

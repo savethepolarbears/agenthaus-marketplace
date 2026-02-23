@@ -172,7 +172,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           return (
             <div
               key={p.slug}
-              className="group relative bg-gradient-to-br from-white/5 to-transparent border border-white/10 p-6 rounded-2xl hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col"
+              className="group relative bg-gradient-to-br from-white/5 to-transparent border border-white/10 p-6 rounded-2xl hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col has-[a:focus-visible]:border-cyan-500 has-[a:focus-visible]:ring-1 has-[a:focus-visible]:ring-cyan-500 has-[a:focus-visible]:shadow-lg has-[a:focus-visible]:shadow-cyan-500/20"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl group-hover:from-cyan-500/30 group-hover:to-blue-500/30 transition-colors">
