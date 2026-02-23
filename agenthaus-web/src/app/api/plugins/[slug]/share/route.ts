@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 import { isValidSlug } from "@/lib/validation";
-import { rateLimiter } from "@/lib/rate-limit";
+import { rateLimiter, getIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   // Rate limiting to prevent abuse
-  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const ip = getIp(request);
   if (!rateLimiter.check(ip)) {
     return NextResponse.json(
       { error: "Too many requests" },
