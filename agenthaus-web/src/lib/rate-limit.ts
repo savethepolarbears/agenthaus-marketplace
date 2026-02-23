@@ -1,3 +1,5 @@
+import { NextRequest } from "next/server";
+
 export class RateLimiter {
   private ipMap: Map<string, { count: number; resetTime: number }>;
   private limit: number;
@@ -43,5 +45,17 @@ export class RateLimiter {
   }
 }
 
-// Default instance: 10 requests per minute
+// Default instance: 10 requests per minute (strict actions like sharing)
 export const rateLimiter = new RateLimiter(10, 60000);
+
+// Search limiter: 60 requests per minute (browsing/searching)
+export const searchLimiter = new RateLimiter(60, 60000);
+
+// Helper to extract client IP from request, handling x-forwarded-for proxy chain
+export function getIp(req: NextRequest): string {
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+  return "unknown";
+}

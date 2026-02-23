@@ -1,11 +1,20 @@
 import { sql } from "@/lib/db";
 import { isValidSlug, sanitizeQuery } from "@/lib/validation";
+import { searchLimiter, getIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 // Security limit for input parameters
 const MAX_INPUT_LENGTH = 100;
 
 export async function GET(request: NextRequest) {
+  // Rate limiting to prevent DoS
+  if (!searchLimiter.check(getIp(request))) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    );
+  }
+
   const { searchParams } = request.nextUrl;
   const category = searchParams.get("category");
   const search = searchParams.get("search");
