@@ -70,12 +70,12 @@ export function ShareButton({ slug, name, initialShareCount = 0 }: ShareButtonPr
     >
       {copied ? (
         <>
-          <Check size={16} className="text-green-400" />
+          <Check size={16} className="text-green-400" aria-hidden="true" />
           <span className="text-green-400">Copied!</span>
         </>
       ) : (
         <>
-          <Share2 size={16} className="group-hover:text-cyan-400 transition-colors" />
+          <Share2 size={16} className="group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
           <span>Share</span>
           {shareCount > 0 && (
             <span className="bg-white/10 px-1.5 py-0.5 rounded text-xs text-gray-400">

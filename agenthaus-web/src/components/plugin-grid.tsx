@@ -206,7 +206,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
                   v{p.version}
                 </span>
                 <span className="flex items-center gap-1 text-xs text-gray-500">
-                  <Download size={12} />
+                  <Download size={12} aria-hidden="true" />
                   {p.install_count}
                 </span>
               </div>

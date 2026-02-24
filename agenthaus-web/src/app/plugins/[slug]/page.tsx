@@ -146,14 +146,14 @@ export default async function PluginDetailPage({
           href="/"
           className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors mb-8"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} aria-hidden="true" />
           Back to marketplace
         </Link>
 
         {/* Header */}
         <div className="flex items-start gap-6 mb-10">
           <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl shrink-0">
-            <Package className="text-cyan-400" size={36} />
+            <Package className="text-cyan-400" size={36} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-2">
@@ -170,7 +170,7 @@ export default async function PluginDetailPage({
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <span>by {plugin.author}</span>
                 <span className="flex items-center gap-1">
-                  <Download size={14} />
+                  <Download size={14} aria-hidden="true" />
                   {plugin.install_count} installs
                 </span>
               </div>
