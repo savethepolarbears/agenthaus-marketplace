@@ -53,6 +53,14 @@ export const searchLimiter = new RateLimiter(60, 60000);
 
 // Helper to extract client IP from request, handling x-forwarded-for proxy chain
 export function getIp(req: NextRequest): string {
+  // Use platform-provided IP if available (e.g. Vercel, Edge Runtime)
+  // This is safer than parsing x-forwarded-for manually as it prevents spoofing
+  // @ts-ignore - NextRequest.ip is available in Next.js 13+ but sometimes missing from types
+  if (req.ip) {
+    // @ts-ignore
+    return req.ip;
+  }
+
   const forwardedFor = req.headers.get("x-forwarded-for");
   if (forwardedFor) {
     return forwardedFor.split(",")[0].trim();
