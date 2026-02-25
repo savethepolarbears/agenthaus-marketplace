@@ -77,7 +77,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           {searchQuery && (
             <button
               onClick={clearSearch}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded-md"
               aria-label="Clear search"
             >
               <X size={20} />
@@ -94,7 +94,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             onClick={() => setActiveCategory(cat)}
             aria-pressed={activeCategory === cat}
             className={clsx(
-              "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize",
+              "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50",
               activeCategory === cat
                 ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-400"
                 : "bg-white/5 border border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300"

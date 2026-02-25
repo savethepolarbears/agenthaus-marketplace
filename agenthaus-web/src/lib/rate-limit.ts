@@ -23,14 +23,23 @@ export class RateLimiter {
       });
 
       // Cleanup old entries (simple mechanism: if map gets too large)
-      // For simplicity, we can clear the whole map if it exceeds a threshold (e.g., 10k entries)
-      // to prevent memory leak in long-running processes.
+      // First, remove only expired entries to preserve active limits (including blocked attackers).
+      // If still too large, clear the whole map to prevent memory leak.
       if (this.ipMap.size > 10000) {
-        this.ipMap.clear();
-        this.ipMap.set(ip, {
-          count: 1,
-          resetTime: now + this.windowMs,
-        });
+        for (const [key, value] of this.ipMap.entries()) {
+          if (now > value.resetTime) {
+            this.ipMap.delete(key);
+          }
+        }
+
+        if (this.ipMap.size > 10000) {
+          this.ipMap.clear();
+          // Re-add current user because they are active
+          this.ipMap.set(ip, {
+            count: 1,
+            resetTime: now + this.windowMs,
+          });
+        }
       }
 
       return true;
@@ -53,6 +62,14 @@ export const searchLimiter = new RateLimiter(60, 60000);
 
 // Helper to extract client IP from request, handling x-forwarded-for proxy chain
 export function getIp(req: NextRequest): string {
+  // Use platform-provided IP if available (e.g. Vercel, Edge Runtime)
+  // This is safer than parsing x-forwarded-for manually as it prevents spoofing
+  // @ts-ignore - NextRequest.ip is available in Next.js 13+ but sometimes missing from types
+  if (req.ip) {
+    // @ts-ignore
+    return req.ip;
+  }
+
   const forwardedFor = req.headers.get("x-forwarded-for");
   if (forwardedFor) {
     return forwardedFor.split(",")[0].trim();

@@ -65,17 +65,17 @@ export function ShareButton({ slug, name, initialShareCount = 0 }: ShareButtonPr
   return (
     <button
       onClick={handleShare}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium text-gray-300 hover:text-white group"
+      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium text-gray-300 hover:text-white group focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
       aria-label={copied ? "Copied!" : "Share plugin"}
     >
       {copied ? (
         <>
-          <Check size={16} className="text-green-400" />
+          <Check size={16} className="text-green-400" aria-hidden="true" />
           <span className="text-green-400">Copied!</span>
         </>
       ) : (
         <>
-          <Share2 size={16} className="group-hover:text-cyan-400 transition-colors" />
+          <Share2 size={16} className="group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
           <span>Share</span>
           {shareCount > 0 && (
             <span className="bg-white/10 px-1.5 py-0.5 rounded text-xs text-gray-400">
