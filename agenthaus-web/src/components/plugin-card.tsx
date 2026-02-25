@@ -4,6 +4,7 @@ import { memo } from "react";
 import Link from "next/link";
 import { GridCommandCopy } from "@/components/grid-command-copy";
 import {
+  Search,
   Download,
   Share2,
   Github,
@@ -11,7 +12,6 @@ import {
   Rocket,
   Zap,
   FileText,
-  Search,
   BookOpen,
   CheckSquare,
   LayoutDashboard,
@@ -63,9 +63,8 @@ interface PluginCardProps {
   plugin: StaticPlugin;
 }
 
-export const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
+const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
   const Icon = getIcon(plugin.icon);
-
   return (
     <div
       className="group relative bg-gradient-to-br from-white/5 to-transparent border border-white/10 p-6 rounded-2xl hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col has-[a:focus-visible]:border-cyan-500 has-[a:focus-visible]:ring-1 has-[a:focus-visible]:ring-cyan-500 has-[a:focus-visible]:shadow-lg has-[a:focus-visible]:shadow-cyan-500/20"
@@ -102,7 +101,7 @@ export const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) 
           v{plugin.version}
         </span>
         <span className="flex items-center gap-1 text-xs text-gray-500">
-          <Download size={12} aria-hidden="true" />
+          <Download size={12} />
           {plugin.install_count}
         </span>
       </div>
@@ -111,3 +110,5 @@ export const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) 
     </div>
   );
 });
+
+export default PluginCard;

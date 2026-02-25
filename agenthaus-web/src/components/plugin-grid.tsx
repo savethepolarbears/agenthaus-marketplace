@@ -2,9 +2,13 @@
 
 import { useState, useMemo, useRef, useDeferredValue } from "react";
 import clsx from "clsx";
-import { Search, X, Package } from "lucide-react";
+import PluginCard from "./plugin-card";
+import {
+  Search,
+  Package,
+  X,
+} from "lucide-react";
 import type { StaticPlugin } from "@/lib/plugins-static";
-import { PluginCard } from "./plugin-card";
 
 interface PluginGridProps {
   plugins: StaticPlugin[];
