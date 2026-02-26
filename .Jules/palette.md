@@ -11,3 +11,7 @@
 ## 2026-02-24 - [Focus-Visible Reveal Pattern]
 **Learning:** When an icon is hidden by default and shown on hover (via `group-hover`), adding `focus-visible:[&_svg]:opacity-100` to the parent button ensures keyboard users also see the icon when they tab to the button, without needing complex group-focus selectors.
 **Action:** Use `focus-visible:[&_svg]:opacity-100` on icon buttons that have hover-reveal icons.
+
+## 2026-02-25 - [Dual-State Tooltip Pattern]
+**Learning:** For prominent icon buttons, providing a "Copy to clipboard" tooltip on hover/focus (before interaction) improves discoverability and confidence, while "Copied!" (after interaction) confirms success. Using `group-hover` and `group-focus-visible` on an absolute positioned span within a relative button allows this without complex state management.
+**Action:** Use this dual-state tooltip pattern for copy/action buttons to provide both guidance and feedback.
