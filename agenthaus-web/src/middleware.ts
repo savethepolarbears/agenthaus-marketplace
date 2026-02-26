@@ -1,6 +1,24 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Bolt ⚡ Optimization: Compute CSP header once at module load time
+// This prevents unnecessary regex operations on every request
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data:;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `;
+const contentSecurityPolicyHeaderValue = cspHeader
+  .replace(/\s{2,}/g, " ")
+  .trim();
+
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
@@ -16,24 +34,6 @@ export function middleware(request: NextRequest) {
     "Strict-Transport-Security",
     "max-age=31536000; includeSubDomains"
   );
-
-  // Content Security Policy
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data:;
-    font-src 'self';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    upgrade-insecure-requests;
-  `;
-  // Replace newlines with spaces
-  const contentSecurityPolicyHeaderValue = cspHeader
-    .replace(/\s{2,}/g, " ")
-    .trim();
 
   response.headers.set(
     "Content-Security-Policy",
