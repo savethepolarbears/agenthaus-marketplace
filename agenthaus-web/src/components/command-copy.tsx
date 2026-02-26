@@ -34,20 +34,30 @@ export function CommandCopy({ command, className }: CommandCopyProps) {
       <span className="flex-1 overflow-x-auto scrollbar-hide whitespace-nowrap">
         {command}
       </span>
-      <span className="sr-only">{copied ? "Copied!" : "Copy to clipboard"}</span>
+
+      {/* Accessible label for the action */}
+      <span className="sr-only">Copy command to clipboard</span>
+
+      {/* Live region for status updates */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {copied ? "Copied!" : ""}
+      </span>
+
       <div className="text-gray-500 group-hover:text-white transition-colors shrink-0" aria-hidden="true">
         {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
       </div>
 
-      {/* Tooltip feedback */}
+      {/* Visual Tooltip feedback */}
       <span
-        role="status"
         className={clsx(
-          "absolute -top-10 right-0 text-xs font-sans bg-black/90 text-white px-3 py-1.5 rounded-lg transition-all duration-200 pointer-events-none border border-white/10 shadow-lg translate-y-2",
-          copied ? "opacity-100 translate-y-0" : "opacity-0"
+          "absolute -top-10 right-0 text-xs font-sans bg-black/90 text-white px-3 py-1.5 rounded-lg transition-all duration-200 pointer-events-none border border-white/10 shadow-lg",
+          copied
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 group-focus-visible:opacity-100 group-focus-visible:translate-y-0"
         )}
+        aria-hidden="true"
       >
-        {copied ? "Copied!" : ""}
+        {copied ? "Copied!" : "Copy to clipboard"}
       </span>
     </button>
   );
