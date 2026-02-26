@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db";
-import { isValidSlug, sanitizeQuery } from "@/lib/validation";
+import { isValidSlug, sanitizeQuery, escapeLikeString } from "@/lib/validation";
 import { searchLimiter, getIp } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     // Sanitize search input: remove control chars, trim, and escape wildcards
     // This prevents null byte injection errors and ReDoS/expensive wildcard queries
     const cleanSearch = sanitizeQuery(search);
-    const sanitizedSearch = cleanSearch.replace(/[%_]/g, "\\$&");
+    const sanitizedSearch = escapeLikeString(cleanSearch);
 
     conditions.push(
       `(p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx})`
