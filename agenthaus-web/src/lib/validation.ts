@@ -32,3 +32,15 @@ export function sanitizeQuery(query: string): string {
   // Remove ASCII control characters (0-31) and DEL (127)
   return query.replace(/[\u0000-\u001F\u007F]/g, "").trim();
 }
+
+/**
+ * Escapes special characters for SQL LIKE/ILIKE queries to prevent
+ * wildcard injection and potential ReDoS.
+ * Escapes '%' and '_'.
+ */
+export function escapeLikeString(query: string): string {
+  if (!query || typeof query !== "string") {
+    return "";
+  }
+  return query.replace(/[%_]/g, "\\$&");
+}

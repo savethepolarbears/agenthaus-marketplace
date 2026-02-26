@@ -1,4 +1,4 @@
-import { sanitizeQuery } from "../src/lib/validation";
+import { sanitizeQuery, escapeLikeString } from "../src/lib/validation";
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -40,5 +40,25 @@ assert(sanitizeQuery(null as any) === "", "Null input should return empty string
 
 // Test 10: Undefined input
 assert(sanitizeQuery(undefined as any) === "", "Undefined input should return empty string");
+
+console.log("Testing escapeLikeString...");
+
+// Test 11: No wildcards
+assert(escapeLikeString("hello") === "hello", "String without wildcards should remain unchanged");
+
+// Test 12: Escape %
+assert(escapeLikeString("100%") === "100\\%", "% should be escaped");
+
+// Test 13: Escape _
+assert(escapeLikeString("user_name") === "user\\_name", "_ should be escaped");
+
+// Test 14: Escape mixed
+assert(escapeLikeString("100%_sure") === "100\\%\\_sure", "Mixed wildcards should be escaped");
+
+// Test 15: Null input
+assert(escapeLikeString(null as any) === "", "Null input should return empty string");
+
+// Test 16: Undefined input
+assert(escapeLikeString(undefined as any) === "", "Undefined input should return empty string");
 
 console.log("All tests passed!");
