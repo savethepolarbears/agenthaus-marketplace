@@ -229,7 +229,7 @@ Users must have the language server binary installed on their machine.
 
 Use Claude Code's built-in validation from within a session:
 
-```
+```bash
 /plugin validate .
 ```
 

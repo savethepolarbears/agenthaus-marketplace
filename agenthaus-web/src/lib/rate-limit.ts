@@ -23,22 +23,28 @@ export class RateLimiter {
       });
 
       // Cleanup old entries (simple mechanism: if map gets too large)
-      // First, remove only expired entries to preserve active limits (including blocked attackers).
-      // If still too large, remove the oldest 1000 entries (LRU approximation via iteration order).
+      // Bolt ⚡ Optimization: Avoid O(N) iteration of entire map.
+      // 1. Iterate up to 1000 entries to remove expired ones.
+      // 2. If still full, evict oldest 1000 entries (FIFO via Map iterator order) instead of clearing all.
+      // This prevents latency spikes and preserves most active rate limits.
       if (this.ipMap.size > 10000) {
+        let checked = 0;
         for (const [key, value] of this.ipMap.entries()) {
           if (now > value.resetTime) {
             this.ipMap.delete(key);
           }
+          checked++;
+          if (checked >= 1000) break;
         }
 
         if (this.ipMap.size > 10000) {
-          // Remove oldest 1000 entries to prevent memory leak but keep most active limits
-          let removedCount = 0;
+          let evicted = 0;
           for (const key of this.ipMap.keys()) {
+            // Don't delete the current user's entry we just added/updated
+            if (key === ip) continue;
             this.ipMap.delete(key);
-            removedCount++;
-            if (removedCount >= 1000) break;
+            evicted++;
+            if (evicted >= 1000) break;
           }
         }
       }

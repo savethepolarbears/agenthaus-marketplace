@@ -57,5 +57,12 @@ venv/
 # Claude Code settings
 .claude/settings.local.json
 
+# Agent journals
+.Jules/
+.jules/
+
+# Lock file conflicts (project uses npm/package-lock.json)
+pnpm-lock.yaml
+
 # Generated files
 *.zip

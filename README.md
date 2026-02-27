@@ -188,7 +188,7 @@ bash scripts/validate-plugins.sh
 
 Or use Claude Code's built-in validation:
 
-```
+```bash
 /plugin validate .
 ```
 
