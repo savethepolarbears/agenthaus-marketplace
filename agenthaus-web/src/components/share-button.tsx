@@ -1,6 +1,6 @@
 "use client";
 
-import { Share2, Check } from "lucide-react";
+import { Share2, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 interface ShareButtonProps {
@@ -11,41 +11,10 @@ interface ShareButtonProps {
 
 export function ShareButton({ slug, name, initialShareCount = 0 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [shareCount, setShareCount] = useState(initialShareCount);
 
-  const handleShare = async () => {
-    // Generate the share link
-    const url = `${window.location.origin}/plugins/${slug}?ref=share`;
-    const text = `Check out ${name} on AgentHaus`;
-
-    // Try to use the native share API first
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `AgentHaus - ${name}`,
-          text: text,
-          url: url,
-        });
-        // If share was successful, increment count
-        await incrementShareCount();
-        return;
-      } catch (err) {
-        // Fallback to clipboard if share was cancelled or failed
-        console.log("Share cancelled or failed, falling back to clipboard", err);
-      }
-    }
-
-    // Fallback: Copy to clipboard
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      await incrementShareCount();
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
+  // Helper function to increment share count
   const incrementShareCount = async () => {
     try {
       const res = await fetch(`/api/plugins/${slug}/share`, {
@@ -62,13 +31,63 @@ export function ShareButton({ slug, name, initialShareCount = 0 }: ShareButtonPr
     }
   };
 
+  // Helper function for clipboard fallback
+  const fallbackToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      await incrementShareCount();
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const handleShare = async () => {
+    if (isSharing) return;
+    setIsSharing(true);
+
+    try {
+      // Generate the share link
+      const url = `${window.location.origin}/plugins/${slug}?ref=share`;
+      const text = `Check out ${name} on AgentHaus`;
+
+      // Try to use the native share API first
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `AgentHaus - ${name}`,
+            text: text,
+            url: url,
+          });
+          // If share was successful, increment count
+          await incrementShareCount();
+        } catch (err) {
+          // Fallback to clipboard if share was cancelled or failed
+          console.log("Share cancelled or failed, falling back to clipboard", err);
+          await fallbackToClipboard(url);
+        }
+      } else {
+        await fallbackToClipboard(url);
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   return (
     <button
       onClick={handleShare}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium text-gray-300 hover:text-white group focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
-      aria-label={copied ? "Copied!" : "Share plugin"}
+      disabled={isSharing}
+      className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium text-gray-300 hover:text-white group focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 min-w-[100px] disabled:opacity-50 disabled:cursor-wait"
+      aria-label={copied ? "Copied!" : isSharing ? "Sharing..." : "Share plugin"}
     >
-      {copied ? (
+      {isSharing ? (
+        <>
+          <Loader2 size={16} className="animate-spin text-cyan-400" aria-hidden="true" />
+          <span>Sharing...</span>
+        </>
+      ) : copied ? (
         <>
           <Check size={16} className="text-green-400" aria-hidden="true" />
           <span className="text-green-400">Copied!</span>
@@ -84,6 +103,10 @@ export function ShareButton({ slug, name, initialShareCount = 0 }: ShareButtonPr
           )}
         </>
       )}
+      {/* Live region for status updates */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {copied ? "Link copied to clipboard" : ""}
+      </span>
     </button>
   );
 }
