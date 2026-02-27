@@ -24,7 +24,7 @@ export class RateLimiter {
 
       // Cleanup old entries (simple mechanism: if map gets too large)
       // First, remove only expired entries to preserve active limits (including blocked attackers).
-      // If still too large, clear the whole map to prevent memory leak.
+      // If still too large, remove the oldest 1000 entries (LRU approximation via iteration order).
       if (this.ipMap.size > 10000) {
         for (const [key, value] of this.ipMap.entries()) {
           if (now > value.resetTime) {
@@ -33,12 +33,13 @@ export class RateLimiter {
         }
 
         if (this.ipMap.size > 10000) {
-          this.ipMap.clear();
-          // Re-add current user because they are active
-          this.ipMap.set(ip, {
-            count: 1,
-            resetTime: now + this.windowMs,
-          });
+          // Remove oldest 1000 entries to prevent memory leak but keep most active limits
+          let removedCount = 0;
+          for (const key of this.ipMap.keys()) {
+            this.ipMap.delete(key);
+            removedCount++;
+            if (removedCount >= 1000) break;
+          }
         }
       }
 
