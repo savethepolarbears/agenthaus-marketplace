@@ -159,7 +159,7 @@ Result: plugins/slack-notify/
 ## Common Mistakes
 
 | Mistake | Fix |
-|---------|-----|
+| ------- | --- |
 | Using glob patterns in plugin.json paths | Use explicit file paths: `"./commands/deploy.md"` not `"./commands/*.md"` |
 | Missing `author`, `homepage`, `license` fields | All are required by the marketplace standard — include them in every manifest |
 | Skills not in `skill-name/SKILL.md` directory format | Skills must be a directory containing `SKILL.md`, not a standalone `.md` file |

@@ -133,7 +133,7 @@ After publishing:
 ## Common Mistakes
 
 | Mistake | Fix |
-|---------|-----|
+| ------- | --- |
 | Plugin name mismatch between plugin.json and marketplace.json | Copy the exact `name` value from plugin.json |
 | Using developer jargon in the marketplace description | Write user-facing language — "Manage GitHub issues and PRs" not "MCP server wrapper for GitHub API" |
 | Forgetting to stage marketplace.json in the commit | Always `git add .claude-plugin/marketplace.json` alongside the plugin directory |
