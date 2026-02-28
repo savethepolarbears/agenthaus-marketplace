@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useDeferredValue } from "react";
+import { useState, useMemo, useRef, useDeferredValue, useEffect } from "react";
 import clsx from "clsx";
 import PluginCard from "./plugin-card";
 import {
@@ -28,6 +28,23 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     setSearchQuery("");
     inputRef.current?.focus();
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Focus search input when "/" is pressed, unless user is already in an input
+      if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA"
+      ) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Bolt ⚡ Optimization: Pre-compute a single search string for each plugin.
   // This reduces filter complexity from O(N * (Fields + Tags)) to O(N) by eliminating nested loops and multiple includes checks.
@@ -74,6 +91,13 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors"
           />
+          {!searchQuery && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+              <kbd className="hidden sm:inline-block px-2 py-0.5 text-xs font-sans font-medium bg-white/5 border border-white/10 rounded-md text-gray-400">
+                /
+              </kbd>
+            </div>
+          )}
           {searchQuery && (
             <button
               onClick={clearSearch}

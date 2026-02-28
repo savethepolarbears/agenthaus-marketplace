@@ -117,7 +117,7 @@ export default async function Home() {
         <div className="flex gap-6 text-sm text-gray-400 items-center">
           <Link
             href="/"
-            className="hover:text-cyan-400 cursor-pointer transition-colors"
+            className="hover:text-cyan-400 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded"
           >
             Registry
           </Link>
@@ -125,7 +125,7 @@ export default async function Home() {
             href="https://code.claude.com/docs/en/plugins"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-cyan-400 cursor-pointer transition-colors"
+            className="hover:text-cyan-400 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded"
           >
             Docs
           </a>
@@ -133,7 +133,7 @@ export default async function Home() {
             href="https://github.com/savethepolarbears/agenthaus-marketplace/blob/main/CONTRIBUTING.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/30 cursor-pointer transition-all text-cyan-400"
+            className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/30 cursor-pointer transition-all text-cyan-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
           >
             Submit Plugin
           </a>
