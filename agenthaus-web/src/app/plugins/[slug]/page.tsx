@@ -144,7 +144,7 @@ export default async function PluginDetailPage({
       <main className="max-w-4xl mx-auto px-6 py-12">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors mb-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded"
         >
           <ArrowLeft size={16} aria-hidden="true" />
           Back to marketplace

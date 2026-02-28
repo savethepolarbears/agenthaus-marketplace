@@ -35,23 +35,7 @@ export async function GET(
     return NextResponse.json({ error: "Plugin not found" }, { status: 404 });
   }
 
-  const plugin = plugins[0];
+  const plugin = rows[0];
 
-  const capabilities = await sql`
-    SELECT type, name, description
-    FROM plugin_capabilities
-    WHERE plugin_id = ${plugin.id}
-  `;
-
-  const envVars = await sql`
-    SELECT var_name, description, required
-    FROM plugin_env_vars
-    WHERE plugin_id = ${plugin.id}
-  `;
-
-  return NextResponse.json({
-    ...plugin,
-    capabilities,
-    env_vars: envVars,
-  });
+  return NextResponse.json(plugin);
 }
