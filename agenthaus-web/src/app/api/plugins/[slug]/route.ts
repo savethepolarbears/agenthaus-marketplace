@@ -35,7 +35,7 @@ export async function GET(
     return NextResponse.json({ error: "Plugin not found" }, { status: 404 });
   }
 
-  const plugin = rows[0];
+  const plugin = plugins[0];
 
   return NextResponse.json(plugin);
 }
