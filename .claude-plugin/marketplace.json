@@ -5,8 +5,8 @@
     "email": "support@agenthaus.dev"
   },
   "metadata": {
-    "description": "A comprehensive marketplace of 23 production-ready plugins for Claude Code. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, and safety.",
-    "version": "3.1.0",
+    "description": "A comprehensive marketplace of 24 production-ready plugins for Claude Code. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, and SEO/GEO/RAG optimization.",
+    "version": "3.2.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -192,6 +192,14 @@
       "category": "integration",
       "description": "Convert AgentHaus plugins to OpenClaw skill format and provide remote control via messaging.",
       "keywords": ["integration", "openclaw", "conversion", "interoperability"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "seo-geo-rag",
+      "source": "./plugins/seo-geo-rag",
+      "category": "seo",
+      "description": "Six-phase SEO, GEO, and RAG optimization skill. Audits metadata, generates llms.txt and AI-FAQ.md, injects JSON-LD schemas, and optimizes projects for Traditional Search, AI search engines, and LLM RAG ingestion.",
+      "keywords": ["seo", "geo", "rag", "llms-txt", "metadata", "json-ld", "structured-data", "ai-search", "discoverability"],
       "author": { "name": "AgentHaus Team" }
     }
   ]
