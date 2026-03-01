@@ -1,0 +1,326 @@
+{
+  "_instructions": "Google-compliant JSON-LD schema templates. Replace all UPPERCASE_PLACEHOLDER values with actual data. Remove fields marked OPTIONAL if data is unavailable. Inject via <script type='application/ld+json'> in <head>. Validate at https://search.google.com/test/rich-results",
+
+  "Article": {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "ARTICLE_TITLE_MAX_110_CHARS",
+    "description": "ARTICLE_META_DESCRIPTION_MAX_155_CHARS",
+    "image": {
+      "@type": "ImageObject",
+      "url": "https://DOMAIN/og-image-1200x630.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    "datePublished": "YYYY-MM-DDTHH:MM:SS+00:00",
+    "dateModified": "YYYY-MM-DDTHH:MM:SS+00:00",
+    "author": {
+      "@type": "Person",
+      "name": "AUTHOR_FULL_NAME",
+      "url": "https://DOMAIN/author/AUTHOR_SLUG",
+      "jobTitle": "AUTHOR_JOB_TITLE",
+      "sameAs": [
+        "https://twitter.com/AUTHOR_HANDLE",
+        "https://www.linkedin.com/in/AUTHOR_LINKEDIN"
+      ]
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "BRAND_NAME",
+      "url": "https://DOMAIN",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://DOMAIN/logo-600x60.png",
+        "width": 600,
+        "height": 60
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://DOMAIN/ARTICLE_SLUG"
+    },
+    "wordCount": 0,
+    "articleSection": "CATEGORY_NAME",
+    "keywords": ["KEYWORD_1", "KEYWORD_2", "KEYWORD_3"]
+  },
+
+  "FAQPage": {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "QUESTION_TEXT_AS_NATURAL_LANGUAGE_QUERY",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ANSWER_TEXT_BLUF_FORMAT_2_TO_4_SENTENCES_MAX"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "QUESTION_TEXT_2",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ANSWER_TEXT_2"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "QUESTION_TEXT_3",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ANSWER_TEXT_3"
+        }
+      }
+    ],
+    "_note": "Add up to 8 Question objects. Questions must mirror real 'People Also Ask' phrasing. Answers must be self-contained — no references to 'the section above'."
+  },
+
+  "LocalBusiness": {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "_subtypes_note": "Replace @type with a specific subtype for richer results: Restaurant, MedicalClinic, LegalService, AutomotiveBusiness, etc.",
+    "name": "BUSINESS_LEGAL_NAME",
+    "description": "BUSINESS_DESCRIPTION_MAX_155_CHARS",
+    "url": "https://DOMAIN",
+    "telephone": "+1-AREA-EXCHANGE-NUMBER",
+    "email": "contact@DOMAIN",
+    "priceRange": "$$",
+    "image": [
+      "https://DOMAIN/business-photo-1.jpg",
+      "https://DOMAIN/business-photo-2.jpg"
+    ],
+    "logo": "https://DOMAIN/logo.png",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "STREET_NUMBER STREET_NAME",
+      "addressLocality": "CITY",
+      "addressRegion": "STATE_OR_PROVINCE",
+      "postalCode": "ZIP_OR_POSTAL",
+      "addressCountry": "US"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 0.0,
+      "longitude": 0.0
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "09:00",
+        "closes": "17:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "10:00",
+        "closes": "15:00"
+      }
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "127",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "sameAs": [
+      "https://www.facebook.com/BUSINESS_PAGE",
+      "https://www.yelp.com/biz/BUSINESS_SLUG",
+      "https://g.co/kgs/GOOGLE_BUSINESS_ID"
+    ]
+  },
+
+  "Product": {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "PRODUCT_NAME",
+    "description": "PRODUCT_DESCRIPTION_BENEFITS_FOCUSED_MAX_300_CHARS",
+    "image": [
+      "https://DOMAIN/product-front-800x800.jpg",
+      "https://DOMAIN/product-side-800x800.jpg",
+      "https://DOMAIN/product-detail-800x800.jpg"
+    ],
+    "sku": "PRODUCT_SKU",
+    "mpn": "MANUFACTURER_PART_NUMBER",
+    "gtin13": "OPTIONAL_13_DIGIT_BARCODE",
+    "brand": {
+      "@type": "Brand",
+      "name": "BRAND_NAME"
+    },
+    "manufacturer": {
+      "@type": "Organization",
+      "name": "MANUFACTURER_NAME"
+    },
+    "category": "PRODUCT_CATEGORY",
+    "color": "OPTIONAL_COLOR",
+    "material": "OPTIONAL_MATERIAL",
+    "offers": {
+      "@type": "Offer",
+      "url": "https://DOMAIN/products/PRODUCT_SLUG",
+      "priceCurrency": "USD",
+      "price": "0.00",
+      "priceValidUntil": "YYYY-MM-DD",
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": "https://schema.org/InStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "BRAND_NAME"
+      },
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingRate": {
+          "@type": "MonetaryAmount",
+          "value": "0",
+          "currency": "USD"
+        },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 0,
+            "maxValue": 1,
+            "unitCode": "DAY"
+          },
+          "transitTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 3,
+            "maxValue": 7,
+            "unitCode": "DAY"
+          }
+        }
+      },
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "applicableCountry": "US",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+        "merchantReturnDays": 30,
+        "returnMethod": "https://schema.org/ReturnByMail"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.7",
+      "reviewCount": "89",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "review": [
+      {
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "REVIEWER_NAME"
+        },
+        "reviewBody": "REVIEW_TEXT",
+        "datePublished": "YYYY-MM-DD"
+      }
+    ]
+  },
+
+  "BreadcrumbList": {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://DOMAIN"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "CATEGORY_NAME",
+        "item": "https://DOMAIN/CATEGORY_SLUG"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "SUBCATEGORY_OR_PAGE_NAME",
+        "item": "https://DOMAIN/CATEGORY_SLUG/PAGE_SLUG"
+      }
+    ],
+    "_note": "Add or remove ListItem objects to match actual URL depth. Position must be sequential integers starting at 1. The last item's 'item' URL is optional (current page) but recommended."
+  },
+
+  "WebSite": {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "BRAND_NAME",
+    "url": "https://DOMAIN",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://DOMAIN/search?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "_note": "Add to homepage only. Enables Google Sitelinks Search Box in SERPs."
+  },
+
+  "Organization": {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "BRAND_LEGAL_NAME",
+    "url": "https://DOMAIN",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://DOMAIN/logo-600x60.png",
+      "width": 600,
+      "height": 60
+    },
+    "description": "BRAND_DESCRIPTION_MAX_155_CHARS",
+    "foundingDate": "YYYY",
+    "numberOfEmployees": {
+      "@type": "QuantitativeValue",
+      "minValue": 0,
+      "maxValue": 0
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "CITY",
+      "addressRegion": "STATE",
+      "addressCountry": "US"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "support@DOMAIN",
+      "availableLanguage": "English"
+    },
+    "sameAs": [
+      "https://twitter.com/BRAND_HANDLE",
+      "https://www.linkedin.com/company/BRAND_SLUG",
+      "https://github.com/BRAND_GITHUB"
+    ]
+  },
+
+  "SoftwareApplication": {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "APP_NAME",
+    "operatingSystem": "Web, iOS, Android",
+    "applicationCategory": "DeveloperApplication",
+    "description": "APP_DESCRIPTION_MAX_155_CHARS",
+    "url": "https://DOMAIN",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "512"
+    },
+    "_note": "Use applicationCategory values from schema.org/SoftwareApplication#applicationCategory"
+  }
+}
