@@ -1,0 +1,28 @@
+{
+  "name": "seo-geo-rag",
+  "version": "1.0.0",
+  "description": "Six-phase SEO, Generative Engine Optimization (GEO), and RAG optimization skill. Audits metadata variables, generates llms.txt and AI-FAQ.md, injects JSON-LD structured data, and optimizes codebases for Traditional Search, AI search engines (Perplexity, ChatGPT, Google AI Overviews), and LLM RAG ingestion (Cursor, Copilot, Windsurf).",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "seo",
+    "geo",
+    "rag",
+    "llms-txt",
+    "metadata",
+    "json-ld",
+    "structured-data",
+    "ai-search",
+    "discoverability"
+  ],
+  "skills": [
+    "./skills/seo-geo-rag-optimizer/SKILL.md"
+  ],
+  "commands": [
+    "./commands/audit.md",
+    "./commands/generate-llms.md",
+    "./commands/generate-faq.md"
+  ]
+}
