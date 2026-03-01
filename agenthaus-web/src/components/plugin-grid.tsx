@@ -31,6 +31,9 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip during IME composition (CJK input)
+      if (e.isComposing) return;
+
       // Focus search input when "/" is pressed, unless user is already in an input
       if (
         e.key === "/" &&
@@ -39,6 +42,11 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
       ) {
         e.preventDefault();
         inputRef.current?.focus();
+      }
+
+      // Blur search input on Escape for full keyboard accessibility
+      if (e.key === "Escape" && document.activeElement === inputRef.current) {
+        inputRef.current?.blur();
       }
     };
 
@@ -87,6 +95,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             maxLength={100}
             placeholder="Search plugins by name, description, or tag..."
             aria-label="Search plugins"
+            aria-keyshortcuts="/"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors"

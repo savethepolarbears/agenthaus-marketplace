@@ -1,19 +1,17 @@
 import { sql } from "@/lib/db";
 import { isValidSlug } from "@/lib/validation";
-import { rateLimiter, getIp } from "@/lib/rate-limit";
+import { rateLimiter, getIp, rateLimitResponse } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   // Rate limiting to prevent abuse
   const ip = getIp(request);
-  if (!rateLimiter.check(ip)) {
-    return NextResponse.json(
-      { error: "Too many requests" },
-      { status: 429 }
-    );
+  const rateCheck = rateLimiter.check(ip);
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck.resetTime, 10);
   }
 
   const { slug } = await params;
@@ -25,7 +23,7 @@ export async function POST(
   if (!sql) {
     return NextResponse.json(
       { error: "Database not configured" },
-      { status: 503 }
+      { status: 503 },
     );
   }
 
@@ -46,7 +44,7 @@ export async function POST(
     console.error("Error incrementing share count:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
