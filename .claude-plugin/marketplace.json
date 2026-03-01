@@ -5,7 +5,7 @@
     "email": "support@agenthaus.dev"
   },
   "metadata": {
-    "description": "A comprehensive marketplace of 24 production-ready plugins for Claude Code. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, and SEO/GEO/RAG optimization.",
+    "description": "A comprehensive marketplace of 23 production-ready plugins for Claude Code. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, and SEO/GEO/RAG optimization.",
     "version": "3.2.0",
     "pluginRoot": "./plugins"
   },
@@ -15,7 +15,13 @@
       "source": "./plugins/social-media",
       "category": "content",
       "description": "Generate high-engagement posts for Twitter, LinkedIn, Instagram and Facebook with trend analysis and content-writer agents.",
-      "keywords": ["content", "social-media", "marketing", "twitter", "linkedin"],
+      "keywords": [
+        "content",
+        "social-media",
+        "marketing",
+        "twitter",
+        "linkedin"
+      ],
       "author": { "name": "AgentHaus Team" }
     },
     {
@@ -23,7 +29,13 @@
       "source": "./plugins/github-integration",
       "category": "devops",
       "description": "Manage GitHub issues and pull requests through custom commands and the GitHub MCP server.",
-      "keywords": ["devops", "github", "version-control", "issues", "pull-requests"],
+      "keywords": [
+        "devops",
+        "github",
+        "version-control",
+        "issues",
+        "pull-requests"
+      ],
       "author": { "name": "AgentHaus Team" }
     },
     {
@@ -39,7 +51,12 @@
       "source": "./plugins/clickup-tasks",
       "category": "productivity",
       "description": "Create and manage ClickUp tasks, lists and time tracking using the ClickUp MCP server.",
-      "keywords": ["productivity", "clickup", "task-management", "project-management"],
+      "keywords": [
+        "productivity",
+        "clickup",
+        "task-management",
+        "project-management"
+      ],
       "author": { "name": "AgentHaus Team" }
     },
     {
@@ -111,7 +128,13 @@
       "source": "./plugins/qa-droid",
       "category": "qa",
       "description": "Automated QA workflow with Playwright testing, Slack/Gmail result notifications, and test report generation.",
-      "keywords": ["testing", "qa", "playwright", "automation", "notifications"],
+      "keywords": [
+        "testing",
+        "qa",
+        "playwright",
+        "automation",
+        "notifications"
+      ],
       "author": { "name": "AgentHaus Team" }
     },
     {
@@ -119,7 +142,13 @@
       "source": "./plugins/data-core",
       "category": "database",
       "description": "Advanced Neon/Postgres database operations with migration support and query optimization.",
-      "keywords": ["database", "postgres", "neon", "migrations", "optimization"],
+      "keywords": [
+        "database",
+        "postgres",
+        "neon",
+        "migrations",
+        "optimization"
+      ],
       "author": { "name": "AgentHaus Team" }
     },
     {
@@ -143,7 +172,12 @@
       "source": "./plugins/agent-handoff",
       "category": "orchestration",
       "description": "State-based task handoff between agents using a shared blackboard protocol for multi-agent workflows.",
-      "keywords": ["orchestration", "multi-agent", "blackboard", "task-handoff"],
+      "keywords": [
+        "orchestration",
+        "multi-agent",
+        "blackboard",
+        "task-handoff"
+      ],
       "author": { "name": "AgentHaus Team" }
     },
     {
@@ -175,7 +209,13 @@
       "source": "./plugins/fleet-commander",
       "category": "orchestration",
       "description": "Visualization and control of running agent sessions with task board monitoring and dispatch.",
-      "keywords": ["orchestration", "monitoring", "fleet", "sessions", "dispatch"],
+      "keywords": [
+        "orchestration",
+        "monitoring",
+        "fleet",
+        "sessions",
+        "dispatch"
+      ],
       "author": { "name": "AgentHaus Team" }
     },
     {
@@ -199,7 +239,17 @@
       "source": "./plugins/seo-geo-rag",
       "category": "seo",
       "description": "Six-phase SEO, GEO, and RAG optimization skill. Audits metadata, generates llms.txt and AI-FAQ.md, injects JSON-LD schemas, and optimizes projects for Traditional Search, AI search engines, and LLM RAG ingestion.",
-      "keywords": ["seo", "geo", "rag", "llms-txt", "metadata", "json-ld", "structured-data", "ai-search", "discoverability"],
+      "keywords": [
+        "seo",
+        "geo",
+        "rag",
+        "llms-txt",
+        "metadata",
+        "json-ld",
+        "structured-data",
+        "ai-search",
+        "discoverability"
+      ],
       "author": { "name": "AgentHaus Team" }
     }
   ]
