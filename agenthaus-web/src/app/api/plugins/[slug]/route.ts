@@ -30,12 +30,21 @@ export async function GET(
     );
   }
 
-  const plugins = await sql`SELECT * FROM plugins WHERE slug = ${slug}`;
-  if (plugins.length === 0) {
-    return NextResponse.json({ error: "Plugin not found" }, { status: 404 });
+  try {
+    const plugins = await sql`SELECT * FROM plugins WHERE slug = ${slug}`;
+    if (plugins.length === 0) {
+      return NextResponse.json({ error: "Plugin not found" }, { status: 404 });
+    }
+
+    const plugin = plugins[0];
+
+    return NextResponse.json(plugin);
+  } catch (error) {
+    // Security: Log internally but do not leak error stack trace to the client
+    console.error(`Database error fetching plugin ${slug}:`, error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
-
-  const plugin = rows[0];
-
-  return NextResponse.json(plugin);
 }

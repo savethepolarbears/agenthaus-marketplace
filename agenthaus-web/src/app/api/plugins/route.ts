@@ -95,6 +95,15 @@ export async function GET(request: NextRequest) {
     ORDER BY p.install_count DESC, p.name
   `;
 
-  const plugins = await sql(query, params);
-  return NextResponse.json(plugins);
+  try {
+    const plugins = await sql(query, params);
+    return NextResponse.json(plugins);
+  } catch (error) {
+    // Security: Log internally but do not leak error stack trace to the client
+    console.error("Database error in /api/plugins:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
