@@ -1,3 +1,9 @@
+---
+description: Rules for the AgentHaus marketplace registry
+activation: glob
+glob: "**marketplace.json"
+---
+
 # Marketplace Rules
 
 Rules for the AgentHaus marketplace registry.

@@ -1,3 +1,9 @@
+---
+description: Rules for creating Claude Code and Cowork plugins
+activation: glob
+glob: "plugins/**"
+---
+
 # Plugin Development Rules
 
 Rules for creating Claude Code and Cowork plugins within this repository.
