@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Terminal, Download, Package } from "lucide-react";
+import { ArrowLeft, Download, Package } from "lucide-react";
 import { sql } from "@/lib/db";
 import { STATIC_PLUGINS } from "@/lib/plugins-static";
 import type { StaticPlugin } from "@/lib/plugins-static";
 import { ShareButton } from "@/components/share-button";
 import { CommandCopy } from "@/components/command-copy";
+import Navbar from "@/components/navbar";
 import { isValidSlug } from "@/lib/validation";
 import { unstable_cache } from "next/cache";
 
@@ -129,17 +130,8 @@ export default async function PluginDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
-      <nav className="border-b border-white/10 p-6 flex justify-between bg-black/50 backdrop-blur-xl sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/25">
-            <Terminal size={20} className="text-white" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-            AgentHaus
-          </span>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-linear-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
+      <Navbar showLinks={false} />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <Link
@@ -152,7 +144,7 @@ export default async function PluginDetailPage({
 
         {/* Header */}
         <div className="flex items-start gap-6 mb-10">
-          <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl shrink-0">
+          <div className="p-4 bg-linear-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl shrink-0">
             <Package className="text-cyan-400" size={36} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
