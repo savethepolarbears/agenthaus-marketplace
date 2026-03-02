@@ -1,3 +1,8 @@
+---
+description: Code and file quality standards for the repository
+activation: always_on
+---
+
 # Code Quality Rules
 
 Standards for code and file quality in this repository.
