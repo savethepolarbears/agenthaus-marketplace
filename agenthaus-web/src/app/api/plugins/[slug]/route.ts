@@ -62,9 +62,7 @@ export async function GET(
       WHERE p.slug = ${slug}
     `;
 
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "Plugin not found" }, { status: 404 });
-    }
+  const plugin = plugins[0];
 
     return NextResponse.json(rows[0]);
   } catch (error) {

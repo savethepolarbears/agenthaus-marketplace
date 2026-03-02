@@ -73,9 +73,10 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         activeCategory === "all" || p.category === activeCategory;
 
       // Optimization: use deferred value to keep input responsive while filtering happens in background
+      if (!matchesCategory) return false;
       const matchesSearch =
         normalizedQuery === "" || p._searchText.includes(normalizedQuery);
-      return matchesCategory && matchesSearch;
+      return matchesSearch;
     });
   }, [searchablePlugins, deferredSearchQuery, activeCategory]);
 
