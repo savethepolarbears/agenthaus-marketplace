@@ -157,7 +157,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
 
       {filtered.length === 0 && (
         <div className="text-center py-20">
-          <Package className="mx-auto text-gray-600 mb-4" size={48} />
+          <Package className="mx-auto text-gray-600 mb-4" size={48} aria-hidden="true" />
           <p className="text-gray-500 text-lg">No plugins match your search.</p>
           <button
             onClick={() => {
@@ -165,7 +165,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
               setActiveCategory("all");
               inputRef.current?.focus();
             }}
-            className="mt-4 text-cyan-400 hover:text-cyan-300 text-sm transition-colors"
+            className="mt-4 text-cyan-400 hover:text-cyan-300 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded"
           >
             Clear filters
           </button>

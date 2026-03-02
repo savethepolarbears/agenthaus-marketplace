@@ -100,8 +100,12 @@ const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
         <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded">
           v{plugin.version}
         </span>
-        <span className="flex items-center gap-1 text-xs text-gray-500">
-          <Download size={12} />
+        <span
+          className="flex items-center gap-1 text-xs text-gray-500"
+          title={`${plugin.install_count} installs`}
+        >
+          <Download size={12} aria-hidden="true" />
+          <span className="sr-only">Installs: </span>
           {plugin.install_count}
         </span>
       </div>
