@@ -62,8 +62,6 @@ export async function GET(
       WHERE p.slug = ${slug}
     `;
 
-  const plugin = plugins[0];
-
     return NextResponse.json(rows[0]);
   } catch (error) {
     // Security: Log internally but do not leak error stack trace to the client
