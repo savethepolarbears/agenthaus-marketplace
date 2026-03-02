@@ -1,5 +1,20 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Simple in-memory rate limiter using a fixed-window counter per IP.
+ *
+ * TODO: PRODUCTION MIGRATION — This in-memory Map is acceptable for development
+ * and low-traffic single-instance deployments, but it will NOT work correctly in
+ * serverless or edge environments because:
+ *   1. Each cold start resets all counters
+ *   2. Distributed nodes maintain separate Maps (no shared state)
+ *   3. Under sustained attack the Map can grow unbounded between cleanup cycles
+ *
+ * For production, migrate to:
+ *   - Upstash Redis (`@upstash/ratelimit`) — edge-compatible, sliding window
+ *   - Vercel KV — if deployed on Vercel
+ *   - Or apply rate limiting at the middleware/CDN layer instead
+ */
 export class RateLimiter {
   private ipMap: Map<string, { count: number; resetTime: number }>;
   private limit: number;
@@ -11,22 +26,28 @@ export class RateLimiter {
     this.windowMs = windowMs;
   }
 
-  check(ip: string): boolean {
+  /**
+   * Check whether the given IP is within the rate limit.
+   * Returns an object with `allowed`, `remaining` count, and `resetTime` (epoch ms).
+   */
+  check(ip: string): {
+    allowed: boolean;
+    remaining: number;
+    resetTime: number;
+  } {
     const now = Date.now();
     const entry = this.ipMap.get(ip);
 
     // If no entry or window expired, reset
     if (!entry || now > entry.resetTime) {
+      const resetTime = now + this.windowMs;
       this.ipMap.set(ip, {
         count: 1,
-        resetTime: now + this.windowMs,
+        resetTime,
       });
 
-      // Cleanup old entries (simple mechanism: if map gets too large)
-      // Bolt ⚡ Optimization: Avoid O(N) iteration of entire map.
-      // 1. Iterate up to 1000 entries to remove expired ones.
-      // 2. If still full, evict oldest 1000 entries (FIFO via Map iterator order) instead of clearing all.
-      // This prevents latency spikes and preserves most active rate limits.
+      // Cleanup old entries when map gets too large
+      // Iterate up to 1000 entries to remove expired ones, then evict oldest if still full
       if (this.ipMap.size > 10000) {
         let checked = 0;
         for (const [key, value] of this.ipMap.entries()) {
@@ -40,7 +61,6 @@ export class RateLimiter {
         if (this.ipMap.size > 10000) {
           let evicted = 0;
           for (const key of this.ipMap.keys()) {
-            // Don't delete the current user's entry we just added/updated
             if (key === ip) continue;
             this.ipMap.delete(key);
             evicted++;
@@ -49,15 +69,19 @@ export class RateLimiter {
         }
       }
 
-      return true;
+      return { allowed: true, remaining: this.limit - 1, resetTime };
     }
 
     if (entry.count >= this.limit) {
-      return false;
+      return { allowed: false, remaining: 0, resetTime: entry.resetTime };
     }
 
     entry.count += 1;
-    return true;
+    return {
+      allowed: true,
+      remaining: this.limit - entry.count,
+      resetTime: entry.resetTime,
+    };
   }
 }
 
@@ -82,4 +106,28 @@ export function getIp(req: NextRequest): string {
     return forwardedFor.split(",")[0].trim();
   }
   return "unknown";
+}
+
+/**
+ * Creates a standardized 429 Too Many Requests response with proper headers.
+ * Includes Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset.
+ */
+export function rateLimitResponse(
+  resetTime: number,
+  limit: number,
+): NextResponse {
+  const retryAfterSeconds = Math.ceil((resetTime - Date.now()) / 1000);
+
+  return NextResponse.json(
+    { error: "Too many requests" },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(Math.max(retryAfterSeconds, 1)),
+        "X-RateLimit-Limit": String(limit),
+        "X-RateLimit-Remaining": "0",
+        "X-RateLimit-Reset": String(Math.ceil(resetTime / 1000)),
+      },
+    },
+  );
 }

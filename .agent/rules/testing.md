@@ -1,3 +1,8 @@
+---
+description: Verification standards for plugins and marketplace changes
+activation: model_decision
+---
+
 # Testing Rules
 
 Verification standards for plugins and marketplace changes.

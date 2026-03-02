@@ -1,6 +1,6 @@
 import { sql } from "@/lib/db";
 import { isValidSlug, sanitizeQuery, escapeLikeString } from "@/lib/validation";
-import { searchLimiter, getIp } from "@/lib/rate-limit";
+import { searchLimiter, getIp, rateLimitResponse } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
 // Security limit for input parameters
@@ -8,11 +8,9 @@ const MAX_INPUT_LENGTH = 100;
 
 export async function GET(request: NextRequest) {
   // Rate limiting to prevent DoS
-  if (!searchLimiter.check(getIp(request))) {
-    return NextResponse.json(
-      { error: "Too many requests" },
-      { status: 429 }
-    );
+  const rateCheck = searchLimiter.check(getIp(request));
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck.resetTime, 60);
   }
 
   const { searchParams } = request.nextUrl;
@@ -28,7 +26,7 @@ export async function GET(request: NextRequest) {
   ) {
     return NextResponse.json(
       { error: "Input parameters too long" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -37,7 +35,7 @@ export async function GET(request: NextRequest) {
   if (category && !isValidSlug(category)) {
     return NextResponse.json(
       { error: "Invalid category format" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -48,7 +46,7 @@ export async function GET(request: NextRequest) {
   if (!sql) {
     return NextResponse.json(
       { error: "Database not configured" },
-      { status: 503 }
+      { status: 503 },
     );
   }
 
@@ -67,7 +65,7 @@ export async function GET(request: NextRequest) {
     const sanitizedSearch = escapeLikeString(cleanSearch);
 
     conditions.push(
-      `(p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx})`
+      `(p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx})`,
     );
     params.push(`%${sanitizedSearch}%`);
     paramIdx++;
@@ -95,6 +93,15 @@ export async function GET(request: NextRequest) {
     ORDER BY p.install_count DESC, p.name
   `;
 
-  const plugins = await sql(query, params);
-  return NextResponse.json(plugins);
+  try {
+    const plugins = await sql(query, params);
+    return NextResponse.json(plugins);
+  } catch (error) {
+    // Security: Log internally but do not leak error stack trace to the client
+    console.error("Database error in /api/plugins:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
 }

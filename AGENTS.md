@@ -8,7 +8,7 @@ This file provides guidance to AI coding assistants working in this repository.
 
 A marketplace of 23 production-ready plugins for Claude Code and Claude Cowork. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend AI assistant capabilities.
 
-**Repository:** https://github.com/savethepolarbears/agenthaus-marketplace
+**Repository:** <https://github.com/savethepolarbears/agenthaus-marketplace>
 
 ## Architecture
 
@@ -78,6 +78,7 @@ No build step for plugins. They are Markdown/JSON configurations consumed direct
 ### Script Consistency
 
 When modifying npm scripts in `agenthaus-web/package.json`, ensure all references are updated in:
+
 - README.md installation instructions
 - Any deployment configurations
 - CI/CD pipelines (if added)
@@ -275,3 +276,62 @@ When specialized agents are available, use them. When performing multiple indepe
 
 **Parallel:** Searching patterns, reading files, grep operations, independent agent delegations.
 **Sequential only:** When output of one call is required as input for the next.
+
+## Antigravity IDE Integration
+
+### Memory Bank
+
+Before starting large tasks, read `.agent/memory-bank/` for persistent project context:
+
+- **architecture.md** — Repo structure, plugin anatomy, component relationships, data flow
+- **api-contracts.md** — Schema specs for plugin.json, marketplace.json, frontmatter formats
+- **decision-log.md** — Architectural decisions and rationale (ADRs)
+
+Update memory bank docs when making significant architectural changes. Use the `/codebase-onboarding` workflow or the `architecture-mapper` skill to refresh them.
+
+### Browser Agent Patterns
+
+Use the built-in Browser Agent for visual QA and research:
+
+- **Storefront QA**: Navigate to `http://localhost:3000`, verify plugin cards render, test responsive layouts at mobile (375px), tablet (768px), and desktop (1920px) widths
+- **Screenshot Evidence**: Capture full-page screenshots and save recordings as artifacts in `reports/`
+- **Prompt Style**: Give strict, step-by-step instructions with explicit success criteria — the browser agent executes autonomously
+
+Use the `/qa-browser-test` workflow for a structured QA flow.
+
+### Planning Mode
+
+For non-trivial tasks, always plan before executing:
+
+1. **PLANNING** — Research codebase, design approach, produce implementation plan
+2. **Review** — Get user approval on the plan
+3. **EXECUTION** — Implement the approved design
+4. **VERIFICATION** — Test changes, produce walkthrough
+
+If unexpected complexity arises during execution, return to PLANNING.
+
+### Context Engineering
+
+- **Load only what you need** — Use skills for on-demand knowledge rather than reading every file
+- **Skills over system prompt** — Complex domain knowledge belongs in `.agent/skills/`, not inline instructions
+- **Rules provide guardrails** — `.agent/rules/` are passive constraints injected based on activation mode
+- **Workflows for repeatability** — `.agent/workflows/` encode multi-step processes as reusable playbooks
+- **Reports directory** — All output reports go to `reports/`, temp files to `/tmp/`
+
+### Available Skills
+
+| Skill | Trigger | Purpose |
+|-------|---------|---------|
+| `create-claude-plugin` | "create plugin", "new plugin" | Scaffold a production-ready plugin |
+| `publish-to-marketplace` | "publish plugin", "add to marketplace" | Register a validated plugin |
+| `plugin-qa-validation` | "validate plugin", "plugin QA" | Comprehensive quality assurance |
+| `architecture-mapper` | "map architecture", "update memory bank" | Generate/refresh memory bank docs |
+
+### Available Workflows
+
+| Workflow | Command | Purpose |
+|----------|---------|---------|
+| Create Plugin | `/create-plugin` | Create a new plugin from scratch |
+| Validate & Publish | `/validate-and-publish` | Full validation and marketplace registration |
+| QA Browser Test | `/qa-browser-test` | Browser-based storefront verification |
+| Codebase Onboarding | `/codebase-onboarding` | Refresh memory bank and session context |
