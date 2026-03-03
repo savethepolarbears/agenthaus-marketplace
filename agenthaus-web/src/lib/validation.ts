@@ -36,11 +36,11 @@ export function sanitizeQuery(query: string): string {
 /**
  * Escapes special characters for SQL LIKE/ILIKE queries to prevent
  * wildcard injection and potential ReDoS.
- * Escapes '%' and '_'.
+ * Escapes '%', '_', and '!' for explicit ESCAPE clauses.
  */
 export function escapeLikeString(query: string): string {
   if (!query || typeof query !== "string") {
     return "";
   }
-  return query.replace(/[%_]/g, "\\$&");
+  return query.replace(/([!%_])/g, "!$1");
 }

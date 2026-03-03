@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const sanitizedSearch = escapeLikeString(cleanSearch);
 
     conditions.push(
-      `(p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx})`,
+      `(p.name ILIKE $${paramIdx} ESCAPE '!' OR p.description ILIKE $${paramIdx} ESCAPE '!')`,
     );
     params.push(`%${sanitizedSearch}%`);
     paramIdx++;
