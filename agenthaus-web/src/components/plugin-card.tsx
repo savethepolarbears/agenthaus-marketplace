@@ -3,68 +3,17 @@
 import { memo } from "react";
 import Link from "next/link";
 import { GridCommandCopy } from "@/components/grid-command-copy";
-import {
-  Search,
-  Download,
-  Share2,
-  Github,
-  Cloud,
-  Rocket,
-  Zap,
-  FileText,
-  BookOpen,
-  CheckSquare,
-  LayoutDashboard,
-  Play,
-  Database,
-  Code2,
-  Palette,
-  GitBranch,
-  ShieldAlert,
-  Brain,
-  Eye,
-  Network,
-  Shield,
-  Plug,
-  Package,
-} from "lucide-react";
+import { Download } from "lucide-react";
 import type { StaticPlugin } from "@/lib/plugins-static";
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  Share2,
-  Github,
-  Cloud,
-  Rocket,
-  Zap,
-  FileText,
-  Search,
-  BookOpen,
-  CheckSquare,
-  LayoutDashboard,
-  Play,
-  Database,
-  Code2,
-  Palette,
-  GitBranch,
-  ShieldAlert,
-  Brain,
-  Eye,
-  Network,
-  Shield,
-  Plug,
-  Package,
-};
-
-function getIcon(name: string): React.ElementType {
-  return ICON_MAP[name] || Package;
-}
+import { guessIcon } from "@/lib/icons";
+import { getIcon } from "@/components/icons";
 
 interface PluginCardProps {
   plugin: StaticPlugin;
 }
 
 const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
-  const Icon = getIcon(plugin.icon);
+  const Icon = getIcon(plugin.icon || guessIcon(plugin.slug));
   return (
     <div
       className="group relative bg-gradient-to-br from-white/5 to-transparent border border-white/10 p-6 rounded-2xl hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col has-[a:focus-visible]:border-cyan-500 has-[a:focus-visible]:ring-1 has-[a:focus-visible]:ring-cyan-500 has-[a:focus-visible]:shadow-lg has-[a:focus-visible]:shadow-cyan-500/20"

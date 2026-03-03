@@ -46,24 +46,25 @@ export class RateLimiter {
         resetTime,
       });
 
-      // Cleanup old entries when map gets too large
-      // Iterate up to 1000 entries to remove expired ones, then evict oldest if still full
+      // Cleanup old entries when map gets too large to prevent memory exhaustion
       if (this.ipMap.size > 10000) {
+        // First pass: remove expired entries (bounded to avoid blocking)
         let checked = 0;
         for (const [key, value] of this.ipMap.entries()) {
           if (now > value.resetTime) {
             this.ipMap.delete(key);
           }
-          checked++;
-          if (checked >= 1000) break;
+          if (++checked > 500) break;
         }
 
+        // Second pass: if still too large, force-evict oldest entries (FIFO via Map insertion order)
         if (this.ipMap.size > 10000) {
           let evicted = 0;
           for (const key of this.ipMap.keys()) {
-            if (key === ip) continue;
-            this.ipMap.delete(key);
-            evicted++;
+            if (key !== ip) {
+              this.ipMap.delete(key);
+              evicted++;
+            }
             if (evicted >= 1000) break;
           }
         }

@@ -2,8 +2,8 @@
  * Security constants and validation functions.
  */
 
-// Limit slug length to prevent database abuse or DoS
-export const MAX_SLUG_LENGTH = 100;
+// Security limit for input parameters to prevent database abuse or DoS
+export const MAX_INPUT_LENGTH = 100;
 
 // Validates that a slug contains only lowercase letters, numbers, and hyphens,
 // and does not exceed the maximum length.
@@ -12,7 +12,7 @@ export function isValidSlug(slug: string): boolean {
     return false;
   }
 
-  if (slug.length > MAX_SLUG_LENGTH) {
+  if (slug.length > MAX_INPUT_LENGTH) {
     return false;
   }
 
