@@ -80,6 +80,10 @@ export async function GET(
       );
     }
 
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Plugin not found" }, { status: 404 });
+    }
+
     return NextResponse.json(rows[0]);
   } catch (error) {
     // Security: Log internally but do not leak error stack trace to the client

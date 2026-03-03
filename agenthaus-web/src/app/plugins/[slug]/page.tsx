@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, Package } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { sql } from "@/lib/db";
 import { STATIC_PLUGINS } from "@/lib/plugins-static";
 import type { StaticPlugin } from "@/lib/plugins-static";
@@ -9,6 +9,8 @@ import { CommandCopy } from "@/components/command-copy";
 import Navbar from "@/components/navbar";
 import { isValidSlug } from "@/lib/validation";
 import { unstable_cache } from "next/cache";
+import { guessIcon } from "@/lib/icons";
+import { getIcon } from "@/components/icons";
 
 interface PluginDetail extends StaticPlugin {
   env_vars: { var_name: string; description: string; required: boolean }[];
@@ -129,6 +131,8 @@ export default async function PluginDetailPage({
     mcp: "MCP Servers",
   };
 
+  const Icon = getIcon(plugin.icon || guessIcon(plugin.slug));
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
       <Navbar showLinks={false} />
@@ -145,7 +149,7 @@ export default async function PluginDetailPage({
         {/* Header */}
         <div className="flex items-start gap-6 mb-10">
           <div className="p-4 bg-linear-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl shrink-0">
-            <Package className="text-cyan-400" size={36} aria-hidden="true" />
+            <Icon className="text-cyan-400" size={36} aria-hidden="true" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-2">

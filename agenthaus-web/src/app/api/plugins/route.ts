@@ -1,10 +1,7 @@
 import { sql } from "@/lib/db";
-import { isValidSlug, sanitizeQuery, escapeLikeString } from "@/lib/validation";
+import { isValidSlug, sanitizeQuery, escapeLikeString, MAX_INPUT_LENGTH } from "@/lib/validation";
 import { searchLimiter, getIp, rateLimitResponse } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-
-// Security limit for input parameters
-const MAX_INPUT_LENGTH = 100;
 
 export async function GET(request: NextRequest) {
   // Rate limiting to prevent DoS
