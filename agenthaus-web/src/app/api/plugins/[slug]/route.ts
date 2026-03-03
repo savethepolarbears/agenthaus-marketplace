@@ -2,35 +2,13 @@ import { sql } from "@/lib/db";
 import { isValidSlug } from "@/lib/validation";
 import { searchLimiter, getIp, rateLimitResponse } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> },
-) {
-  // Rate limiting to prevent DoS via repeated lookups
-  const rateCheck = searchLimiter.check(getIp(request));
-  if (!rateCheck.allowed) {
-    return rateLimitResponse(rateCheck.resetTime, 60);
-  }
-
-  const { slug } = await params;
-
-  // Security: Validate input before database connection checks
-  // to allow isolated validation testing
-  if (!isValidSlug(slug)) {
-    return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
-  }
-
-  if (!sql) {
-    return NextResponse.json(
-      { error: "Database not configured" },
-      { status: 503 },
-    );
-  }
-
-  try {
-    // Fetch plugin details, capabilities, and env vars in a single query
-    // This reduces DB round trips from 3 to 1, significantly improving API response latency
+// Bolt ⚡ Optimization: Cache the expensive database query to improve API latency
+// and reduce database compute costs.
+const getCachedPlugin = unstable_cache(
+  async (slug: string) => {
+    if (!sql) return null;
     const rows = await sql`
       SELECT
         p.*,
@@ -61,6 +39,46 @@ export async function GET(
       FROM plugins p
       WHERE p.slug = ${slug}
     `;
+    return rows;
+  },
+  ["api-plugin-detail"],
+  { revalidate: 3600, tags: ["plugin"] }
+);
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  // Rate limiting to prevent DoS via repeated lookups
+  const rateCheck = searchLimiter.check(getIp(request));
+  if (!rateCheck.allowed) {
+    return rateLimitResponse(rateCheck.resetTime, 60);
+  }
+
+  const { slug } = await params;
+
+  // Security: Validate input before database connection checks
+  // to allow isolated validation testing
+  if (!isValidSlug(slug)) {
+    return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
+  }
+
+  if (!sql) {
+    return NextResponse.json(
+      { error: "Database not configured" },
+      { status: 503 },
+    );
+  }
+
+  try {
+    const rows = await getCachedPlugin(slug);
+
+    if (!rows || rows.length === 0) {
+      return NextResponse.json(
+        { error: "Plugin not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(rows[0]);
   } catch (error) {
