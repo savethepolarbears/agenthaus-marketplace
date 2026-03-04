@@ -25,3 +25,7 @@
 ## 2025-03-01 - Defeated short-circuit evaluation in filter loop
 **Learning:** Extracting expensive operations into boolean variables before a `return A && B` statement defeats JavaScript's short-circuit evaluation, forcing execution of the expensive operation (like string matching) even when `A` is false.
 **Action:** Replaced pre-computed boolean variables with early returns in `src/components/plugin-grid.tsx`'s filter loop to restore short-circuit behavior and skip string searches for mismatched categories.
+
+## 2025-03-02 - Cross-resource cache collisions with `unstable_cache`
+**Learning:** Calling Next.js's `unstable_cache` at the module level for functions with dynamic arguments (like a `slug`), without injecting the argument into the `keyParts` array, causes all subsequent requests to return the cached result of the very first request.
+**Action:** Wrapped `unstable_cache` inside the accessor functions (`getCachedPlugin` and `getCachedPluginFromDB`) and explicitly included the dynamic `slug` in the cache `keyParts` and `tags` arrays in `src/app/api/plugins/[slug]/route.ts` and `src/app/plugins/[slug]/page.tsx`.
