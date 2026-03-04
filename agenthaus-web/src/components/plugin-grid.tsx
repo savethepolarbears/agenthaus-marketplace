@@ -121,7 +121,11 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
       </div>
 
       {/* Category pills */}
-      <div className="flex flex-wrap justify-center gap-2 mb-12">
+      <div
+        className="flex flex-wrap justify-center gap-2 mb-12"
+        role="group"
+        aria-label="Filter plugins by category"
+      >
         {categories.map((cat) => (
           <button
             key={cat}
@@ -158,7 +162,10 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
       {filtered.length === 0 && (
         <div className="text-center py-20">
           <Package className="mx-auto text-gray-600 mb-4" size={48} aria-hidden="true" />
-          <p className="text-gray-500 text-lg">No plugins match your search.</p>
+          <p className="text-gray-500 text-lg">
+            No plugins match {searchQuery ? `"${searchQuery}"` : "your search"}
+            {activeCategory !== "all" ? ` in the ${activeCategory} category` : ""}.
+          </p>
           <button
             onClick={() => {
               setSearchQuery("");
