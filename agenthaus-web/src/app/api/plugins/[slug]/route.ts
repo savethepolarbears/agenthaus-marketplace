@@ -6,44 +6,47 @@ import { unstable_cache } from "next/cache";
 
 // Bolt ⚡ Optimization: Cache the expensive database query to improve API latency
 // and reduce database compute costs.
-const getCachedPlugin = unstable_cache(
-  async (slug: string) => {
-    if (!sql) return null;
-    const rows = await sql`
-      SELECT
-        p.*,
-        COALESCE(
-          (
-            SELECT json_agg(json_build_object(
-              'type', pc.type,
-              'name', pc.name,
-              'description', pc.description
-            ))
-            FROM plugin_capabilities pc
-            WHERE pc.plugin_id = p.id
-          ),
-          '[]'::json
-        ) as capabilities,
-        COALESCE(
-          (
-            SELECT json_agg(json_build_object(
-              'var_name', pev.var_name,
-              'description', pev.description,
-              'required', pev.required
-            ))
-            FROM plugin_env_vars pev
-            WHERE pev.plugin_id = p.id
-          ),
-          '[]'::json
-        ) as env_vars
-      FROM plugins p
-      WHERE p.slug = ${slug}
-    `;
-    return rows;
-  },
-  ["api-plugin-detail"],
-  { revalidate: 3600, tags: ["plugin"] }
-);
+const getCachedPlugin = async (slug: string) => {
+  const fetcher = unstable_cache(
+    async () => {
+      if (!sql) return null;
+      const rows = await sql`
+        SELECT
+          p.*,
+          COALESCE(
+            (
+              SELECT json_agg(json_build_object(
+                'type', pc.type,
+                'name', pc.name,
+                'description', pc.description
+              ))
+              FROM plugin_capabilities pc
+              WHERE pc.plugin_id = p.id
+            ),
+            '[]'::json
+          ) as capabilities,
+          COALESCE(
+            (
+              SELECT json_agg(json_build_object(
+                'var_name', pev.var_name,
+                'description', pev.description,
+                'required', pev.required
+              ))
+              FROM plugin_env_vars pev
+              WHERE pev.plugin_id = p.id
+            ),
+            '[]'::json
+          ) as env_vars
+        FROM plugins p
+        WHERE p.slug = ${slug}
+      `;
+      return rows;
+    },
+    ["api-plugin-detail", slug],
+    { revalidate: 3600, tags: ["plugin", `plugin-${slug}`] }
+  );
+  return fetcher();
+};
 
 export async function GET(
   request: NextRequest,

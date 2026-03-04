@@ -83,11 +83,14 @@ const fetchPluginFromDB = async (
 
 // Bolt ⚡ Optimization: Cache plugin details to avoid repeated DB hits
 // Revalidate every hour
-const getCachedPluginFromDB = unstable_cache(
-  fetchPluginFromDB,
-  ["plugin-detail"],
-  { revalidate: 3600, tags: ["plugin"] }
-);
+const getCachedPluginFromDB = async (slug: string) => {
+  const fetcher = unstable_cache(
+    async () => fetchPluginFromDB(slug),
+    ["plugin-detail", slug],
+    { revalidate: 3600, tags: ["plugin", `plugin-${slug}`] }
+  );
+  return fetcher();
+};
 
 async function getPlugin(slug: string): Promise<PluginDetail | null> {
   // Security: Validate slug format before database query to prevent DoS/abuse
