@@ -44,15 +44,24 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         inputRef.current?.focus();
       }
 
-      // Blur search input on Escape for full keyboard accessibility
-      if (e.key === "Escape" && document.activeElement === inputRef.current) {
-        inputRef.current?.blur();
-      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      if (searchQuery) {
+        // First Escape clears the text but keeps focus
+        e.preventDefault();
+        setSearchQuery("");
+      } else {
+        // Second Escape (when empty) blurs the input
+        inputRef.current?.blur();
+      }
+    }
+  };
 
   // Bolt ⚡ Optimization: Pre-compute a single search string for each plugin.
   // This reduces filter complexity from O(N * (Fields + Tags)) to O(N) by eliminating nested loops and multiple includes checks.
@@ -99,7 +108,8 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             aria-keyshortcuts="/"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors"
+            onKeyDown={handleInputKeyDown}
+            className="w-full pl-12 pr-20 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors"
           />
           {!searchQuery && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
@@ -111,9 +121,14 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           {searchQuery && (
             <button
               onClick={clearSearch}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded-md"
+              type="button"
+              className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-gray-500 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded-md group"
               aria-label="Clear search"
+              title="Clear search (Esc)"
             >
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-sans font-medium bg-white/5 border border-white/10 rounded-md text-gray-400 group-hover:text-white transition-colors">
+                Esc
+              </kbd>
               <X size={20} />
             </button>
           )}
