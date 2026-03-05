@@ -7,6 +7,21 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  // Security: Basic CSRF protection via Origin/Referer header validation
+  // Ensures state-changing requests come from our own domain
+  const origin = request.headers.get("origin") ?? request.headers.get("referer");
+  if (origin) {
+    try {
+      const originHost = new URL(origin).host;
+      const requestHost = request.headers.get("host") ?? request.nextUrl.host;
+      if (originHost !== requestHost) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   // Rate limiting to prevent abuse
   const ip = getIp(request);
   const rateCheck = rateLimiter.check(ip);
