@@ -29,3 +29,7 @@
 ## 2025-03-02 - Cross-resource cache collisions with `unstable_cache`
 **Learning:** Calling Next.js's `unstable_cache` at the module level for functions with dynamic arguments (like a `slug`), without injecting the argument into the `keyParts` array, causes all subsequent requests to return the cached result of the very first request.
 **Action:** Wrapped `unstable_cache` inside the accessor functions (`getCachedPlugin` and `getCachedPluginFromDB`) and explicitly included the dynamic `slug` in the cache `keyParts` and `tags` arrays in `src/app/api/plugins/[slug]/route.ts` and `src/app/plugins/[slug]/page.tsx`.
+
+## 2025-03-02 - Missing Foreign Key Index Causing Sequential Scans
+**Learning:** In PostgreSQL, lacking an index on a foreign key column used in correlated subqueries (like `plugin_id` on `plugin_env_vars`) causes O(N) sequential scans, heavily degrading read performance as the table grows.
+**Action:** Added `CREATE INDEX IF NOT EXISTS idx_plugin_env_vars_plugin_id ON plugin_env_vars(plugin_id);` in `src/lib/schema.sql` to align with the existing index on `plugin_capabilities` and improve lookup speeds.
