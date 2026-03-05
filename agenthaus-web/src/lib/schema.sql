@@ -34,3 +34,4 @@ CREATE TABLE IF NOT EXISTS plugin_env_vars (
 CREATE INDEX IF NOT EXISTS idx_plugins_category ON plugins(category);
 CREATE INDEX IF NOT EXISTS idx_plugins_slug ON plugins(slug);
 CREATE INDEX IF NOT EXISTS idx_plugin_capabilities_plugin_id ON plugin_capabilities(plugin_id);
+CREATE INDEX IF NOT EXISTS idx_plugin_env_vars_plugin_id ON plugin_env_vars(plugin_id);
