@@ -77,6 +77,13 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     // Optimization: Pre-compute lowercase query once to avoid repetitive .toLowerCase() in loop
     const normalizedQuery = deferredSearchQuery.toLowerCase();
 
+    // Bolt ⚡ Optimization: Early return when no filters are active
+    // This skips the O(N) array filter loop entirely on initial load and when filters are cleared,
+    // reducing unnecessary CPU cycles since all plugins should be shown.
+    if (normalizedQuery === "" && activeCategory === "all") {
+      return searchablePlugins;
+    }
+
     return searchablePlugins.filter((p) => {
       const matchesCategory =
         activeCategory === "all" || p.category === activeCategory;

@@ -33,3 +33,7 @@
 ## 2025-03-02 - Missing Foreign Key Index Causing Sequential Scans
 **Learning:** In PostgreSQL, lacking an index on a foreign key column used in correlated subqueries (like `plugin_id` on `plugin_env_vars`) causes O(N) sequential scans, heavily degrading read performance as the table grows.
 **Action:** Added `CREATE INDEX IF NOT EXISTS idx_plugin_env_vars_plugin_id ON plugin_env_vars(plugin_id);` in `src/lib/schema.sql` to align with the existing index on `plugin_capabilities` and improve lookup speeds.
+
+## 2025-03-05 - Missing Early Return on Unfiltered State
+**Learning:** In a list filtering component, omitting an early return when filters are empty forces an O(N) array iteration for the default (unfiltered) state, wasting CPU cycles on mount or when clearing search.
+**Action:** Added an early return `if (normalizedQuery === "" && activeCategory === "all") return searchablePlugins;` inside the `useMemo` for filtering `src/components/plugin-grid.tsx` to instantly return the full array.
