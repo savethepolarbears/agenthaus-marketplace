@@ -29,14 +29,12 @@ export function CommandCopy({ command, className }: CommandCopyProps) {
         "group relative bg-linear-to-r from-white/5 to-white/10 border border-white/10 px-6 py-4 rounded-xl font-mono text-cyan-400 flex items-center gap-3 shadow-xl shadow-cyan-500/5 hover:shadow-cyan-500/10 transition-all active:scale-[0.99] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 text-left w-full max-w-3xl cursor-pointer",
         className
       )}
+      aria-label={`Copy command: ${command}`}
     >
       <span className="text-gray-500 select-none" aria-hidden="true">$</span>
-      <span className="flex-1 overflow-x-auto scrollbar-hide whitespace-nowrap">
+      <span className="flex-1 overflow-x-auto scrollbar-hide whitespace-nowrap select-all">
         {command}
       </span>
-
-      {/* Accessible label for the action */}
-      <span className="sr-only">Copy command to clipboard</span>
 
       {/* Live region for status updates */}
       <span className="sr-only" role="status" aria-live="polite">

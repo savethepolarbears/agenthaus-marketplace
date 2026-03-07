@@ -215,10 +215,10 @@ export default async function PluginDetailPage({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-white/10">
-                        <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                        <th scope="col" className="text-left px-4 py-2.5 text-gray-500 font-medium">
                           Name
                         </th>
-                        <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                        <th scope="col" className="text-left px-4 py-2.5 text-gray-500 font-medium">
                           Description
                         </th>
                       </tr>
@@ -255,13 +255,13 @@ export default async function PluginDetailPage({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                    <th scope="col" className="text-left px-4 py-2.5 text-gray-500 font-medium">
                       Variable
                     </th>
-                    <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                    <th scope="col" className="text-left px-4 py-2.5 text-gray-500 font-medium">
                       Description
                     </th>
-                    <th className="text-left px-4 py-2.5 text-gray-500 font-medium">
+                    <th scope="col" className="text-left px-4 py-2.5 text-gray-500 font-medium">
                       Required
                     </th>
                   </tr>
