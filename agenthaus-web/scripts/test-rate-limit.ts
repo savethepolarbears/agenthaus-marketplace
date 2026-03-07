@@ -10,8 +10,8 @@ async function runTest() {
 
   console.log(`[Test 1] Simulating 5 allowed requests for IP ${ip}...`);
   for (let i = 1; i <= 5; i++) {
-    const allowed = limiter.check(ip);
-    if (!allowed) {
+    const check = limiter.check(ip);
+    if (!check.allowed) {
       console.error(`❌ Request ${i} was blocked unexpectedly.`);
       process.exit(1);
     }
@@ -20,8 +20,8 @@ async function runTest() {
 
   // 6th request should be blocked
   console.log("[Test 1] Simulating 6th request (should be blocked)...");
-  const blocked = limiter.check(ip);
-  if (blocked) {
+  const check6 = limiter.check(ip);
+  if (check6.allowed) {
     console.error("❌ Request 6 was allowed unexpectedly.");
     process.exit(1);
   } else {
@@ -31,7 +31,7 @@ async function runTest() {
   // 2. Test different IP
   const otherIp = "10.0.0.1";
   console.log(`[Test 2] Testing different IP ${otherIp}...`);
-  if (!limiter.check(otherIp)) {
+  if (!limiter.check(otherIp).allowed) {
     console.error("❌ Request from new IP was blocked.");
     process.exit(1);
   }
@@ -42,7 +42,7 @@ async function runTest() {
   const shortWindowLimiter = new RateLimiter(1, 100); // 1 req per 100ms
   shortWindowLimiter.check(ip); // Consumes allowance
 
-  if (shortWindowLimiter.check(ip)) {
+  if (shortWindowLimiter.check(ip).allowed) {
      console.error("❌ Short window limiter failed to block immediate second request.");
      process.exit(1);
   }
@@ -50,7 +50,7 @@ async function runTest() {
 
   await new Promise(resolve => setTimeout(resolve, 150)); // Wait for window to expire
 
-  if (!shortWindowLimiter.check(ip)) {
+  if (!shortWindowLimiter.check(ip).allowed) {
     console.error("❌ Short window limiter failed to reset after expiration.");
     process.exit(1);
   }
