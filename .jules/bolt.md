@@ -37,10 +37,7 @@
 ## 2025-03-05 - Missing Early Return on Unfiltered State
 **Learning:** In a list filtering component, omitting an early return when filters are empty forces an O(N) array iteration for the default (unfiltered) state, wasting CPU cycles on mount or when clearing search.
 **Action:** Added an early return `if (normalizedQuery === "" && activeCategory === "all") return searchablePlugins;` inside the `useMemo` for filtering `src/components/plugin-grid.tsx` to instantly return the full array.
-## 2025-03-08 - Optimized LEFT JOIN with correlated subquery
-**Learning:** Avoid using `LEFT JOIN` combined with `GROUP BY` when performing `json_agg` for relationships in PostgreSQL. It computes a massive, inefficient in-memory Cartesian product before grouping.
-**Action:** Replaced the `LEFT JOIN` and `GROUP BY` clauses with a correlated subquery inside the `SELECT` clause in `agenthaus-web/src/app/api/plugins/route.ts` to utilize foreign key indexing efficiently.
 
-## 2025-03-09 - Missing Composite Index for Default Ordering
-**Learning:** When queries unconditionally sort results using a multi-column `ORDER BY` clause (e.g., `ORDER BY install_count DESC, name ASC`), omitting a matching composite index forces PostgreSQL to perform sequential scans and expensive in-memory sorts for every execution. This creates a severe performance bottleneck as table size grows.
-**Action:** Added `CREATE INDEX IF NOT EXISTS idx_plugins_install_count_name ON plugins(install_count DESC, name ASC);` in `agenthaus-web/src/lib/schema.sql` to enable efficient index scans for the primary marketplace listing queries.
+## 2025-03-07 - Inefficient LEFT JOIN + GROUP BY for JSON aggregation
+**Learning:** In PostgreSQL, using `LEFT JOIN` and grouping on the parent table's primary key (`GROUP BY p.id`) just to aggregate a child table's rows via `json_agg` calculates a massive Cartesian product in memory. This degrades query performance on list endpoints as the dataset grows.
+**Action:** Replaced the `LEFT JOIN` + `GROUP BY` with a correlated subquery in the `SELECT` clause in `src/app/api/plugins/route.ts` to independently query and aggregate the child rows utilizing the foreign key index.

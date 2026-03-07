@@ -75,10 +75,9 @@ export async function GET(request: NextRequest) {
   const where =
     conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
 
-  // Bolt ⚡ Optimization: Correlated Subquery for JSON Aggregation
-  // What: Replaced LEFT JOIN + GROUP BY with a correlated subquery in SELECT
-  // Why: LEFT JOIN computes an expensive Cartesian product in memory, while a correlated subquery efficiently uses the `plugin_id` foreign key index.
-  // Impact: Reduces query execution time and memory usage for large datasets.
+  // Bolt ⚡ Optimization: Replaced LEFT JOIN + GROUP BY with a correlated subquery.
+  // The original Cartesian product caused O(N*M) rows to be processed in memory and required expensive grouping.
+  // The subquery efficiently leverages the idx_plugin_capabilities_plugin_id index.
   const query = `
     SELECT p.*,
       COALESCE(
