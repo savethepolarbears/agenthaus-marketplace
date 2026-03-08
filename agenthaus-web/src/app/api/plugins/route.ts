@@ -75,18 +75,24 @@ export async function GET(request: NextRequest) {
   const where =
     conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
 
+  // Bolt ⚡ Optimization: Correlated Subquery for JSON Aggregation
+  // What: Replaced LEFT JOIN + GROUP BY with a correlated subquery in SELECT
+  // Why: LEFT JOIN computes an expensive Cartesian product in memory, while a correlated subquery efficiently uses the `plugin_id` foreign key index.
+  // Impact: Reduces query execution time and memory usage for large datasets.
   const query = `
     SELECT p.*,
       COALESCE(
-        json_agg(
-          json_build_object('type', pc.type, 'name', pc.name, 'description', pc.description)
-        ) FILTER (WHERE pc.id IS NOT NULL),
-        '[]'
+        (
+          SELECT json_agg(
+            json_build_object('type', pc.type, 'name', pc.name, 'description', pc.description)
+          )
+          FROM plugin_capabilities pc
+          WHERE pc.plugin_id = p.id
+        ),
+        '[]'::json
       ) as capabilities
     FROM plugins p
-    LEFT JOIN plugin_capabilities pc ON p.id = pc.plugin_id
     ${where}
-    GROUP BY p.id
     ORDER BY p.install_count DESC, p.name
   `;
 

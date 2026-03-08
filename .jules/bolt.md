@@ -37,3 +37,6 @@
 ## 2025-03-05 - Missing Early Return on Unfiltered State
 **Learning:** In a list filtering component, omitting an early return when filters are empty forces an O(N) array iteration for the default (unfiltered) state, wasting CPU cycles on mount or when clearing search.
 **Action:** Added an early return `if (normalizedQuery === "" && activeCategory === "all") return searchablePlugins;` inside the `useMemo` for filtering `src/components/plugin-grid.tsx` to instantly return the full array.
+## 2025-03-08 - Optimized LEFT JOIN with correlated subquery
+**Learning:** Avoid using `LEFT JOIN` combined with `GROUP BY` when performing `json_agg` for relationships in PostgreSQL. It computes a massive, inefficient in-memory Cartesian product before grouping.
+**Action:** Replaced the `LEFT JOIN` and `GROUP BY` clauses with a correlated subquery inside the `SELECT` clause in `agenthaus-web/src/app/api/plugins/route.ts` to utilize foreign key indexing efficiently.
