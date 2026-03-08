@@ -48,13 +48,15 @@ export class RateLimiter {
 
       // Cleanup old entries when map gets too large to prevent memory exhaustion
       if (this.ipMap.size > 10000) {
-        // First pass: remove expired entries (bounded to avoid blocking)
-        let checked = 0;
+        // First pass: remove expired entries
+        // Security critical: pruning of expired entries must be unbounded.
+        // Bounding the cleanup loop allows attackers to flood the map with
+        // expired entries and force-evict active sessions (via FIFO),
+        // bypassing the rate limit by resetting their request counts.
         for (const [key, value] of this.ipMap.entries()) {
           if (now > value.resetTime) {
             this.ipMap.delete(key);
           }
-          if (++checked > 500) break;
         }
 
         // Second pass: if still too large, force-evict oldest entries (FIFO via Map insertion order)
