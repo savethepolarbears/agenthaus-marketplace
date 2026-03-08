@@ -29,7 +29,7 @@ async function run() {
     console.log('Attacker acting at t=3000...');
     limiter.check('attacker'); // 1
     limiter.check('attacker'); // 2
-    const blocked = !limiter.check('attacker'); // 3 -> Blocked
+    const blocked = !limiter.check('attacker').allowed; // 3 -> Blocked
 
     if (!blocked) {
       console.error('❌ Setup failed: Attacker should be blocked initially.');
@@ -49,7 +49,7 @@ async function run() {
     // Logic:
     // - Before fix: cleanup() cleared ALL entries (including attacker). Result: Attacker unblocked (check returns true).
     // - After fix: cleanup() cleared ONLY expired entries. Attacker (fresh) remains. Result: Attacker blocked (check returns false).
-    const isAllowed = limiter.check('attacker');
+    const isAllowed = limiter.check('attacker').allowed;
 
     if (isAllowed) {
        console.error('❌ VULNERABILITY DETECTED: Attacker was unblocked after cleanup!');
