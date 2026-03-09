@@ -11,7 +11,7 @@ interface NavbarProps {
 export default function Navbar({ showLinks = true }: NavbarProps) {
   return (
     <nav className="border-b border-white/10 p-6 flex justify-between bg-black/50 backdrop-blur-xl sticky top-0 z-50">
-      <Link href="/" className="flex items-center gap-3">
+      <Link href="/" className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded-xl">
         <div className="w-10 h-10 bg-linear-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/25">
           <Terminal size={20} className="text-white" aria-hidden="true" />
         </div>
