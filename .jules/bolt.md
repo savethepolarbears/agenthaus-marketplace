@@ -41,3 +41,7 @@
 ## 2025-03-07 - Inefficient LEFT JOIN + GROUP BY for JSON aggregation
 **Learning:** In PostgreSQL, using `LEFT JOIN` and grouping on the parent table's primary key (`GROUP BY p.id`) just to aggregate a child table's rows via `json_agg` calculates a massive Cartesian product in memory. This degrades query performance on list endpoints as the dataset grows.
 **Action:** Replaced the `LEFT JOIN` + `GROUP BY` with a correlated subquery in the `SELECT` clause in `src/app/api/plugins/route.ts` to independently query and aggregate the child rows utilizing the foreign key index.
+
+## 2025-03-09 - Costly Prefetching of Dynamic Routes
+**Learning:** Next.js `<Link>` components automatically prefetch route payloads in the background when they enter the viewport. If the target route is dynamically rendered (SSR), rendering a large grid of links (like 23 plugins on a homepage) triggers simultaneous, expensive server-side rendering passes, causing high CPU load and delaying page transitions.
+**Action:** Exported `generateStaticParams` in `src/app/plugins/[slug]/page.tsx` to prerender these dynamic routes as Static Site Generation (SSG) at build time, eliminating the on-demand server compute cost triggered by link prefetching.

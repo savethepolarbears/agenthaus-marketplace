@@ -108,6 +108,12 @@ async function getPlugin(slug: string): Promise<PluginDetail | null> {
   return { ...found, share_count: 0 };
 }
 
+export async function generateStaticParams() {
+  return STATIC_PLUGINS.map((plugin) => ({
+    slug: plugin.slug,
+  }));
+}
+
 export default async function PluginDetailPage({
   params,
 }: {
