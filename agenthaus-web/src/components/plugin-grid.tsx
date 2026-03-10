@@ -136,7 +136,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-sans font-medium bg-white/5 border border-white/10 rounded-md text-gray-400 group-hover:text-white transition-colors">
                 Esc
               </kbd>
-              <X size={20} />
+              <X size={20} aria-hidden="true" />
             </button>
           )}
         </div>
@@ -151,7 +151,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         {categories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setActiveCategory(cat)}
+            onClick={() => setActiveCategory(prev => prev === cat && cat !== "all" ? "all" : cat)}
             aria-pressed={activeCategory === cat}
             className={clsx(
               "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50",
