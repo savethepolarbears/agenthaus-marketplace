@@ -32,6 +32,7 @@ export function GridCommandCopy({ command, className }: GridCommandCopyProps) {
         className
       )}
       aria-label={`Copy command: ${command}`}
+      title={command}
     >
       <span className="truncate font-mono select-all">{command}</span>
       <span className="shrink-0 text-cyan-500" aria-hidden="true">
