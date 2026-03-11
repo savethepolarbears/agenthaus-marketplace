@@ -41,7 +41,10 @@ const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
           {plugin.name}
         </Link>
       </h3>
-      <p className="text-gray-400 text-sm mb-4 leading-relaxed line-clamp-2">
+      <p
+        className="text-gray-400 text-sm mb-4 leading-relaxed line-clamp-2"
+        title={plugin.description}
+      >
         {plugin.description}
       </p>
 
