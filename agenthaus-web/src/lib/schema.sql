@@ -36,3 +36,4 @@ CREATE INDEX IF NOT EXISTS idx_plugins_slug ON plugins(slug);
 CREATE INDEX IF NOT EXISTS idx_plugin_capabilities_plugin_id ON plugin_capabilities(plugin_id);
 CREATE INDEX IF NOT EXISTS idx_plugin_env_vars_plugin_id ON plugin_env_vars(plugin_id);
 CREATE INDEX IF NOT EXISTS idx_plugins_install_count_name ON plugins(install_count DESC, name ASC);
+CREATE INDEX IF NOT EXISTS idx_plugins_tags ON plugins USING GIN (tags);
