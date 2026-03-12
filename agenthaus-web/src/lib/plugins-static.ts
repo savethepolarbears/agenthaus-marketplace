@@ -450,3 +450,82 @@ export const ALL_CATEGORIES = [
   "all",
   ...Array.from(new Set(STATIC_PLUGINS.map((p) => p.category))).sort(),
 ];
+
+export const CATEGORY_META: Record<string, { title: string; description: string }> = {
+  content: {
+    title: "Content & Social Media AI Plugins",
+    description: "AI plugins for generating, analyzing, and managing high-engagement content and social media campaigns with Claude."
+  },
+  devops: {
+    title: "DevOps & Infrastructure AI Plugins",
+    description: "Automate CI/CD, manage GitHub repositories, and orchestrate cloud infrastructure directly from Claude."
+  },
+  cloud: {
+    title: "Cloud Services AI Plugins",
+    description: "Integrate Claude with cloud platforms like Cloudflare to deploy workers, manage storage, and monitor applications."
+  },
+  deployment: {
+    title: "Deployment & Hosting AI Plugins",
+    description: "Streamline your deployment workflows with Vercel and other hosting providers using Claude."
+  },
+  knowledge: {
+    title: "Knowledge Management AI Plugins",
+    description: "Connect Claude to Notion, wikis, and team workspaces for seamless knowledge retrieval and updates."
+  },
+  docs: {
+    title: "Documentation & API AI Plugins",
+    description: "Access hallucination-free library documentation and API references instantly with Claude."
+  },
+  rag: {
+    title: "RAG & Search AI Plugins",
+    description: "Enhance Claude's knowledge with Retrieval-Augmented Generation systems spanning Google Drive, Notion, and more."
+  },
+  productivity: {
+    title: "Productivity & Task AI Plugins",
+    description: "Manage tasks in ClickUp, coordinate via Slack, and schedule with Google Calendar using Claude."
+  },
+  qa: {
+    title: "QA & Testing AI Plugins",
+    description: "Automate E2E testing with Playwright and specialized QA engineer agents in Claude."
+  },
+  testing: {
+    title: "Automated Testing AI Plugins",
+    description: "Run test suites, generate reports, and notify teams automatically with Claude testing plugins."
+  },
+  database: {
+    title: "Database Management AI Plugins",
+    description: "Query, manage, and migrate Serverless Postgres databases like Neon directly from Claude."
+  },
+  utility: {
+    title: "CLI & Utility AI Plugins",
+    description: "Essential tools and CLI utilities to enhance your Claude workspace and development workflow."
+  },
+  ux: {
+    title: "UX/UI & Design AI Plugins",
+    description: "Improve frontend design, accessibility, and Tailwind CSS implementation with specialized Claude agents."
+  },
+  orchestration: {
+    title: "Agent Orchestration Plugins",
+    description: "Coordinate complex multi-agent workflows, task distribution, and handoffs between Claude agents."
+  },
+  safety: {
+    title: "AI Safety & Guardrail Plugins",
+    description: "Implement rate limiting, cost caps, and automated circuit breakers for secure AI operations."
+  },
+  memory: {
+    title: "Agent Memory & Vector Plugins",
+    description: "Give Claude persistent memory across sessions using vector storage and semantic retrieval."
+  },
+  training: {
+    title: "AI Training & Observation Plugins",
+    description: "Run agents in shadow mode to observe, log, and learn from real workflows securely."
+  },
+  security: {
+    title: "Security & Auditing AI Plugins",
+    description: "Scan dependencies, analyze permissions, and audit Claude plugins for vulnerabilities."
+  },
+  integration: {
+    title: "Cross-Platform AI Integrations",
+    description: "Bridge Claude agents with external AI platforms, APIs, and enterprise systems."
+  }
+};
