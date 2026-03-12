@@ -45,3 +45,7 @@
 ## 2025-03-09 - Costly Prefetching of Dynamic Routes
 **Learning:** Next.js `<Link>` components automatically prefetch route payloads in the background when they enter the viewport. If the target route is dynamically rendered (SSR), rendering a large grid of links (like 23 plugins on a homepage) triggers simultaneous, expensive server-side rendering passes, causing high CPU load and delaying page transitions.
 **Action:** Exported `generateStaticParams` in `src/app/plugins/[slug]/page.tsx` to prerender these dynamic routes as Static Site Generation (SSG) at build time, eliminating the on-demand server compute cost triggered by link prefetching.
+
+## 2025-03-11 - Missing GIN Index and Operator for Array Filtering
+**Learning:** Filtering arrays in PostgreSQL using `$N = ANY(array_column)` requires a full table scan because GIN indexes do not natively support the `ANY` operator. To leverage an index for array containment queries, a GIN index must be explicitly created (`USING GIN (array_column)`) AND the query must use the `@>` (contains) operator (e.g., `array_column @> ARRAY[$N]::text[]`).
+**Action:** Created `idx_plugins_tags` using GIN in `src/lib/schema.sql` and refactored the tag filter condition in `src/app/api/plugins/route.ts` to use `@> ARRAY[...]::text[]` for O(1) lookups.

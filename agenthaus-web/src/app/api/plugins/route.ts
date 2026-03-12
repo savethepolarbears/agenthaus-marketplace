@@ -68,7 +68,8 @@ export async function GET(request: NextRequest) {
     paramIdx++;
   }
   if (tag) {
-    conditions.push(`$${paramIdx++} = ANY(p.tags)`);
+    // Bolt ⚡ Optimization: Use @> instead of ANY() to allow PostgreSQL to use the GIN index
+    conditions.push(`p.tags @> ARRAY[$${paramIdx++}]::text[]`);
     params.push(tag);
   }
 
