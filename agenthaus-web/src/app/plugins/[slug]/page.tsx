@@ -11,6 +11,7 @@ import { isValidSlug } from "@/lib/validation";
 import { unstable_cache } from "next/cache";
 import { guessIcon } from "@/lib/icons";
 import { getIcon } from "@/components/icons";
+import { Metadata } from "next";
 
 interface PluginDetail extends StaticPlugin {
   env_vars: { var_name: string; description: string; required: boolean }[];
@@ -114,6 +115,35 @@ export async function generateStaticParams() {
   }));
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const plugin = await getPlugin(slug);
+
+  if (!plugin) {
+    return {
+      title: "Plugin Not Found - AgentHaus",
+    };
+  }
+
+  return {
+    title: `${plugin.name} - AgentHaus Plugin`,
+    description: plugin.description,
+    alternates: {
+      canonical: `/plugins/${plugin.slug}`,
+    },
+    openGraph: {
+      title: `${plugin.name} - AgentHaus Plugin`,
+      description: plugin.description,
+      type: "website",
+      url: `/plugins/${plugin.slug}`,
+    },
+  };
+}
+
 export default async function PluginDetailPage({
   params,
 }: {
@@ -142,8 +172,34 @@ export default async function PluginDetailPage({
 
   const Icon = getIcon(plugin.icon || guessIcon(plugin.slug));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: plugin.name,
+    description: plugin.description,
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Any",
+    softwareVersion: plugin.version,
+    author: {
+      "@type": "Person",
+      name: plugin.author,
+    },
+    interactionStatistic: {
+      "@type": "InteractionCounter",
+      interactionType: "https://schema.org/InstallAction",
+      userInteractionCount: plugin.install_count,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0a0a0a] via-[#0f0f1a] to-[#0a0a0a] text-white font-sans selection:bg-cyan-500/30">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <Navbar showLinks={false} />
 
       <main id="main-content" className="max-w-4xl mx-auto px-6 py-12">
