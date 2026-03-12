@@ -2,8 +2,31 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://agenthaus.com"),
   title: "AgentHaus - Claude Plugin Marketplace",
   description: "A comprehensive marketplace of 23 production-ready plugins for Claude Code and Cowork",
+  openGraph: {
+    title: "AgentHaus - Claude Plugin Marketplace",
+    description: "A comprehensive marketplace of 23 production-ready plugins for Claude Code and Cowork",
+    url: "https://agenthaus.com",
+    siteName: "AgentHaus",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "AgentHaus Marketplace",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AgentHaus - Claude Plugin Marketplace",
+    description: "A comprehensive marketplace of 23 production-ready plugins for Claude Code and Cowork",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function RootLayout({

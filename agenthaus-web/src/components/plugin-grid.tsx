@@ -9,6 +9,8 @@ import {
   X,
 } from "lucide-react";
 import type { StaticPlugin } from "@/lib/plugins-static";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import Link from "next/link";
 
 interface PluginGridProps {
   plugins: StaticPlugin[];
@@ -16,17 +18,51 @@ interface PluginGridProps {
 }
 
 export default function PluginGrid({ plugins, categories }: PluginGridProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+
+  // Sync state with URL when browser history changes (e.g., Back button)
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q") || "");
+  }, [searchParams]);
+
   // Bolt ⚡ Optimization: Defer the search query to prevent blocking the UI while typing
   // This keeps the input responsive even if filtering becomes expensive
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
-  const [activeCategory, setActiveCategory] = useState("all");
+  const activeCategory = searchParams.get("category") || "all";
   const inputRef = useRef<HTMLInputElement>(null);
 
   const clearSearch = () => {
     setSearchQuery("");
+    updateURL("", activeCategory);
     inputRef.current?.focus();
+  };
+
+  const updateURL = (q: string, cat: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (q) {
+      params.set("q", q);
+    } else {
+      params.delete("q");
+    }
+
+    if (cat && cat !== "all") {
+      params.set("category", cat);
+    } else {
+      params.delete("category");
+    }
+
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    updateURL(val, activeCategory);
   };
 
   useEffect(() => {
@@ -114,7 +150,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             aria-label="Search plugins"
             aria-keyshortcuts="/"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             onKeyDown={handleInputKeyDown}
             className="w-full pl-12 pr-20 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors"
           />
@@ -148,21 +184,33 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         role="group"
         aria-label="Filter plugins by category"
       >
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(prev => prev === cat && cat !== "all" ? "all" : cat)}
-            aria-pressed={activeCategory === cat}
-            className={clsx(
-              "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50",
-              activeCategory === cat
-                ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-400"
-                : "bg-white/5 border border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300"
-            )}
-          >
-            {cat}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const isActive = activeCategory === cat;
+          const targetCategory = isActive && cat !== "all" ? "all" : cat;
+          const params = new URLSearchParams(searchParams.toString());
+          if (targetCategory !== "all") {
+            params.set("category", targetCategory);
+          } else {
+            params.delete("category");
+          }
+
+          return (
+            <Link
+              key={cat}
+              href={`?${params.toString()}`}
+              scroll={false}
+              aria-pressed={isActive}
+              className={clsx(
+                "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50",
+                isActive
+                  ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-400"
+                  : "bg-white/5 border border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300"
+              )}
+            >
+              {cat}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Results count */}
@@ -191,7 +239,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           <button
             onClick={() => {
               setSearchQuery("");
-              setActiveCategory("all");
+              updateURL("", "all");
               inputRef.current?.focus();
             }}
             className="mt-4 text-cyan-400 hover:text-cyan-300 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded"

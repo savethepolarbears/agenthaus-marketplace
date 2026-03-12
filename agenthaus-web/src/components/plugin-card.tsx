@@ -26,10 +26,13 @@ const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
             aria-hidden="true"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono bg-black/50 px-3 py-1.5 rounded-lg text-gray-400 border border-white/5 capitalize">
+        <div className="flex items-center gap-2 relative z-10">
+          <Link
+            href={`/?category=${plugin.category}`}
+            className="text-xs font-mono bg-black/50 px-3 py-1.5 rounded-lg text-gray-400 border border-white/5 capitalize hover:text-cyan-400 hover:border-cyan-500/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+          >
             {plugin.category}
-          </span>
+          </Link>
         </div>
       </div>
 
