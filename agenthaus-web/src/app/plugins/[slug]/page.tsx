@@ -222,9 +222,12 @@ export default async function PluginDetailPage({
               <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded">
                 v{plugin.version}
               </span>
-              <span className="text-xs font-mono bg-black/50 px-3 py-1 rounded-lg text-gray-400 border border-white/5 capitalize">
+              <Link
+                href={`/?category=${plugin.category}`}
+                className="text-xs font-mono bg-black/50 px-3 py-1 rounded-lg text-gray-400 border border-white/5 capitalize hover:text-cyan-400 hover:border-cyan-500/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+              >
                 {plugin.category}
-              </span>
+              </Link>
             </div>
             <p className="text-gray-400 text-lg mb-3">{plugin.description}</p>
             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -246,14 +249,19 @@ export default async function PluginDetailPage({
 
         {/* Tags */}
         {plugin.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-10">
+          <div
+            className="flex flex-wrap gap-2 mb-10"
+            role="group"
+            aria-label="Plugin tags"
+          >
             {plugin.tags.map((tag) => (
-              <span
+              <Link
                 key={tag}
-                className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg text-gray-400"
+                href={`/?q=${encodeURIComponent(tag)}`}
+                className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
               >
                 {tag}
-              </span>
+              </Link>
             ))}
           </div>
         )}
