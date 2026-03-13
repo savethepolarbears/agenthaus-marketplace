@@ -49,3 +49,7 @@
 ## 2025-03-11 - Missing GIN Index and Operator for Array Filtering
 **Learning:** Filtering arrays in PostgreSQL using `$N = ANY(array_column)` requires a full table scan because GIN indexes do not natively support the `ANY` operator. To leverage an index for array containment queries, a GIN index must be explicitly created (`USING GIN (array_column)`) AND the query must use the `@>` (contains) operator (e.g., `array_column @> ARRAY[$N]::text[]`).
 **Action:** Created `idx_plugins_tags` using GIN in `src/lib/schema.sql` and refactored the tag filter condition in `src/app/api/plugins/route.ts` to use `@> ARRAY[...]::text[]` for O(1) lookups.
+
+## 2025-03-12 - Next.js App Router Re-renders on High-Frequency Events
+**Learning:** Calling `router.replace` synchronously on every keystroke in a search input within the Next.js App Router triggers expensive routing state updates and potential Server Components (RSC) re-fetches. This causes CPU spikes and severe UI lag.
+**Action:** Implemented a debounce strategy in `src/components/plugin-grid.tsx` that instantly updates the local React state for a responsive UI but delays the `updateURL` function call by 300ms.
