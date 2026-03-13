@@ -35,9 +35,22 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
 
   const activeCategory = searchParams.get("category") || "all";
   const inputRef = useRef<HTMLInputElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   const clearSearch = () => {
     setSearchQuery("");
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
     updateURL("", activeCategory);
     inputRef.current?.focus();
   };
@@ -62,7 +75,15 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearchQuery(val);
-    updateURL(val, activeCategory);
+
+    // Bolt ⚡ Optimization: Debounce the URL update to prevent triggering
+    // excessive Next.js routing state updates and potential RSC re-fetches on every keystroke
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      updateURL(val, activeCategory);
+    }, 300);
   };
 
   useEffect(() => {
@@ -92,6 +113,10 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         // First Escape clears the text but keeps focus
         e.preventDefault();
         setSearchQuery("");
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+        updateURL("", activeCategory);
       } else {
         // Second Escape (when empty) blurs the input
         inputRef.current?.blur();
@@ -239,6 +264,9 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
           <button
             onClick={() => {
               setSearchQuery("");
+              if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+              }
               updateURL("", "all");
               inputRef.current?.focus();
             }}
