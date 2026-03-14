@@ -6,6 +6,7 @@ async function run() {
     method: "POST",
     headers: {
       "x-forwarded-for": "127.0.0.1",
+      "origin": "http://localhost:3000"
     }
   });
 
