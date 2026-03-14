@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import type { StaticPlugin } from "@/lib/plugins-static";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 
 interface PluginGridProps {
@@ -18,7 +18,6 @@ interface PluginGridProps {
 }
 
 export default function PluginGrid({ plugins, categories }: PluginGridProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
@@ -69,7 +68,10 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
       params.delete("category");
     }
 
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    // Bolt ⚡ Optimization: Use window.history.replaceState to instantly update the URL
+    // without triggering an expensive Next.js navigation cycle or Server Component (RSC) re-fetch.
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    window.history.replaceState(null, "", newUrl);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
