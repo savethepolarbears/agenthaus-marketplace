@@ -53,3 +53,7 @@
 ## 2025-03-12 - Next.js App Router Re-renders on High-Frequency Events
 **Learning:** Calling `router.replace` synchronously on every keystroke in a search input within the Next.js App Router triggers expensive routing state updates and potential Server Components (RSC) re-fetches. This causes CPU spikes and severe UI lag.
 **Action:** Implemented a debounce strategy in `src/components/plugin-grid.tsx` that instantly updates the local React state for a responsive UI but delays the `updateURL` function call by 300ms.
+
+## 2025-03-13 - Avoid RSC fetches for purely client-side search URL updates
+**Learning:** Using `router.replace` or `router.push` in Next.js App Router for high-frequency URL updates (like syncing an active search query) triggers expensive network requests to fetch the Server Component (RSC) payload for the new URL. This wastes server compute and bandwidth for filtering that happens entirely client-side.
+**Action:** Replaced `router.replace` with native `window.history.replaceState` in `src/components/plugin-grid.tsx` to instantly update the URL for shareability without triggering Next.js navigation cycles or Server Component re-fetches.
