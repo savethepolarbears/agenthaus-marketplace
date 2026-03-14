@@ -100,9 +100,20 @@ export function getIp(req: NextRequest): string {
     return req.ip;
   }
 
+  // Security: Prevent IP spoofing via X-Forwarded-For header manipulation.
+  // Attackers can prepend fake IPs to X-Forwarded-For. Proxies append the real client IP.
+  // Therefore, the most reliable IP in the chain (assuming a single trusted proxy layer)
+  // is the rightmost IP, not the leftmost.
+  // Better yet, prefer X-Real-IP if set by a trusted reverse proxy.
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+
   const forwardedFor = req.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim();
+    const parts = forwardedFor.split(",");
+    return parts[parts.length - 1].trim();
   }
   return "unknown";
 }
