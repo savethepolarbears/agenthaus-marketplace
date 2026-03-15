@@ -17,5 +17,8 @@
   ],
   "agents": [
     "./agents/ui-expert.md"
+  ],
+  "skills": [
+    "./skills/ui-ux-review/SKILL.md"
   ]
 }

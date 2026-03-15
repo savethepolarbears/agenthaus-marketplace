@@ -1,0 +1,1 @@
+../../../plugins/github-integration/skills/github-workflow/SKILL.md

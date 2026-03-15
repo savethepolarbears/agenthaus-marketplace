@@ -1,0 +1,1 @@
+../../../plugins/knowledge-synapse/skills/deep-research/SKILL.md

@@ -24,5 +24,8 @@
   ],
   "hooks": [
     "./hooks/hooks.json"
+  ],
+  "skills": [
+    "./skills/social-content/SKILL.md"
   ]
 }

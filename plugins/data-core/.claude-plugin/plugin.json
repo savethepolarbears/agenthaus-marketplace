@@ -21,5 +21,8 @@
       ],
       "env": {}
     }
-  }
+  },
+  "skills": [
+    "./skills/postgres-operations/SKILL.md"
+  ]
 }

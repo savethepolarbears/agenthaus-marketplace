@@ -1,0 +1,1 @@
+../../../plugins/ux-ui/skills/ui-ux-review/SKILL.md
