@@ -26,5 +26,8 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/github-workflow/SKILL.md"
+  ]
 }

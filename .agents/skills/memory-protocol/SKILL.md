@@ -1,0 +1,1 @@
+../../../plugins/agent-memory/skills/memory-protocol/SKILL.md

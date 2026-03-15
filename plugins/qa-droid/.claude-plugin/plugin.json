@@ -42,5 +42,8 @@
         "GMAIL_CREDENTIALS": "${GMAIL_CREDS}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/qa-automation/SKILL.md"
+  ]
 }

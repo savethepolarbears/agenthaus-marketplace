@@ -1,0 +1,1 @@
+../../../plugins/shadow-mode/skills/shadow-review/SKILL.md

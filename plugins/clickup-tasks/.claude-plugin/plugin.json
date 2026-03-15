@@ -21,5 +21,8 @@
         "CLICKUP_API_KEY": "${CLICKUP_API_KEY}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/clickup-management/SKILL.md"
+  ]
 }

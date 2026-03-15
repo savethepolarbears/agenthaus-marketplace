@@ -1,0 +1,1 @@
+../../../plugins/clickup-tasks/skills/clickup-management/SKILL.md

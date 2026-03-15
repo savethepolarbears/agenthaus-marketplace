@@ -25,5 +25,8 @@
         "DATABASE_URL": "${NEON_DATABASE_URL}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/neon-database/SKILL.md"
+  ]
 }
