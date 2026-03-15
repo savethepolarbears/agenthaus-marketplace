@@ -227,7 +227,25 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
               key={cat}
               href={`?${params.toString()}`}
               scroll={false}
-              aria-pressed={isActive}
+              aria-current={isActive ? "true" : undefined}
+              aria-label={
+                cat === "all"
+                  ? isActive
+                    ? "Viewing all categories"
+                    : "View all categories"
+                  : isActive
+                  ? `Remove ${cat} category filter`
+                  : `Filter by ${cat} category`
+              }
+              title={
+                cat === "all"
+                  ? isActive
+                    ? "Viewing all categories"
+                    : "View all categories"
+                  : isActive
+                  ? `Remove ${cat} category filter`
+                  : `Filter by ${cat} category`
+              }
               className={clsx(
                 "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50",
                 isActive
