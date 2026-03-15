@@ -225,6 +225,8 @@ export default async function PluginDetailPage({
               <Link
                 href={`/?category=${plugin.category}`}
                 className="text-xs font-mono bg-black/50 px-3 py-1 rounded-lg text-gray-400 border border-white/5 capitalize hover:text-cyan-400 hover:border-cyan-500/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+                aria-label={`View all ${plugin.category} plugins`}
+                title={`View all ${plugin.category} plugins`}
               >
                 {plugin.category}
               </Link>
@@ -259,6 +261,8 @@ export default async function PluginDetailPage({
                 key={tag}
                 href={`/?q=${encodeURIComponent(tag)}`}
                 className="px-3 py-1 text-xs bg-white/5 border border-white/10 rounded-lg text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+                aria-label={`Search for ${tag} tag`}
+                title={`Search for ${tag} tag`}
               >
                 {tag}
               </Link>

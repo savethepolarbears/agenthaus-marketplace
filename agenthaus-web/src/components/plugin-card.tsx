@@ -30,6 +30,8 @@ const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
           <Link
             href={`/?category=${plugin.category}`}
             className="text-xs font-mono bg-black/50 px-3 py-1.5 rounded-lg text-gray-400 border border-white/5 capitalize hover:text-cyan-400 hover:border-cyan-500/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
+            aria-label={`View all ${plugin.category} plugins`}
+            title={`View all ${plugin.category} plugins`}
           >
             {plugin.category}
           </Link>
