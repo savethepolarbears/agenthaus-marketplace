@@ -27,5 +27,8 @@
         "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/cloudflare-deploy/SKILL.md"
+  ]
 }

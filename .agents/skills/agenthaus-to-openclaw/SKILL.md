@@ -1,0 +1,1 @@
+../../../plugins/openclaw-bridge/skills/conversion/SKILL.md

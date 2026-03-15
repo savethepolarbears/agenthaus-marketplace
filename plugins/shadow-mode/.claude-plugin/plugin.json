@@ -18,5 +18,8 @@
   ],
   "hooks": [
     "./hooks/hooks.json"
+  ],
+  "skills": [
+    "./skills/shadow-review/SKILL.md"
   ]
 }

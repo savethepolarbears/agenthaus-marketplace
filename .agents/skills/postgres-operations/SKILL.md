@@ -1,0 +1,1 @@
+../../../plugins/data-core/skills/postgres-operations/SKILL.md

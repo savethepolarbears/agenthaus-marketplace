@@ -16,5 +16,8 @@
   ],
   "hooks": [
     "./hooks/hooks.json"
+  ],
+  "skills": [
+    "./skills/safety-guardrails/SKILL.md"
   ]
 }

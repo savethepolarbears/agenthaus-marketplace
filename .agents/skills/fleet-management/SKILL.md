@@ -1,0 +1,1 @@
+../../../plugins/fleet-commander/skills/fleet-management/SKILL.md

@@ -1,0 +1,1 @@
+../../../plugins/seo-geo-rag/skills/seo-geo-rag-optimizer/SKILL.md

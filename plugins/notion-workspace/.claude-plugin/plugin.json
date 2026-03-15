@@ -26,5 +26,8 @@
         "NOTION_API_KEY": "${NOTION_API_KEY}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/notion-management/SKILL.md"
+  ]
 }

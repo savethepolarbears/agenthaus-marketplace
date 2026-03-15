@@ -1,0 +1,152 @@
+{
+  "name": "agenthaus-marketplace",
+  "version": "3.3.0",
+  "description": "23 production-ready agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, and 35+ other AI coding agents.",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "skills": [
+    {
+      "name": "social-content",
+      "path": "plugins/social-media/skills/social-content/SKILL.md",
+      "category": "content",
+      "description": "Generate high-engagement social media posts for Twitter, LinkedIn, Instagram, and Facebook"
+    },
+    {
+      "name": "github-workflow",
+      "path": "plugins/github-integration/skills/github-workflow/SKILL.md",
+      "category": "devops",
+      "description": "Manage GitHub issues and pull requests through structured workflows"
+    },
+    {
+      "name": "cloudflare-deploy",
+      "path": "plugins/cloudflare-platform/skills/cloudflare-deploy/SKILL.md",
+      "category": "cloud",
+      "description": "Deploy and manage Cloudflare Workers, KV storage, and AI Gateway"
+    },
+    {
+      "name": "vercel-deployment",
+      "path": "plugins/vercel-deploy/skills/vercel-deployment/SKILL.md",
+      "category": "deployment",
+      "description": "Deploy and manage Vercel projects and monitor build status"
+    },
+    {
+      "name": "devops-workflow",
+      "path": "plugins/devops-flow/skills/devops-workflow/SKILL.md",
+      "category": "devops",
+      "description": "Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications"
+    },
+    {
+      "name": "notion-management",
+      "path": "plugins/notion-workspace/skills/notion-management/SKILL.md",
+      "category": "knowledge",
+      "description": "Search, create, and manage Notion pages and databases"
+    },
+    {
+      "name": "doc-lookup",
+      "path": "plugins/context7-docs/skills/doc-lookup/SKILL.md",
+      "category": "knowledge",
+      "description": "Fetch hallucination-free library documentation via Context7"
+    },
+    {
+      "name": "deep-research",
+      "path": "plugins/knowledge-synapse/skills/deep-research/SKILL.md",
+      "category": "knowledge",
+      "description": "Synthesize research from Context7, Google Drive, and Notion"
+    },
+    {
+      "name": "clickup-management",
+      "path": "plugins/clickup-tasks/skills/clickup-management/SKILL.md",
+      "category": "productivity",
+      "description": "Create and manage ClickUp tasks, lists, and time tracking"
+    },
+    {
+      "name": "task-orchestration",
+      "path": "plugins/task-commander/skills/task-orchestration/SKILL.md",
+      "category": "productivity",
+      "description": "Unified task management with ClickUp, Slack, Gmail, and Calendar"
+    },
+    {
+      "name": "e2e-testing",
+      "path": "plugins/playwright-testing/skills/e2e-testing/SKILL.md",
+      "category": "qa",
+      "description": "Design and execute E2E browser tests with Playwright"
+    },
+    {
+      "name": "qa-automation",
+      "path": "plugins/qa-droid/skills/qa-automation/SKILL.md",
+      "category": "qa",
+      "description": "Automated testing with Slack and Gmail result notifications"
+    },
+    {
+      "name": "neon-database",
+      "path": "plugins/neon-db/skills/neon-database/SKILL.md",
+      "category": "database",
+      "description": "Query and manage Neon serverless Postgres databases"
+    },
+    {
+      "name": "postgres-operations",
+      "path": "plugins/data-core/skills/postgres-operations/SKILL.md",
+      "category": "database",
+      "description": "Advanced Postgres with schema design, migrations, and query optimization"
+    },
+    {
+      "name": "ui-ux-review",
+      "path": "plugins/ux-ui/skills/ui-ux-review/SKILL.md",
+      "category": "ux",
+      "description": "Audit and improve UI/UX, accessibility, and Tailwind CSS"
+    },
+    {
+      "name": "blackboard-protocol",
+      "path": "plugins/agent-handoff/skills/blackboard-protocol/SKILL.md",
+      "category": "orchestration",
+      "description": "Multi-agent task handoff using filesystem-based blackboard protocol"
+    },
+    {
+      "name": "safety-guardrails",
+      "path": "plugins/circuit-breaker/skills/safety-guardrails/SKILL.md",
+      "category": "safety",
+      "description": "Deploy gates, test requirements, and budget guards for agent workflows"
+    },
+    {
+      "name": "memory-protocol",
+      "path": "plugins/agent-memory/skills/memory-protocol/SKILL.md",
+      "category": "memory",
+      "description": "Persistent cross-session memory via Neon Postgres"
+    },
+    {
+      "name": "shadow-review",
+      "path": "plugins/shadow-mode/skills/shadow-review/SKILL.md",
+      "category": "safety",
+      "description": "Review queue for agent actions with human-in-the-loop oversight"
+    },
+    {
+      "name": "fleet-management",
+      "path": "plugins/fleet-commander/skills/fleet-management/SKILL.md",
+      "category": "orchestration",
+      "description": "Monitor and control concurrent agent sessions with task dispatch"
+    },
+    {
+      "name": "audit-checks",
+      "path": "plugins/plugin-auditor/skills/audit-checks/SKILL.md",
+      "category": "security",
+      "description": "Security checklist for auditing plugins before installation"
+    },
+    {
+      "name": "agenthaus-to-openclaw",
+      "path": "plugins/openclaw-bridge/skills/conversion/SKILL.md",
+      "category": "integration",
+      "description": "Convert AgentHaus plugins to OpenClaw skill format"
+    },
+    {
+      "name": "plugin-management",
+      "path": "plugins/marketplace-cli/skills/plugin-management/SKILL.md",
+      "category": "utility",
+      "description": "Search, install, validate, and manage marketplace plugins"
+    },
+    {
+      "name": "seo-geo-rag-optimizer",
+      "path": "plugins/seo-geo-rag/skills/seo-geo-rag-optimizer/SKILL.md",
+      "category": "seo",
+      "description": "SEO, GEO, and RAG optimization for search and AI discoverability"
+    }
+  ]
+}

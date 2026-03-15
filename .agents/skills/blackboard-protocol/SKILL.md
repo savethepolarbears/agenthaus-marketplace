@@ -1,0 +1,1 @@
+../../../plugins/agent-handoff/skills/blackboard-protocol/SKILL.md

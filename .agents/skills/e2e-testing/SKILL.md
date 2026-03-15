@@ -1,0 +1,1 @@
+../../../plugins/playwright-testing/skills/e2e-testing/SKILL.md

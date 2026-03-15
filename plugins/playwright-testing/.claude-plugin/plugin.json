@@ -22,5 +22,8 @@
         "@modelcontextprotocol/server-playwright"
       ]
     }
-  }
+  },
+  "skills": [
+    "./skills/e2e-testing/SKILL.md"
+  ]
 }

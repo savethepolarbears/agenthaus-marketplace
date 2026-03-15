@@ -51,5 +51,8 @@
         "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/devops-workflow/SKILL.md"
+  ]
 }
