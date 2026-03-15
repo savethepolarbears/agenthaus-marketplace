@@ -5,8 +5,8 @@
     "email": "support@agenthaus.dev"
   },
   "metadata": {
-    "description": "A comprehensive marketplace of 23 production-ready plugins for Claude Code. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, and SEO/GEO/RAG optimization.",
-    "version": "3.2.0",
+    "description": "A comprehensive marketplace of 23 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
+    "version": "3.3.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [

@@ -1,0 +1,1 @@
+../../../plugins/context7-docs/skills/doc-lookup/SKILL.md

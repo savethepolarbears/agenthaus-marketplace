@@ -1,0 +1,1 @@
+../../../plugins/social-media/skills/social-content/SKILL.md

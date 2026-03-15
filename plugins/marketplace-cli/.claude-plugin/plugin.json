@@ -15,5 +15,8 @@
     "./commands/install.md",
     "./commands/validate.md",
     "./commands/migrate.md"
+  ],
+  "skills": [
+    "./skills/plugin-management/SKILL.md"
   ]
 }

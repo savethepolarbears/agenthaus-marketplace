@@ -56,5 +56,8 @@
         "GOOGLE_CALENDAR_TOKEN": "${GOOGLE_CALENDAR_TOKEN}"
       }
     }
-  }
+  },
+  "skills": [
+    "./skills/task-orchestration/SKILL.md"
+  ]
 }
