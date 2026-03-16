@@ -57,3 +57,11 @@
 ## 2025-03-13 - Avoid RSC fetches for purely client-side search URL updates
 **Learning:** Using `router.replace` or `router.push` in Next.js App Router for high-frequency URL updates (like syncing an active search query) triggers expensive network requests to fetch the Server Component (RSC) payload for the new URL. This wastes server compute and bandwidth for filtering that happens entirely client-side.
 **Action:** Replaced `router.replace` with native `window.history.replaceState` in `src/components/plugin-grid.tsx` to instantly update the URL for shareability without triggering Next.js navigation cycles or Server Component re-fetches.
+
+## 2025-03-14 - Map + Clone Array Causes Memory Bloat
+**Learning:** Mapping over an array of objects to append a computed property (like a search string) for filtering creates O(N) object allocations. This causes unnecessary memory overhead and garbage collection pressure, particularly for large arrays that are frequently updated.
+**Action:** Instead of cloning every object, pre-compute a parallel array of primitive strings. During filtering, use the array index to lookup the computed property, avoiding O(N) object allocations entirely. Applied to `PluginGrid` in `src/components/plugin-grid.tsx`.
+
+## 2025-03-14 - Redundant Parameter Serialization in Loops
+**Learning:** Re-evaluating `searchParams.toString()` within a `.map` loop that generates multiple `<Link>` components (like category tags) creates unnecessary overhead since the underlying stringified value remains constant per render cycle. This causes repetitive string serialization of the query parameters on every loop iteration.
+**Action:** Extracted the call to `searchParams.toString()` outside of the `.map` loop inside `PluginGrid`'s category render block to reuse a single serialized string, eliminating O(N) redundant stringification operations.

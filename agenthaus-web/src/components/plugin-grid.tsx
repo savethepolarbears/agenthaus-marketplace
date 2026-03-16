@@ -126,14 +126,13 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     }
   };
 
-  // Bolt ⚡ Optimization: Pre-compute a single search string for each plugin.
-  // This reduces filter complexity from O(N * (Fields + Tags)) to O(N) by eliminating nested loops and multiple includes checks.
-  const searchablePlugins = useMemo(() => {
-    return plugins.map((p) => ({
-      ...p,
-      // Create one search string containing all searchable text
-      _searchText: `${p.name} ${p.description} ${p.tags.join(" ")}`.toLowerCase(),
-    }));
+  // Bolt ⚡ Optimization: Pre-compute a parallel array of search strings.
+  // This reduces filter complexity to O(N) and prevents memory bloat from cloning the entire
+  // plugins array just to append a search string property (O(N) object allocations avoided).
+  const searchStrings = useMemo(() => {
+    return plugins.map((p) =>
+      `${p.name} ${p.description} ${p.tags.join(" ")}`.toLowerCase()
+    );
   }, [plugins]);
 
   const filtered = useMemo(() => {
@@ -144,20 +143,20 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     // This skips the O(N) array filter loop entirely on initial load and when filters are cleared,
     // reducing unnecessary CPU cycles since all plugins should be shown.
     if (normalizedQuery === "" && activeCategory === "all") {
-      return searchablePlugins;
+      return plugins;
     }
 
-    return searchablePlugins.filter((p) => {
+    return plugins.filter((p, index) => {
       const matchesCategory =
         activeCategory === "all" || p.category === activeCategory;
 
       // Optimization: use deferred value to keep input responsive while filtering happens in background
       if (!matchesCategory) return false;
       const matchesSearch =
-        normalizedQuery === "" || p._searchText.includes(normalizedQuery);
+        normalizedQuery === "" || searchStrings[index].includes(normalizedQuery);
       return matchesSearch;
     });
-  }, [searchablePlugins, deferredSearchQuery, activeCategory]);
+  }, [plugins, searchStrings, deferredSearchQuery, activeCategory]);
 
   return (
     <>
@@ -212,20 +211,25 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         role="group"
         aria-label="Filter plugins by category"
       >
-        {categories.map((cat) => {
-          const isActive = activeCategory === cat;
-          const targetCategory = isActive && cat !== "all" ? "all" : cat;
-          const params = new URLSearchParams(searchParams.toString());
-          if (targetCategory !== "all") {
-            params.set("category", targetCategory);
-          } else {
-            params.delete("category");
-          }
+        {(() => {
+          // Bolt ⚡ Optimization: Pre-serialize the search parameters to a string once
+          // outside of the categories map loop to avoid redundantly iterating and stringifying
+          // the searchParams entries on every single iteration.
+          const currentParamsString = searchParams.toString();
+          return categories.map((cat) => {
+            const isActive = activeCategory === cat;
+            const targetCategory = isActive && cat !== "all" ? "all" : cat;
+            const params = new URLSearchParams(currentParamsString);
+            if (targetCategory !== "all") {
+              params.set("category", targetCategory);
+            } else {
+              params.delete("category");
+            }
 
-          return (
-            <Link
-              key={cat}
-              href={`?${params.toString()}`}
+            return (
+              <Link
+                key={cat}
+                href={`?${params.toString()}`}
               scroll={false}
               aria-current={isActive ? "true" : undefined}
               aria-label={
@@ -255,8 +259,9 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             >
               {cat}
             </Link>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
 
       {/* Results count */}
