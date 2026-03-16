@@ -23,16 +23,12 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Security Headers
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Note: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and
+  // Strict-Transport-Security are already set centrally in next.config.mjs.
+  // We only set the dynamic or route-specific ones here.
   response.headers.set(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()"
-  );
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
   );
 
   response.headers.set(
