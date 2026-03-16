@@ -180,10 +180,10 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
             value={searchQuery}
             onChange={handleSearchChange}
             onKeyDown={handleInputKeyDown}
-            className="w-full pl-12 pr-20 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors [&::-webkit-search-cancel-button]:appearance-none"
+            className="peer w-full pl-12 pr-20 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/25 transition-colors [&::-webkit-search-cancel-button]:appearance-none"
           />
           {!searchQuery && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 peer-focus:opacity-0 transition-opacity duration-200">
               <kbd className="hidden sm:inline-block px-2 py-0.5 text-xs font-sans font-medium bg-white/5 border border-white/10 rounded-md text-gray-400">
                 /
               </kbd>
