@@ -65,3 +65,7 @@
 ## 2025-03-14 - Redundant Parameter Serialization in Loops
 **Learning:** Re-evaluating `searchParams.toString()` within a `.map` loop that generates multiple `<Link>` components (like category tags) creates unnecessary overhead since the underlying stringified value remains constant per render cycle. This causes repetitive string serialization of the query parameters on every loop iteration.
 **Action:** Extracted the call to `searchParams.toString()` outside of the `.map` loop inside `PluginGrid`'s category render block to reuse a single serialized string, eliminating O(N) redundant stringification operations.
+
+## 2025-03-16 - Disable prefetching for purely client-side search parameter links
+**Learning:** Next.js `<Link>` components automatically prefetch their targets when entering the viewport. If a link only updates search parameters for a page where filtering is handled purely client-side (e.g., passing all items to a client component), this prefetching triggers unnecessary Server Component (RSC) requests in the background, wasting server resources and bandwidth.
+**Action:** Added `prefetch={false}` to search parameter `<Link>` components (like category chips and tags) in `src/components/plugin-grid.tsx`, `src/components/plugin-card.tsx`, and `src/app/plugins/[slug]/page.tsx` to eliminate redundant background network requests.

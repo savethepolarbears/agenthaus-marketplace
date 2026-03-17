@@ -231,6 +231,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
                 key={cat}
                 href={`?${params.toString()}`}
               scroll={false}
+              prefetch={false}
               aria-current={isActive ? "true" : undefined}
               aria-label={
                 cat === "all"
