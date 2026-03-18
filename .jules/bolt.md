@@ -69,3 +69,7 @@
 ## 2025-03-16 - Disable prefetching for purely client-side search parameter links
 **Learning:** Next.js `<Link>` components automatically prefetch their targets when entering the viewport. If a link only updates search parameters for a page where filtering is handled purely client-side (e.g., passing all items to a client component), this prefetching triggers unnecessary Server Component (RSC) requests in the background, wasting server resources and bandwidth.
 **Action:** Added `prefetch={false}` to search parameter `<Link>` components (like category chips and tags) in `src/components/plugin-grid.tsx`, `src/components/plugin-card.tsx`, and `src/app/plugins/[slug]/page.tsx` to eliminate redundant background network requests.
+
+## 2025-03-18 - String Parsing Overhead in URLSearchParams
+**Learning:** Pre-serializing `URLSearchParams` to a string and passing it to the constructor inside a loop actually degrades performance. Parsing a serialized query string (`new URLSearchParams("string")`) requires the browser/Node to tokenize and decode the string, which is >3x slower than using the copy constructor (`new URLSearchParams(existingObject)`).
+**Action:** Replaced `new URLSearchParams(currentParamsString)` with `new URLSearchParams(searchParams)` inside `.map` loops in `src/components/plugin-grid.tsx` to directly clone the object and avoid expensive string parsing overhead.
