@@ -125,8 +125,12 @@ export function getIp(req: NextRequest): string {
 export function rateLimitResponse(
   resetTime: number,
   limit: number,
+  ip: string,
 ): NextResponse {
   const retryAfterSeconds = Math.ceil((resetTime - Date.now()) / 1000);
+
+  // Security: Audit logging for rate limiting to detect and monitor abuse
+  console.warn(`[SECURITY] Rate limit exceeded for IP: ${ip} (Limit: ${limit})`);
 
   return NextResponse.json(
     { error: "Too many requests" },
