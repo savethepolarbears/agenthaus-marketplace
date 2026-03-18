@@ -28,7 +28,7 @@ export async function POST(
   const ip = getIp(request);
   const rateCheck = rateLimiter.check(ip);
   if (!rateCheck.allowed) {
-    return rateLimitResponse(rateCheck.resetTime, 10);
+    return rateLimitResponse(rateCheck.resetTime, 10, ip);
   }
 
   const { slug } = await params;

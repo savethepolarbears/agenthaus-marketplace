@@ -5,9 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   // Rate limiting to prevent DoS
-  const rateCheck = searchLimiter.check(getIp(request));
+  const ip = getIp(request);
+  const rateCheck = searchLimiter.check(ip);
   if (!rateCheck.allowed) {
-    return rateLimitResponse(rateCheck.resetTime, 60);
+    return rateLimitResponse(rateCheck.resetTime, 60, ip);
   }
 
   const { searchParams } = request.nextUrl;

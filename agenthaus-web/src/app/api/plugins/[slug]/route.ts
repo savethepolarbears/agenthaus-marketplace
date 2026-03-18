@@ -53,9 +53,10 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   // Rate limiting to prevent DoS via repeated lookups
-  const rateCheck = searchLimiter.check(getIp(request));
+  const ip = getIp(request);
+  const rateCheck = searchLimiter.check(ip);
   if (!rateCheck.allowed) {
-    return rateLimitResponse(rateCheck.resetTime, 60);
+    return rateLimitResponse(rateCheck.resetTime, 60, ip);
   }
 
   const { slug } = await params;
