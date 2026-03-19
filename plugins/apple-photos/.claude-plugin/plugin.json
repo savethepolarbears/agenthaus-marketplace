@@ -1,0 +1,43 @@
+{
+  "name": "apple-photos",
+  "version": "1.0.0",
+  "description": "Manage Apple Photos libraries using the osxphotos CLI — query, export, import, backup, fix metadata, find duplicates, and migrate photos.",
+  "author": {
+    "name": "AgentHaus Team"
+  },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "photos",
+    "apple",
+    "macos",
+    "osxphotos",
+    "metadata",
+    "backup",
+    "migration"
+  ],
+  "commands": [
+    "./commands/export.md",
+    "./commands/query.md",
+    "./commands/import.md",
+    "./commands/backup.md",
+    "./commands/albums.md",
+    "./commands/fix-dates.md",
+    "./commands/fix-locations.md",
+    "./commands/duplicates.md",
+    "./commands/metadata.md",
+    "./commands/info.md"
+  ],
+  "agents": [
+    "./agents/photo-librarian.md",
+    "./agents/migration-specialist.md"
+  ],
+  "skills": [
+    "./skills/photo-management/SKILL.md",
+    "./skills/photo-migration/SKILL.md"
+  ],
+  "hooks": [
+    "./hooks/safety-guard.json"
+  ]
+}
