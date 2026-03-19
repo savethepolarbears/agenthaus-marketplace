@@ -219,7 +219,7 @@ export default async function PluginDetailPage({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-2">
               <h1 className="text-3xl font-bold">{plugin.name}</h1>
-              <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded">
+              <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded select-all">
                 v{plugin.version}
               </span>
               <Link
@@ -305,7 +305,7 @@ export default async function PluginDetailPage({
                           key={item.name}
                           className="border-b border-white/5 last:border-0"
                         >
-                          <td className="px-4 py-2.5 font-mono text-white">
+                          <td className="px-4 py-2.5 font-mono text-white select-all">
                             {item.name}
                           </td>
                           <td className="px-4 py-2.5 text-gray-400">
@@ -348,7 +348,7 @@ export default async function PluginDetailPage({
                       key={ev.var_name}
                       className="border-b border-white/5 last:border-0"
                     >
-                      <td className="px-4 py-2.5 font-mono text-cyan-400">
+                      <td className="px-4 py-2.5 font-mono text-cyan-400 select-all">
                         {ev.var_name}
                       </td>
                       <td className="px-4 py-2.5 text-gray-400">
