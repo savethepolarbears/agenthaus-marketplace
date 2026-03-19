@@ -26,7 +26,10 @@
     "./commands/slides.md",
     "./commands/tasks.md",
     "./commands/contacts.md",
-    "./commands/chat.md"
+    "./commands/chat.md",
+    "./commands/forms.md",
+    "./commands/classroom.md",
+    "./commands/admin.md"
   ],
   "agents": [
     "./agents/workspace-assistant.md",

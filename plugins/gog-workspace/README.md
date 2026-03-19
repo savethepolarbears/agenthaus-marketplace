@@ -8,7 +8,7 @@ Manage your entire Google Workspace from the terminal — Gmail, Calendar, Drive
 
 ### Features
 
-* **9 slash commands** — Direct access to Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, and Chat
+* **12 slash commands** — Direct access to Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, Classroom, and Admin
 * **Workspace Assistant agent** — Multi-service workflow orchestration (morning briefings, meeting prep, email-to-task pipelines)
 * **Email Composer agent** — Context-aware email drafting with tone matching and thread awareness
 * **Google Workspace CLI skill** — Comprehensive command reference automatically invoked when you mention Google services
@@ -75,6 +75,15 @@ See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detai
 # Chat
 /gog-workspace:chat send <space_id> "Build passed!"
 
+# Forms
+/gog-workspace:forms create "Customer Survey"
+
+# Classroom
+/gog-workspace:classroom courses
+
+# Admin (Workspace)
+/gog-workspace:admin users list
+
 # Cross-service workflows via agent
 /agents workspace-assistant
 ```
@@ -102,8 +111,11 @@ See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detai
 | Contacts | `gog contacts` | List, search |
 | People | `gog people` | Directory search (Workspace) |
 | Chat | `gog chat` | Spaces, messages, threads |
-| Forms | `gog forms` | Form management |
-| Apps Script | `gog apps-script` | Script execution |
+| Forms | `gog forms` | Create, responses, watches |
+| Apps Script | `gog appscript` | Create, run, fetch source |
+| Classroom | `gog classroom` | Courses, roster, assignments |
+| Admin | `gog admin` | Users, groups, members (Workspace) |
+| Keep | `gog keep` | Create, delete notes (Workspace) |
 
 ### Latest Release
 

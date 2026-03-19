@@ -1,6 +1,6 @@
 ---
 name: google-workspace-cli
-description: Use when the user asks to interact with Google Workspace services — Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, or Apps Script — via the gog CLI tool. Covers email management, calendar scheduling, file operations, document editing, spreadsheet manipulation, presentation creation, task tracking, and cross-service workflows.
+description: Use when the user asks to interact with Google Workspace services — Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, Apps Script, Classroom, Admin, or Keep — via the gog CLI tool. Covers email management, calendar scheduling, file operations, document editing, spreadsheet manipulation, presentation creation, task tracking, classroom management, admin directory, and cross-service workflows.
 ---
 
 # Google Workspace CLI (gog) Skill
@@ -164,6 +164,56 @@ gog chat thread <space_id> <thread_id>         # Read thread
 gog chat reply <space_id> <thread_id> '<msg>'  # Reply
 ```
 
+### Forms
+```bash
+gog forms create '<title>'                     # Create form
+gog forms get <form_id> --json                 # Get form details
+gog forms list-responses <form_id> --json      # List responses
+gog forms get-responses <form_id> --json       # Get response data
+gog forms watch create <form_id>               # Watch for responses
+gog forms watch list <form_id>                 # List watches
+gog forms watch delete <form_id> <watch_id>    # Delete watch
+gog forms watch renew <form_id> <watch_id>     # Renew watch
+```
+
+### Classroom
+```bash
+gog classroom courses --json                   # List courses
+gog classroom roster <course_id> --json        # List students/teachers
+gog classroom coursework <course_id> --json    # List assignments
+gog classroom materials <course_id> --json     # List materials
+gog classroom announcements <course_id> --json # List announcements
+gog classroom topics <course_id> --json        # List topics
+gog classroom invitations <course_id> --json   # List invitations
+gog classroom guardians --json                 # List guardians
+```
+
+### Apps Script
+```bash
+gog appscript create '<title>'                 # Create project
+gog appscript get <script_id> --json           # Get project info
+gog appscript content <script_id>              # Fetch source code
+gog appscript run <script_id> <function>       # Run deployed function
+```
+
+### Admin (Workspace)
+```bash
+gog admin users list --json                    # List users
+gog admin users get <user_id> --json           # Get user
+gog admin users create                         # Create user
+gog admin users suspend <user_id>              # Suspend user
+gog admin groups list --json                   # List groups
+gog admin groups members list <group_id>       # List members
+gog admin groups members add <group_id>        # Add member
+gog admin groups members remove <group_id>     # Remove member
+```
+
+### Keep (Workspace-only)
+```bash
+gog keep create '<title>' --body '<text>'      # Create note
+gog keep delete <note_id>                      # Delete note
+```
+
 ### Auth Management
 ```bash
 gog auth credentials <path>                    # Store OAuth creds
@@ -187,6 +237,9 @@ gog auth manage                                # Manage accounts
 | `--plain` | `GOG_PLAIN=1` | TSV output (pipe-friendly) |
 | `--force` | — | Skip confirmations |
 | `--no-input` | — | Non-interactive mode |
+| `--enable-commands <list>` | — | Restrict to specific command groups (sandboxing) |
+| `--dry-run` | — | Preview without executing |
+| `--access-token <token>` | `GOG_ACCESS_TOKEN` | Direct token for CI/headless |
 
 ## Cross-Service Workflow Patterns
 
