@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A comprehensive marketplace of 25 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
-    "version": "3.4.0",
+    "version": "3.5.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -298,6 +298,22 @@
         "devops",
         "maintenance",
         "pods"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "apple-workflows",
+      "source": "./plugins/apple-workflows",
+      "category": "productivity",
+      "description": "Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP server on macOS.",
+      "keywords": [
+        "productivity",
+        "apple",
+        "macos",
+        "notes",
+        "reminders",
+        "shortcuts",
+        "automation"
       ],
       "author": { "name": "AgentHaus Team" }
     }

@@ -42,7 +42,8 @@ agenthaus-marketplace/
 │   ├── seo-geo-rag/        # SEO: SEO + GEO + RAG optimization
 │   ├── gog-workspace/      # Productivity: Google Workspace integration
 │   ├── apple-photos/       # Media: Apple Photos management via osxphotos
-│   └── wp-cli-fleet/       # DevOps: WordPress fleet management via WP-CLI
+│   ├── wp-cli-fleet/       # DevOps: WordPress fleet management via WP-CLI
+│   └── apple-workflows/    # Productivity: Apple Notes, Reminders, Shortcuts via MCP
 ├── schemas/                # JSON schemas for validation
 ├── scripts/                # Validation and utility scripts
 ├── reports/                # All project reports and documentation
@@ -175,6 +176,7 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 | agent-memory | `NEON_DATABASE_URL` |
 | gog-workspace | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` |
 | wp-cli-fleet | `WP_CLI_SSH_KEY` (optional, for remote sites) |
+| apple-workflows | `APPLE_REMINDERS_BACKEND` (optional, default: `remindctl`) |
 | agenthaus-web | `DATABASE_URL`, `NEXT_PUBLIC_API_URL` |
 
 ## Configuration
@@ -249,6 +251,8 @@ These agents are defined within plugins and available when the corresponding plu
 | ui-expert | ux-ui | sonnet | UI/UX design and accessibility consulting |
 | fleet-monitor | fleet-commander | haiku | Background agent session monitoring |
 | security-reviewer | plugin-auditor | sonnet | Deep security analysis of plugin code |
+| productivity-assistant | apple-workflows | sonnet | Apple Notes, Reminders, and Shortcuts management |
+| workflow-automator | apple-workflows | sonnet | Apple Shortcuts automation and workflow chaining |
 
 ## Directory Structure & File Organization
 
