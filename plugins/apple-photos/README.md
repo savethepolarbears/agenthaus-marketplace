@@ -22,7 +22,7 @@ The **apple-photos** plugin brings Apple Photos library management to Claude Cod
 
 * **macOS** with Photos.app
 * **osxphotos** installed: `pip install osxphotos` or `uv tool install osxphotos`
-* **macOS compatibility**: Tested on 10.12.6 through Sequoia 15.7.2. macOS 26.x is not fully supported.
+* **macOS compatibility**: Tested on 10.12.6 through Sequoia 15.7.2. macOS 26.x is not fully supported; shared albums cannot be read and not all features work reliably. Test carefully with a small batch first.
 
 ### Installation
 

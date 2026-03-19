@@ -1,9 +1,9 @@
 {
-  "description": "Log osxphotos write operations for safety audit trail. Captures batch-edit, timewarp, push-exif, import, and add-locations invocations.",
+  "description": "Log osxphotos write operations for safety audit trail. Captures export, backup, import, metadata, date-fix, and location-fix invocations.",
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "apple-photos:(metadata|fix-dates|fix-locations|import)",
+        "matcher": "apple-photos:(metadata|fix-dates|fix-locations|import|export|backup)",
         "hooks": [
           {
             "type": "command",
