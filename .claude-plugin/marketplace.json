@@ -253,6 +253,23 @@
       "author": { "name": "AgentHaus Team" }
     },
     {
+      "name": "gog-workspace",
+      "source": "./plugins/gog-workspace",
+      "category": "productivity",
+      "description": "Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, and Chat using gogcli.",
+      "keywords": [
+        "google-workspace",
+        "gmail",
+        "google-drive",
+        "google-docs",
+        "google-sheets",
+        "google-calendar",
+        "productivity",
+        "cli"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
       "name": "apple-photos",
       "source": "./plugins/apple-photos",
       "category": "media",
