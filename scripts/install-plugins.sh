@@ -169,8 +169,10 @@ install_claude_code() {
 # =============================================================================
 # Goose Installation (by Block)
 # =============================================================================
-# Goose uses ~/.config/goose/ for extensions and GOOSE_GLOBAL_PROFILE for skills.
-# Skills are defined as markdown files in the profile extensions directory.
+# Goose uses ~/.config/goose/config.yaml for extensions (MCP servers).
+# It does not have a plugin directory — extensions are inline in config.yaml.
+# We install plugin files as reference material that can be loaded via
+# a custom MCP server or read by Goose's developer extension.
 
 install_goose() {
   print_section "Goose (by Block) Plugin Installation"
@@ -182,8 +184,12 @@ install_goose() {
     fi
   fi
 
-  local goose_dir="$HOME/.config/goose/extensions/agenthaus"
-  echo -e "  ${BOLD}Goose skills directory:${NC} $goose_dir"
+  local goose_dir="$HOME/.config/goose/agenthaus-skills"
+  echo -e "  ${BOLD}Goose reference directory:${NC} $goose_dir"
+  echo ""
+  warn "Goose uses config.yaml for extensions (MCP servers), not a plugin directory."
+  info "Plugins will be installed as reference skills that Goose can read."
+  info "For MCP servers, add entries to ~/.config/goose/config.yaml manually."
   echo ""
 
   # Ask method
@@ -217,14 +223,16 @@ install_goose() {
 
   echo ""
   info "Installed $installed plugins for Goose"
-  info "Reference skills in your Goose profile with: extensions.agenthaus.<plugin>"
+  info "Reference skills via: goose configure -> Add Extension -> point to skill files"
 }
 
 # =============================================================================
 # Codex Installation (by OpenAI)
 # =============================================================================
-# Codex CLI uses project-level configuration via codex.md or .codex/ directory.
-# Instructions and tools are defined in markdown files.
+# Codex CLI uses ~/.codex/config.toml (or .codex/config.toml project-level).
+# It does not have a plugin directory — extensibility is via MCP servers
+# in config.toml and instructions in AGENTS.md. We install plugin files
+# as reference material alongside the Codex config.
 
 install_codex() {
   print_section "Codex CLI (by OpenAI) Plugin Installation"
@@ -237,17 +245,21 @@ install_codex() {
   fi
 
   local codex_dir=""
-  echo -e "  ${BOLD}Where should skills be installed for Codex?${NC}"
   echo ""
-  echo -e "    ${CYAN}1)${NC} Current project   ${DIM}(.codex/plugins/ in cwd)${NC}"
-  echo -e "    ${CYAN}2)${NC} User global        ${DIM}(~/.codex/plugins/)${NC}"
+  warn "Codex uses config.toml for MCP servers, not a plugin directory."
+  info "Plugins will be installed as reference skills readable via AGENTS.md."
+  echo ""
+  echo -e "  ${BOLD}Where should reference skills be installed?${NC}"
+  echo ""
+  echo -e "    ${CYAN}1)${NC} Current project   ${DIM}(.codex/agenthaus-skills/ in cwd)${NC}"
+  echo -e "    ${CYAN}2)${NC} User global        ${DIM}(~/.codex/agenthaus-skills/)${NC}"
   echo ""
   read -rp "  Select [1-2] (default: 1): " choice
   choice="${choice:-1}"
 
   case "$choice" in
-    1) codex_dir="$(pwd)/.codex/plugins" ;;
-    2) codex_dir="$HOME/.codex/plugins" ;;
+    1) codex_dir="$(pwd)/.codex/agenthaus-skills" ;;
+    2) codex_dir="$HOME/.codex/agenthaus-skills" ;;
     *) error "Invalid selection"; return 1 ;;
   esac
 
@@ -282,37 +294,39 @@ install_codex() {
 
   echo ""
   info "Installed $installed plugins for Codex"
-  info "Reference in AGENTS.md or codex.md with paths to the skills"
+  info "Reference in AGENTS.md: 'Read skills from .codex/agenthaus-skills/<plugin>/skills/'"
+  info "For MCP servers, add entries to ~/.codex/config.toml or .codex/config.toml"
 }
 
 # =============================================================================
 # Gemini CLI Installation
 # =============================================================================
-# Gemini CLI uses ~/.gemini/ for global config and project-level .gemini/ folders.
-# Extensions and tools are defined in GEMINI.md or .gemini/settings.json.
+# Gemini CLI uses ~/.gemini/extensions/<name>/ for installed extensions.
+# Extensions have gemini-extension.json manifest and can include commands/,
+# skills/, hooks/, and a GEMINI.md context file.
 
 install_gemini() {
   print_section "Gemini CLI Plugin Installation"
 
   if ! has_cmd gemini; then
-    warn "Gemini CLI not found. Install: npm install -g @anthropic-ai/gemini-cli"
+    warn "Gemini CLI not found. Install: npm install -g @google/gemini-cli"
     if ! confirm "Install anyway to pre-configure?"; then
       return 0
     fi
   fi
 
   local gemini_dir=""
-  echo -e "  ${BOLD}Where should skills be installed for Gemini CLI?${NC}"
+  echo -e "  ${BOLD}Where should extensions be installed for Gemini CLI?${NC}"
   echo ""
-  echo -e "    ${CYAN}1)${NC} Current project   ${DIM}(.gemini/plugins/ in cwd)${NC}"
-  echo -e "    ${CYAN}2)${NC} User global        ${DIM}(~/.gemini/plugins/)${NC}"
+  echo -e "    ${CYAN}1)${NC} User extensions    ${DIM}(~/.gemini/extensions/)${NC}"
+  echo -e "    ${CYAN}2)${NC} Project commands   ${DIM}(.gemini/commands/ in cwd)${NC}"
   echo ""
   read -rp "  Select [1-2] (default: 1): " choice
   choice="${choice:-1}"
 
   case "$choice" in
-    1) gemini_dir="$(pwd)/.gemini/plugins" ;;
-    2) gemini_dir="$HOME/.gemini/plugins" ;;
+    1) gemini_dir="$HOME/.gemini/extensions" ;;
+    2) gemini_dir="$(pwd)/.gemini/extensions" ;;
     *) error "Invalid selection"; return 1 ;;
   esac
 
@@ -347,14 +361,16 @@ install_gemini() {
 
   echo ""
   info "Installed $installed plugins for Gemini CLI"
-  info "Reference skills in GEMINI.md or .gemini/settings.json"
+  info "Extensions installed to: $gemini_dir"
+  info "Official install also works: gemini extensions install --path <plugin_dir>"
 }
 
 # =============================================================================
 # OpenClaw Installation
 # =============================================================================
-# OpenClaw uses ~/.openclaw/skills/ for skill definitions.
-# Skills are markdown files with frontmatter.
+# OpenClaw uses ~/.openclaw/skills/ for shared skills (SKILL.md with frontmatter)
+# and ~/.openclaw/extensions/ for plugins (openclaw.plugin.json manifest).
+# Skill precedence: workspace skills/ > ~/.openclaw/skills/ > bundled.
 
 install_openclaw() {
   print_section "OpenClaw Plugin Installation"
@@ -366,9 +382,24 @@ install_openclaw() {
     fi
   fi
 
-  local openclaw_dir="$HOME/.openclaw/skills/agenthaus"
+  local openclaw_home="${OPENCLAW_HOME:-$HOME/.openclaw}"
+  local openclaw_dir=""
+  echo -e "  ${BOLD}Where should plugins be installed for OpenClaw?${NC}"
+  echo ""
+  echo -e "    ${CYAN}1)${NC} Shared skills      ${DIM}($openclaw_home/skills/)${NC}"
+  echo -e "    ${CYAN}2)${NC} Extensions          ${DIM}($openclaw_home/extensions/)${NC}"
+  echo -e "    ${CYAN}3)${NC} Workspace skills    ${DIM}($openclaw_home/workspace/skills/)${NC}"
+  echo ""
+  read -rp "  Select [1-3] (default: 1): " choice
+  choice="${choice:-1}"
 
-  echo -e "  ${BOLD}OpenClaw skills directory:${NC} $openclaw_dir"
+  case "$choice" in
+    1) openclaw_dir="$openclaw_home/skills" ;;
+    2) openclaw_dir="$openclaw_home/extensions" ;;
+    3) openclaw_dir="$openclaw_home/workspace/skills" ;;
+    *) error "Invalid selection"; return 1 ;;
+  esac
+
   echo ""
   echo -e "  ${BOLD}Installation method:${NC}"
   echo -e "    ${CYAN}1)${NC} Symlink  ${DIM}(recommended)${NC}"
@@ -401,6 +432,7 @@ install_openclaw() {
   echo ""
   info "Installed $installed plugins for OpenClaw"
   info "Use the openclaw-bridge plugin to convert formats: /migrate plugins/<name>"
+  info "Or install natively: openclaw plugins install <npm-spec>"
 }
 
 # =============================================================================
@@ -516,12 +548,12 @@ show_status() {
   local check_dirs=(
     "$HOME/.claude/plugins|Claude Code (global)"
     "$(pwd)/.claude/plugins|Claude Code (project)"
-    "$HOME/.config/goose/extensions/agenthaus|Goose"
-    "$HOME/.codex/plugins|Codex (global)"
-    "$(pwd)/.codex/plugins|Codex (project)"
-    "$HOME/.gemini/plugins|Gemini CLI (global)"
-    "$(pwd)/.gemini/plugins|Gemini CLI (project)"
-    "$HOME/.openclaw/skills/agenthaus|OpenClaw"
+    "$HOME/.config/goose/agenthaus-skills|Goose"
+    "$HOME/.codex/agenthaus-skills|Codex (global)"
+    "$(pwd)/.codex/agenthaus-skills|Codex (project)"
+    "$HOME/.gemini/extensions|Gemini CLI (extensions)"
+    "$HOME/.openclaw/skills|OpenClaw (shared skills)"
+    "$HOME/.openclaw/extensions|OpenClaw (extensions)"
   )
 
   for entry in "${check_dirs[@]}"; do
