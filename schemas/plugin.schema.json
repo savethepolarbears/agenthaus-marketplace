@@ -97,6 +97,61 @@
       ],
       "description": "Relative paths to skill Markdown files (skills/<name>/SKILL.md)"
     },
+    "openapi": {
+      "type": "string",
+      "description": "Relative path to an OpenAPI 3.1 specification for Gemini Extensions and OpenAI Actions compilation"
+    },
+    "capabilities_manifest": {
+      "type": "object",
+      "description": "MCP capability declarations (tools, resources, prompts) for protocol-level discovery",
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of MCP tool names this plugin provides"
+        },
+        "resources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of MCP resource URIs this plugin provides"
+        },
+        "prompts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of MCP prompt names this plugin provides"
+        }
+      },
+      "additionalProperties": false
+    },
+    "required_credentials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Environment variable name (e.g., GITHUB_TOKEN)"
+          },
+          "scopes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Required OAuth/API scopes"
+          },
+          "rotation": {
+            "type": "string",
+            "pattern": "^[0-9]+[dhm]$",
+            "description": "Recommended rotation period (e.g., 90d, 24h)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of what this credential is used for"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Credential declarations with scope and rotation metadata"
+    },
     "hooks": {
       "oneOf": [
         { "type": "string" },
@@ -106,11 +161,66 @@
         },
         {
           "type": "object",
-          "description": "Inline hooks configuration",
-          "additionalProperties": true
+          "description": "Inline hooks configuration with optional HITL approval flags",
+          "properties": {
+            "hooks": {
+              "type": "object",
+              "description": "Hook event definitions (PreToolUse, PostToolUse)",
+              "properties": {
+                "PreToolUse": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "matcher": { "type": "string", "description": "Tool name pattern to match (* for all)" },
+                      "requires_approval": { "type": "boolean", "default": false, "description": "If true, pause execution and request human approval before running" },
+                      "approval_message": { "type": "string", "description": "Message shown to user when approval is required" },
+                      "hooks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["type", "command"],
+                          "properties": {
+                            "type": { "type": "string", "enum": ["command"] },
+                            "command": { "type": "string" }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "PostToolUse": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "matcher": { "type": "string" },
+                      "hooks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["type", "command"],
+                          "properties": {
+                            "type": { "type": "string", "enum": ["command"] },
+                            "command": { "type": "string" }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ],
-      "description": "Relative paths to hook JSON files or inline hooks configuration"
+      "description": "Relative paths to hook JSON files, inline hooks configuration, or hooks with HITL approval flags"
     },
     "mcpServers": {
       "oneOf": [
