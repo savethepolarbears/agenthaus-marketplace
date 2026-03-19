@@ -5,7 +5,7 @@
     "email": "support@agenthaus.dev"
   },
   "metadata": {
-    "description": "A comprehensive marketplace of 23 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
+    "description": "A comprehensive marketplace of 25 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
     "version": "3.4.0",
     "pluginRoot": "./plugins"
   },
@@ -266,6 +266,23 @@
         "google-calendar",
         "productivity",
         "cli"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "apple-photos",
+      "source": "./plugins/apple-photos",
+      "category": "media",
+      "description": "Manage Apple Photos libraries with osxphotos — query, export, import, backup, fix metadata, find duplicates, and migrate photos.",
+      "keywords": [
+        "photos",
+        "apple",
+        "macos",
+        "osxphotos",
+        "metadata",
+        "backup",
+        "migration",
+        "media"
       ],
       "author": { "name": "AgentHaus Team" }
     },
