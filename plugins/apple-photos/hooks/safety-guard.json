@@ -1,0 +1,16 @@
+{
+  "description": "Log osxphotos write operations for safety audit trail. Captures export, backup, import, metadata, date-fix, and location-fix invocations.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "apple-photos:(metadata|fix-dates|fix-locations|import|export|backup)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] apple-photos write operation executed\" >> \"$CLAUDE_PROJECT_DIR/apple_photos_audit.log\""
+          }
+        ]
+      }
+    ]
+  }
+}
