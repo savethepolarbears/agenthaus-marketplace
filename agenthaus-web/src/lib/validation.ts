@@ -2,6 +2,8 @@
  * Security constants and validation functions.
  */
 
+import { z } from "zod";
+
 // Security limit for input parameters to prevent database abuse or DoS
 export const MAX_INPUT_LENGTH = 100;
 
@@ -44,3 +46,13 @@ export function escapeLikeString(query: string): string {
   }
   return query.replace(/([!%_])/g, "!$1");
 }
+
+// Zod schema for GET /api/plugins query parameters
+export const pluginSearchSchema = z.object({
+  category: z.string().max(MAX_INPUT_LENGTH).regex(/^[a-z0-9-]+$/).optional().nullable(),
+  search: z.string().max(MAX_INPUT_LENGTH).optional().nullable(),
+  tag: z.string().max(MAX_INPUT_LENGTH).regex(/^[a-z0-9-]+$/).optional().nullable(),
+});
+
+// Zod schema for plugin slug parameter
+export const slugSchema = z.string().min(1).max(MAX_INPUT_LENGTH).regex(/^[a-z0-9-]+$/);

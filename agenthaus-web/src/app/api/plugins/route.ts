@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db";
-import { isValidSlug, sanitizeQuery, escapeLikeString, MAX_INPUT_LENGTH } from "@/lib/validation";
+import { pluginSearchSchema, sanitizeQuery, escapeLikeString } from "@/lib/validation";
 import { searchLimiter, getIp, rateLimitResponse } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -12,34 +12,22 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl;
-  const category = searchParams.get("category");
-  const search = searchParams.get("search");
-  const tag = searchParams.get("tag");
 
-  // Input validation: prevent DoS via excessively long inputs
-  if (
-    (category && category.length > MAX_INPUT_LENGTH) ||
-    (search && search.length > MAX_INPUT_LENGTH) ||
-    (tag && tag.length > MAX_INPUT_LENGTH)
-  ) {
+  const rawParams = {
+    category: searchParams.get("category"),
+    search: searchParams.get("search"),
+    tag: searchParams.get("tag"),
+  };
+
+  const parsed = pluginSearchSchema.safeParse(rawParams);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Input parameters too long" },
+      { error: "Invalid query parameters" },
       { status: 400 },
     );
   }
 
-  // Validate category and tag format to prevent injection or malformed queries
-  // We use isValidSlug because categories and tags follow slug format (lowercase, alphanumeric, hyphens)
-  if (category && !isValidSlug(category)) {
-    return NextResponse.json(
-      { error: "Invalid category format" },
-      { status: 400 },
-    );
-  }
-
-  if (tag && !isValidSlug(tag)) {
-    return NextResponse.json({ error: "Invalid tag format" }, { status: 400 });
-  }
+  const { category, search, tag } = parsed.data;
 
   if (!sql) {
     return NextResponse.json(

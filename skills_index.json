@@ -1,152 +1,880 @@
 {
-  "name": "agenthaus-marketplace",
-  "version": "3.3.0",
-  "description": "23 production-ready agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, and 35+ other AI coding agents.",
-  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
-  "skills": [
+  "$schema": "https://github.com/savethepolarbears/agenthaus-marketplace/schemas/skills-index.schema.json",
+  "version": "1.0.0",
+  "generated": "2026-03-19",
+  "description": "Lightweight skill index for progressive disclosure. Agents load this at startup; full SKILL.md content is loaded on demand.",
+  "entries": [
     {
-      "name": "social-content",
-      "path": "plugins/social-media/skills/social-content/SKILL.md",
-      "category": "content",
-      "description": "Generate high-engagement social media posts for Twitter, LinkedIn, Instagram, and Facebook"
+      "id": "agent-handoff:claim",
+      "plugin": "agent-handoff",
+      "type": "command",
+      "name": "claim",
+      "path": "plugins/agent-handoff/commands/claim.md",
+      "description": "Claim a pending task from the blackboard and execute it"
     },
     {
-      "name": "github-workflow",
-      "path": "plugins/github-integration/skills/github-workflow/SKILL.md",
-      "category": "devops",
-      "description": "Manage GitHub issues and pull requests through structured workflows"
+      "id": "agent-handoff:dispatch",
+      "plugin": "agent-handoff",
+      "type": "command",
+      "name": "dispatch",
+      "path": "plugins/agent-handoff/commands/dispatch.md",
+      "description": "Dispatch a new task to the blackboard for agent pickup"
     },
     {
-      "name": "cloudflare-deploy",
-      "path": "plugins/cloudflare-platform/skills/cloudflare-deploy/SKILL.md",
-      "category": "cloud",
-      "description": "Deploy and manage Cloudflare Workers, KV storage, and AI Gateway"
+      "id": "agent-handoff:status",
+      "plugin": "agent-handoff",
+      "type": "command",
+      "name": "status",
+      "path": "plugins/agent-handoff/commands/status.md",
+      "description": "Display the task board showing all pending, active, and completed tasks"
     },
     {
-      "name": "vercel-deployment",
-      "path": "plugins/vercel-deploy/skills/vercel-deployment/SKILL.md",
-      "category": "deployment",
-      "description": "Deploy and manage Vercel projects and monitor build status"
-    },
-    {
-      "name": "devops-workflow",
-      "path": "plugins/devops-flow/skills/devops-workflow/SKILL.md",
-      "category": "devops",
-      "description": "Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications"
-    },
-    {
-      "name": "notion-management",
-      "path": "plugins/notion-workspace/skills/notion-management/SKILL.md",
-      "category": "knowledge",
-      "description": "Search, create, and manage Notion pages and databases"
-    },
-    {
-      "name": "doc-lookup",
-      "path": "plugins/context7-docs/skills/doc-lookup/SKILL.md",
-      "category": "knowledge",
-      "description": "Fetch hallucination-free library documentation via Context7"
-    },
-    {
-      "name": "deep-research",
-      "path": "plugins/knowledge-synapse/skills/deep-research/SKILL.md",
-      "category": "knowledge",
-      "description": "Synthesize research from Context7, Google Drive, and Notion"
-    },
-    {
-      "name": "clickup-management",
-      "path": "plugins/clickup-tasks/skills/clickup-management/SKILL.md",
-      "category": "productivity",
-      "description": "Create and manage ClickUp tasks, lists, and time tracking"
-    },
-    {
-      "name": "task-orchestration",
-      "path": "plugins/task-commander/skills/task-orchestration/SKILL.md",
-      "category": "productivity",
-      "description": "Unified task management with ClickUp, Slack, Gmail, and Calendar"
-    },
-    {
-      "name": "e2e-testing",
-      "path": "plugins/playwright-testing/skills/e2e-testing/SKILL.md",
-      "category": "qa",
-      "description": "Design and execute E2E browser tests with Playwright"
-    },
-    {
-      "name": "qa-automation",
-      "path": "plugins/qa-droid/skills/qa-automation/SKILL.md",
-      "category": "qa",
-      "description": "Automated testing with Slack and Gmail result notifications"
-    },
-    {
-      "name": "neon-database",
-      "path": "plugins/neon-db/skills/neon-database/SKILL.md",
-      "category": "database",
-      "description": "Query and manage Neon serverless Postgres databases"
-    },
-    {
-      "name": "postgres-operations",
-      "path": "plugins/data-core/skills/postgres-operations/SKILL.md",
-      "category": "database",
-      "description": "Advanced Postgres with schema design, migrations, and query optimization"
-    },
-    {
-      "name": "ui-ux-review",
-      "path": "plugins/ux-ui/skills/ui-ux-review/SKILL.md",
-      "category": "ux",
-      "description": "Audit and improve UI/UX, accessibility, and Tailwind CSS"
-    },
-    {
+      "id": "agent-handoff:blackboard-protocol",
+      "plugin": "agent-handoff",
+      "type": "skill",
       "name": "blackboard-protocol",
       "path": "plugins/agent-handoff/skills/blackboard-protocol/SKILL.md",
-      "category": "orchestration",
-      "description": "Multi-agent task handoff using filesystem-based blackboard protocol"
+      "description": "Shared-state coordination protocol for multi-agent task handoff using the filesystem as a message bus. Use when coordinating work between multiple agents, dispatching tasks to worker agents, implementing agent-to-agent handoff, or building a task queue with claim/execute/report lifecycle. Covers dispatch, claim, execute, and failure-retry patterns."
     },
     {
-      "name": "safety-guardrails",
-      "path": "plugins/circuit-breaker/skills/safety-guardrails/SKILL.md",
-      "category": "safety",
-      "description": "Deploy gates, test requirements, and budget guards for agent workflows"
+      "id": "agent-memory:forget",
+      "plugin": "agent-memory",
+      "type": "command",
+      "name": "forget",
+      "path": "plugins/agent-memory/commands/forget.md",
+      "description": "Delete a memory from persistent storage"
     },
     {
+      "id": "agent-memory:recall",
+      "plugin": "agent-memory",
+      "type": "command",
+      "name": "recall",
+      "path": "plugins/agent-memory/commands/recall.md",
+      "description": "Search and retrieve memories from persistent storage"
+    },
+    {
+      "id": "agent-memory:remember",
+      "plugin": "agent-memory",
+      "type": "command",
+      "name": "remember",
+      "path": "plugins/agent-memory/commands/remember.md",
+      "description": "Store a memory in persistent Postgres storage"
+    },
+    {
+      "id": "agent-memory:memory-protocol",
+      "plugin": "agent-memory",
+      "type": "skill",
       "name": "memory-protocol",
       "path": "plugins/agent-memory/skills/memory-protocol/SKILL.md",
-      "category": "memory",
-      "description": "Persistent cross-session memory via Neon Postgres"
+      "description": "Persist session learnings to shared Postgres memory for cross-session knowledge retention. Use when storing decisions, errors, patterns, or environment specifics at end of a task, recalling previous session context before starting work, or managing a CRUD lifecycle for agent memories via SQL. Covers tagging, querying, and memory cleanup."
     },
     {
-      "name": "shadow-review",
-      "path": "plugins/shadow-mode/skills/shadow-review/SKILL.md",
-      "category": "safety",
-      "description": "Review queue for agent actions with human-in-the-loop oversight"
+      "id": "apple-photos:migration-specialist",
+      "plugin": "apple-photos",
+      "type": "agent",
+      "name": "migration-specialist",
+      "path": "plugins/apple-photos/agents/migration-specialist.md",
+      "description": "Guides migrations out of or into Apple Photos with metadata preservation. Use this agent for exporting to other DAMs, importing from external sources, or moving between Photos libraries."
     },
     {
+      "id": "apple-photos:photo-librarian",
+      "plugin": "apple-photos",
+      "type": "agent",
+      "name": "photo-librarian",
+      "path": "plugins/apple-photos/agents/photo-librarian.md",
+      "description": "Helps organize, audit, and manage Apple Photos libraries. Use this agent for library health checks, organization suggestions, cleanup tasks, and metadata audits."
+    },
+    {
+      "id": "apple-photos:albums",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Albums",
+      "path": "plugins/apple-photos/commands/albums.md",
+      "description": "List albums, folders, people, places, labels, and keywords in your Photos library. Usage: `/apple-photos:albums [albums|persons|places|labels|keywords]`"
+    },
+    {
+      "id": "apple-photos:backup",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Backup",
+      "path": "plugins/apple-photos/commands/backup.md",
+      "description": "Run an incremental backup of your Photos library to a folder with full metadata. Usage: `/apple-photos:backup <destination>`"
+    },
+    {
+      "id": "apple-photos:duplicates",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Duplicates",
+      "path": "plugins/apple-photos/commands/duplicates.md",
+      "description": "Find possible duplicate photos in your Photos library. Usage: `/apple-photos:duplicates`"
+    },
+    {
+      "id": "apple-photos:export",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Export",
+      "path": "plugins/apple-photos/commands/export.md",
+      "description": "Export photos from Apple Photos with flexible filtering and output options. Usage: `/apple-photos:export <destination> [options]`"
+    },
+    {
+      "id": "apple-photos:fix-dates",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Fix Dates",
+      "path": "plugins/apple-photos/commands/fix-dates.md",
+      "description": "Fix incorrect timestamps, dates, or timezones on photos using osxphotos timewarp. Usage: `/apple-photos:fix-dates <options>`"
+    },
+    {
+      "id": "apple-photos:fix-locations",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Fix Locations",
+      "path": "plugins/apple-photos/commands/fix-locations.md",
+      "description": "Add missing GPS location data to photos using nearby photos as reference. Usage: `/apple-photos:fix-locations [--window \"2 hr\"]`"
+    },
+    {
+      "id": "apple-photos:import",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Import",
+      "path": "plugins/apple-photos/commands/import.md",
+      "description": "Import photos and videos into Apple Photos with metadata and album placement. Usage: `/apple-photos:import <path> [--album \"Name\"]`"
+    },
+    {
+      "id": "apple-photos:info",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Info",
+      "path": "plugins/apple-photos/commands/info.md",
+      "description": "Inspect detailed metadata for a specific photo or selection of photos. Usage: `/apple-photos:info <filename or filter>`"
+    },
+    {
+      "id": "apple-photos:metadata",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Metadata",
+      "path": "plugins/apple-photos/commands/metadata.md",
+      "description": "Batch edit photo metadata \u2014 titles, captions, keywords, favorites, locations, and albums. Usage: `/apple-photos:metadata <operation> [options]`"
+    },
+    {
+      "id": "apple-photos:query",
+      "plugin": "apple-photos",
+      "type": "command",
+      "name": "Query",
+      "path": "plugins/apple-photos/commands/query.md",
+      "description": "Search and filter photos by person, keyword, album, place, date, or EXIF data. Usage: `/apple-photos:query <filters>`"
+    },
+    {
+      "id": "apple-photos:photo-management",
+      "plugin": "apple-photos",
+      "type": "skill",
+      "name": "photo-management",
+      "path": "plugins/apple-photos/skills/photo-management/SKILL.md",
+      "description": "Manage Apple Photos libraries using osxphotos CLI \u2014 querying, exporting, organizing, fixing metadata, finding duplicates, and performing backups. Use when the user asks about Apple Photos, photo management, photo metadata, photo backup, or photo organization on macOS."
+    },
+    {
+      "id": "apple-photos:photo-migration",
+      "plugin": "apple-photos",
+      "type": "skill",
+      "name": "photo-migration",
+      "path": "plugins/apple-photos/skills/photo-migration/SKILL.md",
+      "description": "Migrate photos in and out of Apple Photos with full metadata preservation using osxphotos. Use when the user asks about exporting their photo library, migrating to another photo manager, importing photos with metadata, or syncing between libraries."
+    },
+    {
+      "id": "circuit-breaker:configure",
+      "plugin": "circuit-breaker",
+      "type": "command",
+      "name": "configure",
+      "path": "plugins/circuit-breaker/commands/configure.md",
+      "description": "Enable or disable specific circuit breaker guardrails"
+    },
+    {
+      "id": "circuit-breaker:safety-guardrails",
+      "plugin": "circuit-breaker",
+      "type": "skill",
+      "name": "safety-guardrails",
+      "path": "plugins/circuit-breaker/skills/safety-guardrails/SKILL.md",
+      "description": "Configure and manage pre-built safety guardrails for agent workflows including deploy gates, test requirements, and budget warnings. Use when the user asks to set up deployment safety checks, enforce test requirements before commits, monitor agent tool usage budgets, or configure circuit breaker patterns for autonomous agent operations."
+    },
+    {
+      "id": "clickup-tasks:clickup-management",
+      "plugin": "clickup-tasks",
+      "type": "skill",
+      "name": "clickup-management",
+      "path": "plugins/clickup-tasks/skills/clickup-management/SKILL.md",
+      "description": "Create, update, and manage ClickUp tasks, lists, spaces, and time tracking through the ClickUp MCP server. Use when the user asks to manage project tasks, create or update ClickUp items, track time, organize sprints, or query task status across workspaces."
+    },
+    {
+      "id": "cloudflare-platform:deploy",
+      "plugin": "cloudflare-platform",
+      "type": "command",
+      "name": "deploy",
+      "path": "plugins/cloudflare-platform/commands/deploy.md",
+      "description": "Deploy a Cloudflare Worker script to your account. Usage: `/cloudflare-platform:deploy <script_path> [environment]`"
+    },
+    {
+      "id": "cloudflare-platform:kv",
+      "plugin": "cloudflare-platform",
+      "type": "command",
+      "name": "kv",
+      "path": "plugins/cloudflare-platform/commands/kv.md",
+      "description": "Perform key\u2013value operations on Cloudflare KV. Usage: `/cloudflare-platform:kv <get|put|delete> <namespace> <key> [value]`"
+    },
+    {
+      "id": "cloudflare-platform:cloudflare-deploy",
+      "plugin": "cloudflare-platform",
+      "type": "skill",
+      "name": "cloudflare-deploy",
+      "path": "plugins/cloudflare-platform/skills/cloudflare-deploy/SKILL.md",
+      "description": "Deploy and manage Cloudflare Workers, KV storage namespaces, and AI Gateway configurations. Use when the user asks to deploy edge functions, manage key-value storage, interact with Cloudflare services, or set up AI Gateway routing via the Cloudflare MCP server."
+    },
+    {
+      "id": "context7-docs:docs",
+      "plugin": "context7-docs",
+      "type": "command",
+      "name": "docs",
+      "path": "plugins/context7-docs/commands/docs.md",
+      "description": "Find documentation for a specific library. Usage: `/context7-docs:docs <library> <query>`"
+    },
+    {
+      "id": "context7-docs:doc-lookup",
+      "plugin": "context7-docs",
+      "type": "skill",
+      "name": "doc-lookup",
+      "path": "plugins/context7-docs/skills/doc-lookup/SKILL.md",
+      "description": "Fetch up-to-date, hallucination-free documentation for any library, framework, or API using Context7. Use when the user asks about library APIs, needs accurate documentation references, wants to verify framework behavior, or needs code examples from official docs instead of training data."
+    },
+    {
+      "id": "data-core:postgres-operations",
+      "plugin": "data-core",
+      "type": "skill",
+      "name": "postgres-operations",
+      "path": "plugins/data-core/skills/postgres-operations/SKILL.md",
+      "description": "Perform advanced Postgres database operations including schema design, migrations, query optimization, and data management on Neon serverless databases. Use when the user asks to design database schemas, write or optimize SQL queries, create migration scripts, manage indexes, or troubleshoot database performance via the Postgres MCP server."
+    },
+    {
+      "id": "devops-flow:deploy",
+      "plugin": "devops-flow",
+      "type": "command",
+      "name": "Deploy",
+      "path": "plugins/devops-flow/commands/deploy.md",
+      "description": "Deploy current project to Cloudflare and notify team"
+    },
+    {
+      "id": "devops-flow:devops-workflow",
+      "plugin": "devops-flow",
+      "type": "skill",
+      "name": "devops-workflow",
+      "path": "plugins/devops-flow/skills/devops-workflow/SKILL.md",
+      "description": "Orchestrate end-to-end DevOps workflows combining Cloudflare deployments, GitHub PR management, and Slack notifications in a unified pipeline. Use when the user asks to deploy with notifications, coordinate deployment pipelines across services, or automate the deploy-review-notify cycle."
+    },
+    {
+      "id": "fleet-commander:fleet-monitor",
+      "plugin": "fleet-commander",
+      "type": "agent",
+      "name": "fleet-monitor",
+      "path": "plugins/fleet-commander/agents/fleet-monitor.md",
+      "description": "Background monitoring agent that checks task board status and reports anomalies"
+    },
+    {
+      "id": "fleet-commander:dispatch",
+      "plugin": "fleet-commander",
+      "type": "command",
+      "name": "dispatch",
+      "path": "plugins/fleet-commander/commands/dispatch.md",
+      "description": "Launch a new headless agent task via the blackboard protocol"
+    },
+    {
+      "id": "fleet-commander:fleet-status",
+      "plugin": "fleet-commander",
+      "type": "command",
+      "name": "fleet-status",
+      "path": "plugins/fleet-commander/commands/fleet-status.md",
+      "description": "Show all active agent sessions and their current tasks"
+    },
+    {
+      "id": "fleet-commander:takeover",
+      "plugin": "fleet-commander",
+      "type": "command",
+      "name": "takeover",
+      "path": "plugins/fleet-commander/commands/takeover.md",
+      "description": "Attach to a running agent session and take over execution"
+    },
+    {
+      "id": "fleet-commander:fleet-management",
+      "plugin": "fleet-commander",
+      "type": "skill",
       "name": "fleet-management",
       "path": "plugins/fleet-commander/skills/fleet-management/SKILL.md",
-      "category": "orchestration",
-      "description": "Monitor and control concurrent agent sessions with task dispatch"
+      "description": "Monitor, dispatch, and control multiple concurrent agent sessions with task board visualization and session lifecycle management. Use when the user asks to view running agent sessions, dispatch tasks to agents, take over a session, or manage multi-agent workloads across a fleet."
     },
     {
-      "name": "audit-checks",
-      "path": "plugins/plugin-auditor/skills/audit-checks/SKILL.md",
-      "category": "security",
-      "description": "Security checklist for auditing plugins before installation"
+      "id": "github-integration:issue",
+      "plugin": "github-integration",
+      "type": "command",
+      "name": "issue",
+      "path": "plugins/github-integration/commands/issue.md",
+      "description": "Create or search GitHub issues. Usage: `/github-integration:issue <search query | issue title>`"
     },
     {
-      "name": "agenthaus-to-openclaw",
-      "path": "plugins/openclaw-bridge/skills/conversion/SKILL.md",
-      "category": "integration",
-      "description": "Convert AgentHaus plugins to OpenClaw skill format"
+      "id": "github-integration:pr",
+      "plugin": "github-integration",
+      "type": "command",
+      "name": "pr",
+      "path": "plugins/github-integration/commands/pr.md",
+      "description": "Create or search GitHub pull requests. Usage: `/github-integration:pr <search query | branch>`"
     },
     {
+      "id": "github-integration:github-workflow",
+      "plugin": "github-integration",
+      "type": "skill",
+      "name": "github-workflow",
+      "path": "plugins/github-integration/skills/github-workflow/SKILL.md",
+      "description": "Manage GitHub issues and pull requests through structured workflows including creation, search, triage, and code review. Use when the user asks to create or search issues, open or review pull requests, manage labels, or automate GitHub repository workflows via the GitHub MCP server."
+    },
+    {
+      "id": "gog-workspace:email-composer",
+      "plugin": "gog-workspace",
+      "type": "agent",
+      "name": "email-composer",
+      "path": "plugins/gog-workspace/agents/email-composer.md",
+      "description": "Drafts professional emails with context-aware tone, manages reply threads, and handles bulk email operations using the gog CLI for Gmail."
+    },
+    {
+      "id": "gog-workspace:workspace-assistant",
+      "plugin": "gog-workspace",
+      "type": "agent",
+      "name": "workspace-assistant",
+      "path": "plugins/gog-workspace/agents/workspace-assistant.md",
+      "description": "Google Workspace power user that orchestrates multi-service workflows \u2014 searching Gmail, checking Calendar, managing Drive files, editing Docs/Sheets, and coordinating across Google services using the gog CLI."
+    },
+    {
+      "id": "gog-workspace:admin",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Admin",
+      "path": "plugins/gog-workspace/commands/admin.md",
+      "description": "Google Workspace Admin operations \u2014 manage users and groups (requires Workspace admin privileges). Usage: `/gog-workspace:admin users list` or `/gog-workspace:admin groups list`"
+    },
+    {
+      "id": "gog-workspace:calendar",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Calendar",
+      "path": "plugins/gog-workspace/commands/calendar.md",
+      "description": "Manage Google Calendar events \u2014 list, create, update, delete, and check availability. Usage: `/gog-workspace:calendar list` or `/gog-workspace:calendar create \"Meeting\" tomorrow 2pm 3pm`"
+    },
+    {
+      "id": "gog-workspace:chat",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Chat",
+      "path": "plugins/gog-workspace/commands/chat.md",
+      "description": "Send and manage Google Chat messages in Workspace spaces. Usage: `/gog-workspace:chat send \"space-name\" \"Hello team!\"` or `/gog-workspace:chat list`"
+    },
+    {
+      "id": "gog-workspace:classroom",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Classroom",
+      "path": "plugins/gog-workspace/commands/classroom.md",
+      "description": "Manage Google Classroom courses, roster, assignments, and announcements. Usage: `/gog-workspace:classroom courses` or `/gog-workspace:classroom roster <course_id>`"
+    },
+    {
+      "id": "gog-workspace:contacts",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Contacts",
+      "path": "plugins/gog-workspace/commands/contacts.md",
+      "description": "Search and manage Google Contacts and People directory. Usage: `/gog-workspace:contacts search \"John\"` or `/gog-workspace:contacts list`"
+    },
+    {
+      "id": "gog-workspace:docs",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Docs",
+      "path": "plugins/gog-workspace/commands/docs.md",
+      "description": "Create, read, and export Google Docs. Usage: `/gog-workspace:docs create \"My Document\"` or `/gog-workspace:docs export <doc_id> --format pdf`"
+    },
+    {
+      "id": "gog-workspace:drive",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Drive",
+      "path": "plugins/gog-workspace/commands/drive.md",
+      "description": "Manage Google Drive files \u2014 list, search, upload, download, share, and organize. Usage: `/gog-workspace:drive list` or `/gog-workspace:drive search \"budget 2025\"`"
+    },
+    {
+      "id": "gog-workspace:forms",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Forms",
+      "path": "plugins/gog-workspace/commands/forms.md",
+      "description": "Create and manage Google Forms, list responses, and set up response watches. Usage: `/gog-workspace:forms create \"Survey Title\"` or `/gog-workspace:forms responses <form_id>`"
+    },
+    {
+      "id": "gog-workspace:gmail",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Gmail",
+      "path": "plugins/gog-workspace/commands/gmail.md",
+      "description": "Search, read, send, and manage Gmail messages using the gog CLI. Usage: `/gog-workspace:gmail search is:unread newer_than:7d` or `/gog-workspace:gmail send to@example.com \"Subject\" \"Body\"`"
+    },
+    {
+      "id": "gog-workspace:sheets",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Sheets",
+      "path": "plugins/gog-workspace/commands/sheets.md",
+      "description": "Read, write, and manage Google Sheets spreadsheets. Usage: `/gog-workspace:sheets read <sheet_id>` or `/gog-workspace:sheets write <sheet_id> A1 \"Hello\"`"
+    },
+    {
+      "id": "gog-workspace:slides",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Slides",
+      "path": "plugins/gog-workspace/commands/slides.md",
+      "description": "Create and manage Google Slides presentations. Usage: `/gog-workspace:slides create \"Presentation Title\"` or `/gog-workspace:slides list <presentation_id>`"
+    },
+    {
+      "id": "gog-workspace:tasks",
+      "plugin": "gog-workspace",
+      "type": "command",
+      "name": "Tasks",
+      "path": "plugins/gog-workspace/commands/tasks.md",
+      "description": "Manage Google Tasks \u2014 list, create, complete, and organize task lists. Usage: `/gog-workspace:tasks list` or `/gog-workspace:tasks add \"Buy groceries\" --due tomorrow`"
+    },
+    {
+      "id": "gog-workspace:google-workspace-cli",
+      "plugin": "gog-workspace",
+      "type": "skill",
+      "name": "google-workspace-cli",
+      "path": "plugins/gog-workspace/skills/google-workspace-cli/SKILL.md",
+      "description": "Use when the user asks to interact with Google Workspace services \u2014 Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, Apps Script, Classroom, Admin, or Keep \u2014 via the gog CLI tool. Covers email management, calendar scheduling, file operations, document editing, spreadsheet manipulation, presentation creation, task tracking, classroom management, admin directory, and cross-service workflows."
+    },
+    {
+      "id": "knowledge-synapse:deep-research",
+      "plugin": "knowledge-synapse",
+      "type": "skill",
+      "name": "deep-research",
+      "path": "plugins/knowledge-synapse/skills/deep-research/SKILL.md",
+      "description": "Synthesize comprehensive research by combining official library documentation, internal knowledge bases, and note storage. Use when researching a software library, API, framework, or technical concept that benefits from cross-referencing official docs with internal documents. Covers Context7 doc lookup, Google Drive internal search, and Notion research note creation."
+    },
+    {
+      "id": "marketplace-cli:install",
+      "plugin": "marketplace-cli",
+      "type": "command",
+      "name": "Install",
+      "path": "plugins/marketplace-cli/commands/install.md",
+      "description": "Install a plugin from AgentHaus"
+    },
+    {
+      "id": "marketplace-cli:migrate",
+      "plugin": "marketplace-cli",
+      "type": "command",
+      "name": "migrate",
+      "path": "plugins/marketplace-cli/commands/migrate.md",
+      "description": "Convert an AgentHaus plugin to OpenClaw skill format"
+    },
+    {
+      "id": "marketplace-cli:search",
+      "plugin": "marketplace-cli",
+      "type": "command",
+      "name": "Search",
+      "path": "plugins/marketplace-cli/commands/search.md",
+      "description": "Search AgentHaus for available plugins"
+    },
+    {
+      "id": "marketplace-cli:validate",
+      "plugin": "marketplace-cli",
+      "type": "command",
+      "name": "validate",
+      "path": "plugins/marketplace-cli/commands/validate.md",
+      "description": "Validate a plugin directory for correctness and completeness"
+    },
+    {
+      "id": "marketplace-cli:plugin-management",
+      "plugin": "marketplace-cli",
+      "type": "skill",
       "name": "plugin-management",
       "path": "plugins/marketplace-cli/skills/plugin-management/SKILL.md",
-      "category": "utility",
-      "description": "Search, install, validate, and manage marketplace plugins"
+      "description": "Search, browse, install, validate, and manage AgentHaus marketplace plugins. Use when the user asks to find plugins, install new capabilities, validate plugin structure, check compatibility, or migrate plugins between formats."
     },
     {
+      "id": "neon-db:query",
+      "plugin": "neon-db",
+      "type": "command",
+      "name": "query",
+      "path": "plugins/neon-db/commands/query.md",
+      "description": "Execute a SQL query against a Neon Postgres database. Usage: `/neon-db:query <SQL>`"
+    },
+    {
+      "id": "neon-db:neon-database",
+      "plugin": "neon-db",
+      "type": "skill",
+      "name": "neon-database",
+      "path": "plugins/neon-db/skills/neon-database/SKILL.md",
+      "description": "Query and manage Neon serverless Postgres databases including running SQL, inspecting schemas, and managing data. Use when the user asks to run SQL queries, inspect database tables, manage data in Neon Postgres, or troubleshoot database connectivity via the Postgres MCP server."
+    },
+    {
+      "id": "notion-workspace:create-page",
+      "plugin": "notion-workspace",
+      "type": "command",
+      "name": "create-page",
+      "path": "plugins/notion-workspace/commands/create-page.md",
+      "description": "Create a new page or database entry in Notion."
+    },
+    {
+      "id": "notion-workspace:search",
+      "plugin": "notion-workspace",
+      "type": "command",
+      "name": "search",
+      "path": "plugins/notion-workspace/commands/search.md",
+      "description": "Search your Notion workspace for pages or database entries."
+    },
+    {
+      "id": "notion-workspace:notion-management",
+      "plugin": "notion-workspace",
+      "type": "skill",
+      "name": "notion-management",
+      "path": "plugins/notion-workspace/skills/notion-management/SKILL.md",
+      "description": "Search, read, create, and update Notion pages and databases through the Notion MCP server. Use when the user asks to find information in Notion, create new pages or database entries, update existing content, or organize their Notion workspace programmatically."
+    },
+    {
+      "id": "openclaw-bridge:migrate",
+      "plugin": "openclaw-bridge",
+      "type": "command",
+      "name": "migrate",
+      "path": "plugins/openclaw-bridge/commands/migrate.md",
+      "description": "Convert an AgentHaus plugin to OpenClaw skill format"
+    },
+    {
+      "id": "openclaw-bridge:remote",
+      "plugin": "openclaw-bridge",
+      "type": "command",
+      "name": "remote",
+      "path": "plugins/openclaw-bridge/commands/remote.md",
+      "description": "Send a command to a remote OpenClaw instance"
+    },
+    {
+      "id": "openclaw-bridge:conversion",
+      "plugin": "openclaw-bridge",
+      "type": "skill",
+      "name": "agenthaus-to-openclaw",
+      "path": "plugins/openclaw-bridge/skills/conversion/SKILL.md",
+      "description": "Convert AgentHaus plugins to OpenClaw skill format. Use when migrating plugin configurations between AgentHaus and OpenClaw platforms, mapping commands to actions, agents to personas, or MCP servers to tool providers. Covers env var syntax conversion and validation of converted output."
+    },
+    {
+      "id": "playwright-testing:qa-engineer",
+      "plugin": "playwright-testing",
+      "type": "agent",
+      "name": "qa-engineer",
+      "path": "plugins/playwright-testing/agents/qa-engineer.md",
+      "description": "Writes and executes browser tests using Playwright."
+    },
+    {
+      "id": "playwright-testing:e2e-testing",
+      "plugin": "playwright-testing",
+      "type": "skill",
+      "name": "e2e-testing",
+      "path": "plugins/playwright-testing/skills/e2e-testing/SKILL.md",
+      "description": "Design and execute end-to-end browser tests using Playwright with structured test planning, page object patterns, and comprehensive assertion strategies. Use when the user asks to write browser tests, automate UI testing, verify user flows, test responsive layouts, or set up E2E testing infrastructure with Playwright."
+    },
+    {
+      "id": "plugin-auditor:security-reviewer",
+      "plugin": "plugin-auditor",
+      "type": "agent",
+      "name": "security-reviewer",
+      "path": "plugins/plugin-auditor/agents/security-reviewer.md",
+      "description": "Deep security analysis agent for thorough plugin review"
+    },
+    {
+      "id": "plugin-auditor:audit",
+      "plugin": "plugin-auditor",
+      "type": "command",
+      "name": "audit",
+      "path": "plugins/plugin-auditor/commands/audit.md",
+      "description": "Scan a plugin directory for security risks and configuration issues"
+    },
+    {
+      "id": "plugin-auditor:audit-checks",
+      "plugin": "plugin-auditor",
+      "type": "skill",
+      "name": "audit-checks",
+      "path": "plugins/plugin-auditor/skills/audit-checks/SKILL.md",
+      "description": "Systematic security checklist for auditing Claude Code plugins before installation. Use when reviewing a plugin for hook script injection risks, validating plugin.json manifests, checking for hardcoded secrets or API keys, verifying MCP server trust, or scoring plugin safety. Covers manifest validation, hook security, env var safety, MCP trust, external references, and file permissions with weighted scoring."
+    },
+    {
+      "id": "qa-droid:sdet-agent",
+      "plugin": "qa-droid",
+      "type": "agent",
+      "name": "sdet-agent",
+      "path": "plugins/qa-droid/agents/sdet-agent.md",
+      "description": "Software Development Engineer in Test (SDET) agent for browser automation"
+    },
+    {
+      "id": "qa-droid:qa-automation",
+      "plugin": "qa-droid",
+      "type": "skill",
+      "name": "qa-automation",
+      "path": "plugins/qa-droid/skills/qa-automation/SKILL.md",
+      "description": "Automated QA workflow combining Playwright browser testing with Slack and Gmail result notifications and test report generation. Use when the user asks to run automated test suites with notification workflows, generate QA reports, set up test-notify pipelines, or implement continuous testing with stakeholder communication."
+    },
+    {
+      "id": "seo-geo-rag:audit",
+      "plugin": "seo-geo-rag",
+      "type": "command",
+      "name": "audit",
+      "path": "plugins/seo-geo-rag/commands/audit.md",
+      "description": "Run a full 6-phase SEO, GEO, and RAG optimization audit on the current project. Researches current standards via web search, sweeps all front-end and blog files for missing metadata, generates AI-optimized content assets (llms.txt, AI-FAQ.md), rewrites docstrings for RAG accuracy, and produces GitHub topics and SEO copy. Usage: `/seo-geo-rag:audit` or `/seo-geo-rag:audit [specific file or directory]`"
+    },
+    {
+      "id": "seo-geo-rag:generate-faq",
+      "plugin": "seo-geo-rag",
+      "type": "command",
+      "name": "generate-faq",
+      "path": "plugins/seo-geo-rag/commands/generate-faq.md",
+      "description": "Generate an AI-FAQ.md file for the current project optimized for Generative Engine Optimization (GEO). Creates 5\u20137 Q&A pairs targeting the questions users ask AI search engines (Perplexity, ChatGPT, Google AI Overviews) about this type of project. Each answer is self-contained, pronoun-free, and structured for AI extraction. Usage: `/seo-geo-rag:generate-faq`"
+    },
+    {
+      "id": "seo-geo-rag:generate-llms",
+      "plugin": "seo-geo-rag",
+      "type": "command",
+      "name": "generate-llms",
+      "path": "plugins/seo-geo-rag/commands/generate-llms.md",
+      "description": "Generate a production-ready llms.txt file for the current repository to improve RAG ingestion by AI coding agents (Cursor, GitHub Copilot, Windsurf) and vector databases. Reads the project structure and README, then produces a structured manifest at the repository root. Usage: `/seo-geo-rag:generate-llms`"
+    },
+    {
+      "id": "seo-geo-rag:seo-geo-rag-optimizer",
+      "plugin": "seo-geo-rag",
+      "type": "skill",
       "name": "seo-geo-rag-optimizer",
       "path": "plugins/seo-geo-rag/skills/seo-geo-rag-optimizer/SKILL.md",
-      "category": "seo",
-      "description": "SEO, GEO, and RAG optimization for search and AI discoverability"
+      "description": "Audits and optimizes a repository, codebase, or blog for Traditional Search (Google/Bing), Generative Engine Optimization (GEO, AI search engines like Perplexity and ChatGPT), and LLM RAG ingestion (Cursor, Copilot, custom vector databases). Use when the user asks to optimize SEO, improve AI search visibility, generate llms.txt, create AI-FAQ.md, audit metadata variables, add JSON-LD structured data, or make a project more discoverable by AI systems. Executes six sequential phases: web research, content sweep, GEO content generation, RAG file generation, code enrichment, and discoverability improvement."
+    },
+    {
+      "id": "shadow-mode:disable",
+      "plugin": "shadow-mode",
+      "type": "command",
+      "name": "disable",
+      "path": "plugins/shadow-mode/commands/disable.md",
+      "description": "Disable shadow mode and resume normal execution"
+    },
+    {
+      "id": "shadow-mode:enable",
+      "plugin": "shadow-mode",
+      "type": "command",
+      "name": "enable",
+      "path": "plugins/shadow-mode/commands/enable.md",
+      "description": "Enable shadow mode to queue all actions for review"
+    },
+    {
+      "id": "shadow-mode:review",
+      "plugin": "shadow-mode",
+      "type": "command",
+      "name": "review",
+      "path": "plugins/shadow-mode/commands/review.md",
+      "description": "Review and approve or reject queued shadow mode actions"
+    },
+    {
+      "id": "shadow-mode:shadow-review",
+      "plugin": "shadow-mode",
+      "type": "skill",
+      "name": "shadow-review",
+      "path": "plugins/shadow-mode/skills/shadow-review/SKILL.md",
+      "description": "Training mode where agent actions are drafted to a review queue instead of executing directly, enabling human-in-the-loop oversight and agent training. Use when the user asks to enable supervised agent execution, review pending agent actions, manage a review queue, or set up human approval gates for agent operations."
+    },
+    {
+      "id": "social-media:content-writer",
+      "plugin": "social-media",
+      "type": "agent",
+      "name": "content-writer",
+      "path": "plugins/social-media/agents/content-writer.md",
+      "description": "Generate high\u2011engagement posts for social media platforms. Use this subagent when asked to create or brainstorm social media content."
+    },
+    {
+      "id": "social-media:trend-analyzer",
+      "plugin": "social-media",
+      "type": "agent",
+      "name": "trend-analyzer",
+      "path": "plugins/social-media/agents/trend-analyzer.md",
+      "description": "Analyze current social media trends and suggest high\u2011impact content strategies for a given topic. Use this subagent for trend research and strategy planning."
+    },
+    {
+      "id": "social-media:analyze-trend",
+      "plugin": "social-media",
+      "type": "command",
+      "name": "Analyze Trend",
+      "path": "plugins/social-media/commands/analyze-trend.md",
+      "description": "Analyze current social media trends for a given topic and suggest high\u2011impact content strategies. Usage: `/social-media:analyze-trend <topic>`"
+    },
+    {
+      "id": "social-media:facebook",
+      "plugin": "social-media",
+      "type": "command",
+      "name": "Facebook",
+      "path": "plugins/social-media/commands/facebook.md",
+      "description": "Compose a friendly Facebook post for a given topic with an optional tone."
+    },
+    {
+      "id": "social-media:instagram",
+      "plugin": "social-media",
+      "type": "command",
+      "name": "Instagram",
+      "path": "plugins/social-media/commands/instagram.md",
+      "description": "Create an engaging Instagram caption for a topic with an optional tone."
+    },
+    {
+      "id": "social-media:linkedin",
+      "plugin": "social-media",
+      "type": "command",
+      "name": "Linkedin",
+      "path": "plugins/social-media/commands/linkedin.md",
+      "description": "Write a professional yet engaging LinkedIn post for a given topic, optionally specifying a tone."
+    },
+    {
+      "id": "social-media:tweet",
+      "plugin": "social-media",
+      "type": "command",
+      "name": "Tweet",
+      "path": "plugins/social-media/commands/tweet.md",
+      "description": "Craft a high\u2011engagement tweet about a specified topic. Accepts an optional tone (e.g., `/social-media:tweet AI trends, witty`)."
+    },
+    {
+      "id": "social-media:social-content",
+      "plugin": "social-media",
+      "type": "skill",
+      "name": "social-content",
+      "path": "plugins/social-media/skills/social-content/SKILL.md",
+      "description": "Generate high-engagement social media posts for Twitter, LinkedIn, Instagram, and Facebook with platform-specific formatting, trend analysis, and content optimization. Use when the user asks to create social media content, draft posts, analyze social trends, or build a content calendar across multiple platforms."
+    },
+    {
+      "id": "task-commander:todo",
+      "plugin": "task-commander",
+      "type": "command",
+      "name": "Todo",
+      "path": "plugins/task-commander/commands/todo.md",
+      "description": "Create a ClickUp task and schedule reminders"
+    },
+    {
+      "id": "task-commander:task-orchestration",
+      "plugin": "task-commander",
+      "type": "skill",
+      "name": "task-orchestration",
+      "path": "plugins/task-commander/skills/task-orchestration/SKILL.md",
+      "description": "Unified task management combining ClickUp tasks, Slack notifications, Gmail communications, and Google Calendar scheduling in a single workflow. Use when the user asks to create tasks with notifications, schedule work with calendar events, coordinate task updates across tools, or run a complete task lifecycle from creation to completion with team communication."
+    },
+    {
+      "id": "ux-ui:ui-expert",
+      "plugin": "ux-ui",
+      "type": "agent",
+      "name": "ui-expert",
+      "path": "plugins/ux-ui/agents/ui-expert.md",
+      "description": "|"
+    },
+    {
+      "id": "ux-ui:improve-ui",
+      "plugin": "ux-ui",
+      "type": "command",
+      "name": "improve-ui",
+      "path": "plugins/ux-ui/commands/improve-ui.md",
+      "description": "|"
+    },
+    {
+      "id": "ux-ui:ui-ux-review",
+      "plugin": "ux-ui",
+      "type": "skill",
+      "name": "ui-ux-review",
+      "path": "plugins/ux-ui/skills/ui-ux-review/SKILL.md",
+      "description": "Audit and improve front-end UI/UX including accessibility (WCAG), visual consistency, responsive design, and Tailwind CSS best practices. Use when the user asks to review UI components, fix accessibility issues, improve responsive layouts, polish design, or optimize Tailwind CSS usage in their codebase."
+    },
+    {
+      "id": "vercel-deploy:deploy",
+      "plugin": "vercel-deploy",
+      "type": "command",
+      "name": "deploy",
+      "path": "plugins/vercel-deploy/commands/deploy.md",
+      "description": "Deploy a Vercel project or trigger a redeploy. Usage: `/vercel-deploy:deploy [project] [branch]`"
+    },
+    {
+      "id": "vercel-deploy:vercel-deployment",
+      "plugin": "vercel-deploy",
+      "type": "skill",
+      "name": "vercel-deployment",
+      "path": "plugins/vercel-deploy/skills/vercel-deployment/SKILL.md",
+      "description": "Deploy and manage Vercel projects, trigger deployments, monitor build status, and manage environment configurations. Use when the user asks to deploy to Vercel, check deployment status, manage project settings, or trigger redeployments via the Vercel MCP server."
+    },
+    {
+      "id": "wp-cli-fleet:wp-fleet-operator",
+      "plugin": "wp-cli-fleet",
+      "type": "agent",
+      "name": "wp-fleet-operator",
+      "path": "plugins/wp-cli-fleet/agents/wp-fleet-operator.md",
+      "description": "Execute WP-CLI operations across multiple WordPress sites in a fleet. Use this agent when the user needs to run inventory, updates, health checks, or maintenance commands across a group of WordPress installations simultaneously."
+    },
+    {
+      "id": "wp-cli-fleet:wp-site-inspector",
+      "plugin": "wp-cli-fleet",
+      "type": "agent",
+      "name": "wp-site-inspector",
+      "path": "plugins/wp-cli-fleet/agents/wp-site-inspector.md",
+      "description": "Perform quick diagnostic inspections on a single WordPress site. Use this agent for fast site health checks, version audits, plugin status reviews, and security assessments."
+    },
+    {
+      "id": "wp-cli-fleet:fleet",
+      "plugin": "wp-cli-fleet",
+      "type": "command",
+      "name": "Fleet",
+      "path": "plugins/wp-cli-fleet/commands/fleet.md",
+      "description": "Manage fleet manifests, list aliases and groups, run commands across fleets, and generate alias files. Usage: /wp-cli-fleet:fleet <list | run | generate-aliases | add-site>"
+    },
+    {
+      "id": "wp-cli-fleet:health",
+      "plugin": "wp-cli-fleet",
+      "type": "command",
+      "name": "Health",
+      "path": "plugins/wp-cli-fleet/commands/health.md",
+      "description": "Check WordPress site health including core checksums, plugin integrity, and database status. Usage: /wp-cli-fleet:health <@alias | URL>"
+    },
+    {
+      "id": "wp-cli-fleet:inventory",
+      "plugin": "wp-cli-fleet",
+      "type": "command",
+      "name": "Inventory",
+      "path": "plugins/wp-cli-fleet/commands/inventory.md",
+      "description": "Get plugin, theme, and core inventory for a WordPress site or fleet group. Usage: /wp-cli-fleet:inventory <@alias | URL | @group>"
+    },
+    {
+      "id": "wp-cli-fleet:pods",
+      "plugin": "wp-cli-fleet",
+      "type": "command",
+      "name": "Pods",
+      "path": "plugins/wp-cli-fleet/commands/pods.md",
+      "description": "Manage Pods Framework custom post types, custom fields, taxonomies, and relationships via WP-CLI. Usage: /wp-cli-fleet:pods <list | create | add-field | find | export> [options]"
+    },
+    {
+      "id": "wp-cli-fleet:search-replace",
+      "plugin": "wp-cli-fleet",
+      "type": "command",
+      "name": "Search Replace",
+      "path": "plugins/wp-cli-fleet/commands/search-replace.md",
+      "description": "Run WP-CLI search-replace with optional regex support. Always dry-runs first. Usage: /wp-cli-fleet:search-replace <@alias | URL> <old> <new> [--regex] [--regex-flags=<flags>]"
+    },
+    {
+      "id": "wp-cli-fleet:update",
+      "plugin": "wp-cli-fleet",
+      "type": "command",
+      "name": "Update",
+      "path": "plugins/wp-cli-fleet/commands/update.md",
+      "description": "Dry-run or execute plugin, theme, or core updates on a WordPress site. Usage: /wp-cli-fleet:update <@alias | URL> [--execute] [--type=plugin|theme|core]"
+    },
+    {
+      "id": "wp-cli-fleet:wp-cli-operations",
+      "plugin": "wp-cli-fleet",
+      "type": "skill",
+      "name": "wp-cli-operations",
+      "path": "plugins/wp-cli-fleet/skills/wp-cli-operations/SKILL.md",
+      "description": "Manage WordPress sites and fleets using WP-CLI, SSH aliases, and the Agentic WP CLI companion plugin. Use when the user asks to inspect, update, or maintain WordPress plugins, themes, or core; run search-replace operations; manage Pods custom post types and fields; check site health or checksums; flush caches or rewrites; or operate across a fleet of WordPress installations."
     }
   ]
 }

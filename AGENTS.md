@@ -2,11 +2,11 @@
 
 This file provides guidance to AI coding assistants working in this repository.
 
-**Note:** CLAUDE.md, .clinerules, .cursorrules, .windsurfrules, .replit.md, GEMINI.md, .github/copilot-instructions.md, and .idx/airules.md are all symlinks to this AGENTS.md file.
+**Note:** CLAUDE.md, .clinerules, .cursorrules, .windsurfrules, .replit.md, and .idx/airules.md are symlinks to this AGENTS.md file. GEMINI.md and .github/copilot-instructions.md are standalone files with platform-specific guidance.
 
-# AgentHaus Marketplace
+## AgentHaus Marketplace
 
-A marketplace of 23 production-ready plugins for Claude Code and Claude Cowork. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend AI assistant capabilities.
+A marketplace of 27 production-ready plugins for Claude Code and Claude Cowork. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend AI assistant capabilities.
 
 **Repository:** <https://github.com/savethepolarbears/agenthaus-marketplace>
 
@@ -15,7 +15,7 @@ A marketplace of 23 production-ready plugins for Claude Code and Claude Cowork. 
 ```text
 agenthaus-marketplace/
 ├── agenthaus-web/          # Next.js 16 storefront (React 19, Tailwind 4, Neon Postgres)
-├── plugins/                # 23 production plugins
+├── plugins/                # 27 production plugins
 │   ├── social-media/       # Content: Twitter, LinkedIn, Instagram, Facebook posts
 │   ├── github-integration/ # DevOps: GitHub issues & PRs via MCP
 │   ├── cloudflare-platform/# Cloud: Workers, KV storage, AI Gateway
@@ -38,7 +38,11 @@ agenthaus-marketplace/
 │   ├── fleet-commander/    # Orchestration: Agent session monitoring
 │   ├── plugin-auditor/     # Security: Plugin code security scanner
 │   ├── openclaw-bridge/    # Integration: OpenClaw format conversion
-│   └── marketplace-cli/    # Utility: Plugin management CLI
+│   ├── marketplace-cli/    # Utility: Plugin management CLI
+│   ├── seo-geo-rag/        # SEO: SEO + GEO + RAG optimization
+│   ├── gog-workspace/      # Productivity: Google Workspace integration
+│   ├── apple-photos/       # Media: Apple Photos management via osxphotos
+│   └── wp-cli-fleet/       # DevOps: WordPress fleet management via WP-CLI
 ├── schemas/                # JSON schemas for validation
 ├── scripts/                # Validation and utility scripts
 ├── reports/                # All project reports and documentation
@@ -157,7 +161,7 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 ### Required Environment Variables by Plugin
 
 | Plugin | Variables |
-|---|---|
+| --- | --- |
 | cloudflare-platform | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` |
 | vercel-deploy | `VERCEL_TOKEN` |
 | github-integration | `GITHUB_TOKEN` |
@@ -169,6 +173,8 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 | qa-droid | `SLACK_TOKEN`, `SLACK_CHANNEL`, `GMAIL_CREDS` |
 | neon-db / data-core | `DATABASE_URL`, `NEON_API_KEY` |
 | agent-memory | `NEON_DATABASE_URL` |
+| gog-workspace | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` |
+| wp-cli-fleet | `WP_CLI_SSH_KEY` (optional, for remote sites) |
 | agenthaus-web | `DATABASE_URL`, `NEXT_PUBLIC_API_URL` |
 
 ## Configuration
@@ -204,7 +210,7 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 13. `@modelcontextprotocol/server-postgres`
 14. Custom `playwright-local` (qa-droid)
 
-## Plugin Development
+## Plugin Development Guide
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete guide. Key points:
 
@@ -235,7 +241,7 @@ plugins/your-plugin/
 These agents are defined within plugins and available when the corresponding plugin is installed:
 
 | Agent | Plugin | Model | Purpose |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | content-writer | social-media | sonnet | Generate platform-specific social media content |
 | trend-analyzer | social-media | claude-3-7-sonnet | Analyze social media trends and engagement patterns |
 | qa-engineer | playwright-testing | sonnet | Design and execute E2E browser test suites |
@@ -321,8 +327,8 @@ If unexpected complexity arises during execution, return to PLANNING.
 ### Available Skills
 
 | Skill | Trigger | Purpose |
-|-------|---------|---------|
-| `create-claude-plugin` | "create plugin", "new plugin" | Scaffold a production-ready plugin |
+| ------- | --------- | --------- |
+| `create-agent-plugin` | "create plugin", "new plugin" | Scaffold a production-ready plugin |
 | `publish-to-marketplace` | "publish plugin", "add to marketplace" | Register a validated plugin |
 | `plugin-qa-validation` | "validate plugin", "plugin QA" | Comprehensive quality assurance |
 | `architecture-mapper` | "map architecture", "update memory bank" | Generate/refresh memory bank docs |
@@ -330,7 +336,7 @@ If unexpected complexity arises during execution, return to PLANNING.
 ### Available Workflows
 
 | Workflow | Command | Purpose |
-|----------|---------|---------|
+| ---------- | --------- | --------- |
 | Create Plugin | `/create-plugin` | Create a new plugin from scratch |
 | Validate & Publish | `/validate-and-publish` | Full validation and marketplace registration |
 | QA Browser Test | `/qa-browser-test` | Browser-based storefront verification |
