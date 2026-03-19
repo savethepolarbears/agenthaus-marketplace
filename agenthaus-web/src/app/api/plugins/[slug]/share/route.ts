@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db";
-import { isValidSlug } from "@/lib/validation";
+import { slugSchema } from "@/lib/validation";
 import { rateLimiter, getIp, rateLimitResponse } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -32,8 +32,8 @@ export async function POST(
   }
 
   const { slug } = await params;
-
-  if (!isValidSlug(slug)) {
+  const parsed = slugSchema.safeParse(slug);
+  if (!parsed.success) {
     return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
   }
 

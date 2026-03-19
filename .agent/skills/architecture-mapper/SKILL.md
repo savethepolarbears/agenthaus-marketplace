@@ -90,3 +90,12 @@ Generate a brief report of what was found and what was updated:
 - Keep memory bank docs concise — they should be scannable reference material, not verbose prose
 - Architecture.md should stay under 200 lines
 - API-contracts.md should stay under 150 lines
+
+## Failure Modes & Recovery
+
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+| Memory bank directory missing | Directory not found error | Create `.agent/memory-bank/` directory structure |
+| Stale architecture docs | Content doesn't match current codebase | Re-run full architecture scan; don't patch — regenerate |
+| File too large for context | Token limit exceeded reading large files | Summarize by section; use progressive disclosure |
+| Git history unavailable | git log returns error | Fall back to file-based analysis without history |

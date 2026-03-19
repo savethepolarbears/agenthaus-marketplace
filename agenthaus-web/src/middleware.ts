@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 // This prevents unnecessary regex operations on every request
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline';
+    script-src 'self' 'unsafe-inline';
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data:;
     font-src 'self';

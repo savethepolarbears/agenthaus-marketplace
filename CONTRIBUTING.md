@@ -327,6 +327,59 @@ Pull requests automatically run:
 
 See `.github/workflows/validate.yml` for details.
 
+## Human-in-the-Loop (HITL) Requirements
+
+Plugins that perform destructive or externally-visible actions **must** include `requires_approval` flags in their hook configurations. This applies to:
+
+- Cloud deployments (Cloudflare Workers, Vercel, AWS)
+- Repository mutations (git push, PR creation, branch deletion)
+- Database operations (migrations, drops, bulk updates)
+- External notifications (Slack messages, emails)
+- WordPress site modifications (core updates, search-replace)
+
+Example hook with HITL:
+```json
+{
+  "matcher": "Bash",
+  "requires_approval": true,
+  "approval_message": "This will deploy to production. Approve?",
+  "hooks": [{ "type": "command", "command": "..." }]
+}
+```
+
+The `requires_approval` flag is defined in `schemas/plugin.schema.json` and enforced during validation.
+
+## Credential Documentation
+
+Plugins requiring API keys or tokens must declare them in `plugin.json` using the `required_credentials` field:
+
+```json
+"required_credentials": [
+  {
+    "name": "GITHUB_TOKEN",
+    "scopes": ["repo", "read:org"],
+    "rotation": "90d",
+    "description": "Fine-grained PAT for repository access"
+  }
+]
+```
+
+Guidelines:
+- Always specify minimum required scopes
+- Recommend rotation periods for long-lived tokens
+- Document the credential's purpose in the description
+- Reference `docs/agent-identity.md` for the full credential management architecture
+
+## Failure Mode Documentation
+
+Every SKILL.md must include a `## Failure Modes & Recovery` section with a table:
+
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+| Describe what can go wrong | How the agent detects it | What the agent should do |
+
+This ensures agents handle errors gracefully instead of hallucinating or retrying indefinitely. See existing skills in `.agent/skills/` for examples.
+
 ## Questions?
 
 Open an issue or reach out to the AgentHaus team.

@@ -3,6 +3,8 @@
     "PreToolUse": [
       {
         "matcher": "Bash",
+        "requires_approval": true,
+        "approval_message": "Deploy/publish detected. Circuit breaker will check business hours.",
         "hooks": [
           {
             "type": "command",
@@ -12,6 +14,8 @@
       },
       {
         "matcher": "Bash",
+        "requires_approval": true,
+        "approval_message": "Commit detected. Verifying test files are included.",
         "hooks": [
           {
             "type": "command",
