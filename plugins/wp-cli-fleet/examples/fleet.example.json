@@ -1,0 +1,64 @@
+{
+  "name": "Example Fleet",
+  "description": "Example fleet manifest for WP-CLI fleet operations.",
+  "sites": [
+    {
+      "alias": "@brand-prod",
+      "label": "Brand production",
+      "environment": "production",
+      "groups": ["@prod", "@brand"],
+      "ssh": "deploy@brand.example.com",
+      "path": "/srv/www/brand/current",
+      "url": "https://brand.example.com"
+    },
+    {
+      "alias": "@brand-staging",
+      "label": "Brand staging",
+      "environment": "staging",
+      "groups": ["@staging", "@brand"],
+      "ssh": "deploy@staging.brand.example.com",
+      "path": "/srv/www/brand/current",
+      "url": "https://staging.brand.example.com"
+    },
+    {
+      "alias": "@mag-prod",
+      "label": "Magazine production",
+      "environment": "production",
+      "groups": ["@prod", "@magazine"],
+      "http": "https://mag.example.com",
+      "url": "https://mag.example.com",
+      "rest": {
+        "base_url": "https://mag.example.com/wp-json/agentic-wp-cli/v1",
+        "username": "agentic-bot",
+        "application_password_env": "MAG_PROD_WP_APP_PASSWORD",
+        "secret_env": "MAG_PROD_AGENTIC_SECRET"
+      }
+    },
+    {
+      "alias": "@mag-staging",
+      "label": "Magazine staging",
+      "environment": "staging",
+      "groups": ["@staging", "@magazine"],
+      "ssh": "deploy@staging.mag.example.com",
+      "path": "/srv/www/magazine/current",
+      "url": "https://staging.mag.example.com"
+    },
+    {
+      "alias": "@shop-prod",
+      "label": "Shop production",
+      "environment": "production",
+      "groups": ["@prod", "@shop"],
+      "ssh": "deploy@shop.example.com",
+      "path": "/srv/www/shop/current",
+      "url": "https://shop.example.com"
+    },
+    {
+      "alias": "@local-dev",
+      "label": "Local development",
+      "environment": "local",
+      "groups": ["@local"],
+      "path": "/home/user/sites/wordpress",
+      "url": "http://localhost:8080"
+    }
+  ]
+}
