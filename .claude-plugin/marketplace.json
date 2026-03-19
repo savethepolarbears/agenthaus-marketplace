@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A comprehensive marketplace of 23 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
-    "version": "3.3.0",
+    "version": "3.4.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -266,6 +266,21 @@
         "google-calendar",
         "productivity",
         "cli"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "wp-cli-fleet",
+      "source": "./plugins/wp-cli-fleet",
+      "category": "devops",
+      "description": "Manage WordPress sites and fleets via WP-CLI with agentic workflows for inventory, updates, health checks, search-replace, and Pods CPT management.",
+      "keywords": [
+        "wordpress",
+        "wp-cli",
+        "fleet",
+        "devops",
+        "maintenance",
+        "pods"
       ],
       "author": { "name": "AgentHaus Team" }
     }
