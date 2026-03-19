@@ -103,9 +103,18 @@ Produce a validation report with:
 ## Common Issues
 
 | Issue | Severity | Fix |
-|-------|----------|-----|
+| ------- | ---------- | ----- |
 | Glob patterns in plugin.json | FAIL | Replace with explicit file paths |
 | Flat array hooks format | WARN | Migrate to object format with `hooks` key |
 | Relative paths without `${CLAUDE_PLUGIN_ROOT}` | WARN | Replace `./hooks/` with `${CLAUDE_PLUGIN_ROOT}/hooks/` |
 | Missing env var documentation | FAIL | Add to README and `.env.example` |
 | plugin.json name mismatch with directory | FAIL | Ensure name matches directory name |
+
+## Failure Modes & Recovery
+
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+| Validation script not found | `scripts/validate-plugins.sh` missing | Check repo root; ensure scripts/ directory exists |
+| Plugin directory structure invalid | Missing .claude-plugin/ or plugin.json | Guide user through required structure per CONTRIBUTING.md |
+| MCP server fails to start | Connection timeout or command error | Verify env vars are set; test MCP server command manually |
+| Hook script fails security scan | Dangerous pattern detected | Review script against security guidelines; use printf instead of echo |
