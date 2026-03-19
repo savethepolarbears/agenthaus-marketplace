@@ -267,10 +267,130 @@ for name, cfg in data.get('mcpServers', {}).items():
     fi
   done
 
+  # 10. MCP consistency: if plugin.json has mcpServers, warn if .mcp.json missing
+  local has_mcp_in_manifest
+  has_mcp_in_manifest="$(python3 -c "
+import json
+data = json.load(open('$manifest'))
+servers = data.get('mcpServers', {})
+if isinstance(servers, dict) and len(servers) > 0:
+    print('yes')
+else:
+    print('no')
+" 2>/dev/null)" || true
+
+  if [[ "$has_mcp_in_manifest" == "yes" && ! -f "$mcp_file" ]]; then
+    log_warn "plugin.json declares mcpServers but .mcp.json does not exist"
+    warn_count=$((warn_count + 1))
+  fi
+
   if [[ "$failed" -eq 1 ]]; then
     fail_count=$((fail_count + 1))
   else
     pass_count=$((pass_count + 1))
+  fi
+}
+
+# -------------------------------------------------------------------
+# Hook Security Scanner
+# -------------------------------------------------------------------
+validate_hook_security() {
+  local dir="$1"
+  local name
+  name="$(basename "$dir")"
+  local found_issues=0
+
+  # Find all .sh files under the plugin directory
+  while IFS= read -r sh_file; do
+    local rel_path="${sh_file#$dir/}"
+    local content
+    content="$(cat "$sh_file" 2>/dev/null)" || continue
+
+    # Check for eval usage
+    if echo "$content" | grep -qE '(^|[^a-zA-Z_])eval[[:space:]]'; then
+      log_warn "[security] ${name}/${rel_path}: uses 'eval' — review for injection risk"
+      warn_count=$((warn_count + 1))
+      found_issues=1
+    fi
+
+    # Check for unquoted $TOOL_INPUT
+    if echo "$content" | grep -qE '\$TOOL_INPUT[^"]' | grep -vqE '"\$TOOL_INPUT' 2>/dev/null; then
+      : # handled below
+    fi
+    if echo "$content" | grep -qP '(?<!")\$TOOL_INPUT(?!")' 2>/dev/null || \
+       echo "$content" | grep -qE '[^"]\$TOOL_INPUT[^"a-zA-Z_]' 2>/dev/null; then
+      log_warn "[security] ${name}/${rel_path}: unquoted \$TOOL_INPUT — should be \"\$TOOL_INPUT\""
+      warn_count=$((warn_count + 1))
+      found_issues=1
+    fi
+
+    # Check for backtick command substitution with user input
+    if echo "$content" | grep -qE '`[^`]*\$TOOL_INPUT[^`]*`'; then
+      log_warn "[security] ${name}/${rel_path}: backtick substitution with \$TOOL_INPUT — use \$(…) with proper quoting"
+      warn_count=$((warn_count + 1))
+      found_issues=1
+    fi
+
+    # Check for $(...) with TOOL_INPUT or TOOL_INPUT_COMMAND inside
+    if echo "$content" | grep -qE '\$\([^)]*\$(TOOL_INPUT|TOOL_INPUT_COMMAND)'; then
+      log_warn "[security] ${name}/${rel_path}: command substitution contains \$TOOL_INPUT — injection risk"
+      warn_count=$((warn_count + 1))
+      found_issues=1
+    fi
+
+  done < <(find "$dir" -name "*.sh" -type f 2>/dev/null)
+
+  if [[ "$found_issues" -eq 0 ]]; then
+    # Only log if there were .sh files to check
+    local sh_count
+    sh_count="$(find "$dir" -name "*.sh" -type f 2>/dev/null | wc -l | tr -d ' ')"
+    if [[ "$sh_count" -gt 0 ]]; then
+      log_pass "Hook security: ${sh_count} shell script(s) scanned, no issues"
+    fi
+  fi
+}
+
+# -------------------------------------------------------------------
+# Skills Index Sync Check
+# -------------------------------------------------------------------
+validate_skills_index() {
+  local index_file="$ROOT_DIR/skills_index.json"
+
+  echo -e "\n${BOLD}Validating skills_index.json${NC}"
+
+  if [[ ! -f "$index_file" ]]; then
+    log_warn "skills_index.json not found at repo root — run scripts/generate-skills-index.sh"
+    warn_count=$((warn_count + 1))
+    return
+  fi
+  log_pass "skills_index.json exists"
+
+  if ! python3 -c "import json; json.load(open('$index_file'))" 2>/dev/null; then
+    log_fail "skills_index.json is not valid JSON"
+    fail_count=$((fail_count + 1))
+    return
+  fi
+  log_pass "skills_index.json is valid JSON"
+
+  # Count actual files vs index entries
+  local actual_count
+  actual_count="$(find "$PLUGINS_DIR" \( -path "*/agents/*.md" -o -path "*/skills/*/SKILL.md" -o -path "*/commands/*.md" \) | wc -l | tr -d ' ')"
+
+  local index_count
+  index_count="$(python3 -c "
+import json
+data = json.load(open('$index_file'))
+print(len(data.get('entries', [])))
+" 2>/dev/null)" || index_count=0
+
+  local diff=$((actual_count - index_count))
+  if [[ "$diff" -lt 0 ]]; then diff=$((-diff)); fi
+
+  if [[ "$diff" -gt 5 ]]; then
+    log_warn "skills_index.json has ${index_count} entries but found ${actual_count} files (diff: ${diff}) — regenerate with scripts/generate-skills-index.sh"
+    warn_count=$((warn_count + 1))
+  else
+    log_pass "skills_index.json entry count (${index_count}) matches file count (${actual_count})"
   fi
 }
 
@@ -291,7 +411,10 @@ fi
 for plugin_dir in "$PLUGINS_DIR"/*/; do
   [[ -d "$plugin_dir" ]] || continue
   validate_plugin "$plugin_dir"
+  validate_hook_security "$plugin_dir"
 done
+
+validate_skills_index
 
 echo ""
 echo "========================="

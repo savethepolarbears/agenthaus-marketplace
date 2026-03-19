@@ -9,6 +9,8 @@ THRESHOLD=100
 
 # Check if this breaker is disabled
 CONFIG_FILE=".circuit-breaker-config.json"
+# Validate CONFIG_FILE contains only safe characters (prevent path traversal)
+[[ "$CONFIG_FILE" =~ ^[a-zA-Z0-9._-]+$ ]] || exit 0
 if [ -f "$CONFIG_FILE" ]; then
     ENABLED=$(python3 -c "
 import json, sys

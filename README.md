@@ -1,9 +1,9 @@
 # AgentHaus Marketplace
 
-> A comprehensive marketplace of **23 production-ready plugins** for [Claude Code](https://code.claude.com/docs/en/plugins).
+> A comprehensive marketplace of **27 production-ready plugins** for [Claude Code](https://code.claude.com/docs/en/plugins).
 
-[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](./CHANGELOG.md)
-[![Plugins](https://img.shields.io/badge/plugins-23-green.svg)](#available-plugins)
+[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](./CHANGELOG.md)
+[![Plugins](https://img.shields.io/badge/plugins-27-green.svg)](#available-plugins)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
 
 ## Quick Start
@@ -37,6 +37,7 @@
 | **cloudflare-platform** | Deploy Workers, manage KV storage, AI Gateway                  |
 | **vercel-deploy**       | Manage Vercel projects and deployments                         |
 | **devops-flow**         | Integrated Cloudflare + GitHub + Slack workflows with hooks    |
+| **wp-cli-fleet**        | Manage WordPress sites at scale via WP-CLI                     |
 
 ### Knowledge & Documentation
 
@@ -52,6 +53,7 @@
 | ------------------ | ------------------------------------------------ |
 | **clickup-tasks**  | Manage ClickUp tasks, lists, and time tracking   |
 | **task-commander** | ClickUp + Slack + Gmail + Calendar integration   |
+| **gog-workspace**  | Google Workspace (Drive, Docs, Sheets, Calendar) |
 
 ### Testing & QA
 
@@ -66,6 +68,12 @@
 | ------------- | ----------------------------------------- |
 | **neon-db**   | Serverless Postgres via MCP               |
 | **data-core** | Advanced Neon/Postgres with migrations    |
+
+### SEO & Optimization
+
+| Plugin          | Description                                         |
+| --------------- | --------------------------------------------------- |
+| **seo-geo-rag** | SEO + GEO + RAG optimization for AI-era search      |
 
 ### UX & Design
 
@@ -105,6 +113,12 @@
 | Plugin              | Description                          |
 | ------------------- | ------------------------------------ |
 | **marketplace-cli** | CLI for managing AgentHaus plugins   |
+
+### Media
+
+| Plugin           | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| **apple-photos** | Manage Apple Photos albums, search, and export   |
 
 ## Architecture
 
@@ -180,7 +194,7 @@ Features: search, category filtering, plugin detail pages, install count trackin
 
 ## Validation
 
-Run the plugin validation script to check all 23 plugins:
+Run the plugin validation script to check all 27 plugins:
 
 ```bash
 bash scripts/validate-plugins.sh

@@ -21,16 +21,23 @@ TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 SAFE_TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
 QUEUE_FILE="${QUEUE_DIR}/${SAFE_TIMESTAMP}-${TOOL_NAME}.json"
 
-# Write action details to queue
-cat > "$QUEUE_FILE" << QEOF
-{
-  "tool": "${TOOL_NAME}",
-  "timestamp": "${TIMESTAMP}",
-  "status": "pending",
-  "input_file": "${TOOL_INPUT_FILE_PATH:-}",
-  "input_command": "${TOOL_INPUT_COMMAND:-}"
-}
-QEOF
+# Write action details to queue (safely construct JSON to prevent injection)
+if command -v jq >/dev/null 2>&1; then
+    jq -n \
+      --arg tool "$TOOL_NAME" \
+      --arg ts "$TIMESTAMP" \
+      --arg status "pending" \
+      --arg input_file "${TOOL_INPUT_FILE_PATH:-}" \
+      --arg input_cmd "${TOOL_INPUT_COMMAND:-}" \
+      '{tool: $tool, timestamp: $ts, status: $status, input_file: $input_file, input_command: $input_cmd}' > "$QUEUE_FILE"
+else
+    # Safe fallback using printf to avoid shell interpretation
+    printf '{\n  "tool": "%s",\n  "timestamp": "%s",\n  "status": "pending",\n  "input_file": "%s",\n  "input_command": "%s"\n}\n' \
+      "$(printf '%s' "$TOOL_NAME" | sed 's/["\]/\\&/g')" \
+      "$(printf '%s' "$TIMESTAMP" | sed 's/["\]/\\&/g')" \
+      "$(printf '%s' "${TOOL_INPUT_FILE_PATH:-}" | sed 's/["\]/\\&/g')" \
+      "$(printf '%s' "${TOOL_INPUT_COMMAND:-}" | sed 's/["\]/\\&/g')" > "$QUEUE_FILE"
+fi
 
 echo "SHADOW MODE: Action queued for review -> ${QUEUE_FILE}"
 echo "Tool: ${TOOL_NAME}"

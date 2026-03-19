@@ -3,6 +3,8 @@
     "PreToolUse": [
       {
         "matcher": "Bash",
+        "requires_approval": true,
+        "approval_message": "Potentially destructive WP-CLI operation detected. Review before proceeding.",
         "hooks": [
           {
             "type": "command",

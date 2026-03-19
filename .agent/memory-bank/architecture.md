@@ -4,14 +4,14 @@ Persistent context for AI agents working in this repository. Read this file befo
 
 ## Repository Purpose
 
-AgentHaus Marketplace is a collection of **23 production-ready plugins** for Claude Code and Claude Cowork. It includes a Next.js web storefront for browsing and discovering plugins.
+AgentHaus Marketplace is a collection of **27 production-ready plugins** for Claude Code and Claude Cowork. It includes a Next.js web storefront for browsing and discovering plugins.
 
 ## High-Level Structure
 
 ```text
 agenthaus-marketplace/
 ├── agenthaus-web/          # Next.js 16 storefront (frontend)
-├── plugins/                # 23 plugin directories (the product)
+├── plugins/                # 27 plugin directories (the product)
 ├── .agent/                 # Agent configuration (rules, skills, workflows, memory-bank)
 ├── .claude-plugin/         # Marketplace registry (marketplace.json)
 ├── schemas/                # JSON schemas for validation
@@ -40,7 +40,7 @@ graph TD
 Each plugin lives in `plugins/<name>/` and follows this structure:
 
 | Component | Path | Format | Required |
-|-----------|------|--------|----------|
+| ----------- | ------ | -------- | ---------- |
 | Manifest | `.claude-plugin/plugin.json` | JSON | Yes |
 | README | `README.md` | Markdown | Yes |
 | Commands | `commands/*.md` | Markdown + YAML frontmatter | No |
@@ -75,4 +75,4 @@ GitHub Actions (`.github/workflows/validate.yml`):
 
 ## Plugin Categories
 
-`content` · `devops` · `cloud` · `deployment` · `knowledge` · `docs` · `rag` · `productivity` · `qa` · `testing` · `database` · `utility` · `ux` · `orchestration` · `safety` · `memory` · `training` · `security` · `integration`
+`content` · `devops` · `cloud` · `deployment` · `knowledge` · `docs` · `rag` · `productivity` · `qa` · `testing` · `database` · `utility` · `ux` · `orchestration` · `safety` · `memory` · `training` · `security` · `integration` · `seo` · `media`
