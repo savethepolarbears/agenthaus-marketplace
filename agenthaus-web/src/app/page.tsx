@@ -31,7 +31,8 @@ const fetchPluginsFromDB = async () => {
 
   if (rows.length === 0) return getStaticPlugins();
 
-  return rows.map((r) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return rows.map((r: Record<string, any>) => ({
     id: r.id,
     name: r.name,
     slug: r.slug,

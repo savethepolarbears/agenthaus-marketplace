@@ -25,7 +25,11 @@
       "Bash(for sh in plugins/*/hooks/scripts/*.sh)",
       "Bash(do if [ ! -x \"$sh\" ])",
       "Bash(then echo \"NOT EXECUTABLE: $sh\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "WebSearch",
+      "mcp__context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(grep -r create-claude-plugin . --include=*.md)"
     ]
   }
 }

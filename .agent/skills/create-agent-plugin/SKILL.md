@@ -1,13 +1,13 @@
 ---
-name: create-claude-plugin
-description: Use when creating a new Claude Code or Claude Cowork plugin for the AgentHaus marketplace, scaffolding a plugin directory structure, generating a plugin.json manifest, or bootstrapping commands, agents, skills, hooks, and MCP integrations. Triggers on "create plugin", "new plugin", "scaffold plugin", "build plugin".
+name: create-agent-plugin
+description: Use when creating a new agent plugin for the AgentHaus marketplace, scaffolding a plugin directory structure, generating a plugin.json manifest, or bootstrapping commands, agents, skills, hooks, and MCP integrations. Triggers on "create plugin", "new plugin", "scaffold plugin", "build plugin".
 ---
 
-# Create Claude Plugin Skill
+# Create Agent Plugin Skill
 
 ## Goal
 
-Scaffold a production-ready Claude Code/Cowork plugin following the AgentHaus marketplace standards with all required configuration files, commands, agents, hooks, and MCP integrations.
+Scaffold a production-ready AgentHaus plugin following the marketplace standards with all required configuration files, commands, agents, hooks, and MCP integrations.
 
 ## Procedure
 
@@ -167,6 +167,15 @@ Result: plugins/slack-notify/
 | Hardcoding API keys in MCP server configs | Always use `${ENV_VAR}` interpolation syntax |
 | Not adding the plugin to marketplace.json after creation | The plugin isn't discoverable until registered in `.claude-plugin/marketplace.json` |
 | Creating empty directories with no files | Only create directories for components the plugin actually uses |
+
+## Failure Modes & Recovery
+
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+| Template file not found | FileNotFoundError when reading template | Check `.agent/skills/create-agent-plugin/templates/` exists; re-clone repo if missing |
+| Plugin name conflicts with existing | Duplicate name in marketplace.json | Append numeric suffix or prompt user for alternative name |
+| Schema validation fails | JSON parse error or missing required fields | Re-read `schemas/plugin.schema.json` and fix the failing field |
+| MCP server command not found | `command not found` when testing | Verify the npm package is installed globally or use npx |
 
 ## References
 

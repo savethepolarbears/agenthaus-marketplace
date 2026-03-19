@@ -141,6 +141,15 @@ After publishing:
 | Not validating JSON after editing marketplace.json | Parse with `jq` or a JSON validator before committing — a single trailing comma breaks everything |
 | Skipping the storefront update | If `agenthaus-web/` exists, the plugin should appear in the web catalog too |
 
+## Failure Modes & Recovery
+
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+| Plugin validation fails | Non-zero exit from validate-plugins.sh | Fix reported issues before retrying publish |
+| Duplicate plugin in marketplace.json | Duplicate name error during JSON merge | Check if plugin already exists; update entry instead of adding |
+| Git conflict on marketplace.json | Merge conflict markers in file | Pull latest main, resolve conflict, re-run publish |
+| Missing required fields | Schema validation error | Cross-reference schemas/plugin.schema.json for required fields |
+
 ## Rollback
 
 If issues are found:

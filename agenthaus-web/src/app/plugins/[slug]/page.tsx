@@ -152,7 +152,7 @@ export default async function PluginDetailPage({
   const { slug } = await params;
   const plugin = await getPlugin(slug);
 
-  if (!plugin) notFound();
+  if (!plugin) return notFound();
 
   const capsByType = plugin.capabilities.reduce<
     Record<string, { name: string; description: string }[]>
