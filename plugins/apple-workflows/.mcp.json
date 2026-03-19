@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "apple-productivity": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/mcp",
+        "apple-productivity-mcp"
+      ],
+      "env": {
+        "APPLE_REMINDERS_BACKEND": "${APPLE_REMINDERS_BACKEND}"
+      }
+    }
+  }
+}
