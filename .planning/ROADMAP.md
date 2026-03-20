@@ -12,7 +12,7 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Source Audit** - Fix all 27 plugins until sources are trustworthy input for the generator
+- [x] **Phase 1: Source Audit** - Fix all 27 plugins until sources are trustworthy input for the generator
 - [ ] **Phase 2: Generator Build** - Build the idempotent Node.js cross-platform config generator
 - [ ] **Phase 3: Generation Run** - Execute generator, validate all output, commit per-platform configs for all 27 plugins
 - [ ] **Phase 4: Documentation Refresh** - Update README, CONTRIBUTING.md, and plugins-static.ts with cross-platform guidance
@@ -29,7 +29,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. No agent file references `claude-3-7-sonnet-20250219` — all use the `sonnet` alias
   4. CLAUDE.md is a real file with Claude-specific content, not a symlink to AGENTS.md
   5. skills_index.json entry count matches the actual count of SKILL.md files in the repo
-**Plans**: TBD
+**Plans**: 2 plans
+- [x] 01-01-PLAN.md — Fix CLAUDE.md symlinks and agent model references
+- [x] 01-02-PLAN.md — Audit SKILL.md metadata and enforce validation
 
 ### Phase 2: Generator Build
 **Goal**: A working, idempotent `scripts/generate-cross-platform.js` that reads Claude-native plugin sources and emits correct per-platform config files for all 27 plugins
@@ -72,7 +74,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Source Audit | 0/TBD | Not started | - |
+| 1. Source Audit | 2/2 | Complete | 2026-03-20 |
 | 2. Generator Build | 0/TBD | Not started | - |
 | 3. Generation Run | 0/TBD | Not started | - |
 | 4. Documentation Refresh | 0/TBD | Not started | - |
