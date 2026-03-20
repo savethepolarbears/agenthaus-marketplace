@@ -1,0 +1,19 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "apple-workflows",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "apple-productivity": {
+      "args": [
+        "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/mcp",
+        "apple-productivity-mcp"
+      ],
+      "command": "uv",
+      "env": {
+        "APPLE_REMINDERS_BACKEND": "${APPLE_REMINDERS_BACKEND}"
+      }
+    }
+  }
+}

@@ -6,7 +6,7 @@
 
 | Plugin | Description | MCP | Hooks |
 |--------|-------------|-----|-------|
-| activepieces-flow-pilot | Agent plugin pack for designing, building, operating, and... | no | yes |
+| activepieces | Agent plugin pack for designing, building, operating, and... | no | yes |
 | agent-handoff | State-based task handoff between agents using a shared bl... | no | yes |
 | agent-memory | Shared persistent memory across agent sessions using Neon... | yes | no |
 | apple-photos | Manage Apple Photos libraries using the osxphotos CLI — q... | no | yes |

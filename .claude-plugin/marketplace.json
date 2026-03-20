@@ -318,8 +318,8 @@
       "author": { "name": "AgentHaus Team" }
     },
     {
-      "name": "activepieces-flow-pilot",
-      "source": "./plugins/activepieces-flow-pilot",
+      "name": "activepieces",
+      "source": "./plugins/activepieces",
       "category": "automation",
       "description": "Connector-backed agent plugin pack for designing, building, operating, and releasing ActivePieces flows.",
       "keywords": [
