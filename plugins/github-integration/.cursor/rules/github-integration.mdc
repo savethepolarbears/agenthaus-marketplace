@@ -1,0 +1,13 @@
+---
+description: "Full GitHub management: create/search issues and pull requests using GitHub's MCP server."
+globs: "**/*"
+alwaysApply: true
+---
+
+# github-integration
+
+Full GitHub management: create/search issues and pull requests using GitHub's MCP server.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

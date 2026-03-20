@@ -1,0 +1,10 @@
+---
+description: "Pre-built safety guardrails as reusable hooks for Claude Code workflows."
+globs: "**/*"
+alwaysApply: true
+---
+
+# circuit-breaker
+
+Pre-built safety guardrails as reusable hooks for Claude Code workflows.
+> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.
