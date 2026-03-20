@@ -56,7 +56,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Hook-dependent plugins (circuit-breaker, shadow-mode, agent-handoff, social-media, gog-workspace, wp-cli-fleet) have a hook limitation notice in all three generated formats
   4. skills_index.json contains a `platforms` field for each skill listing which platforms support it
   5. The extended validate-plugins.sh catches AGENTS.md byte count violations and malformed .mdc frontmatter
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 03-01-PLAN.md — Extend generator with AGENTS.md, GEMINI.md, Cursor .mdc, MCP snippet renderers, skills_index platforms injection
+- [ ] 03-02-PLAN.md — Run generator against all 27 plugins, extend validate-plugins.sh, commit output
 
 ### Phase 4: Documentation Refresh
 **Goal**: Users on any supported platform can read the README and know exactly how to install a plugin and what features they get
@@ -78,5 +80,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Source Audit | 2/2 | Complete | 2026-03-20 |
 | 2. Generator Build | 2/2 | Complete   | 2026-03-20 |
-| 3. Generation Run | 0/TBD | Not started | - |
+| 3. Generation Run | 0/2 | Not started | - |
 | 4. Documentation Refresh | 0/TBD | Not started | - |
