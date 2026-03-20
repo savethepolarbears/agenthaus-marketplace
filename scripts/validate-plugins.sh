@@ -351,6 +351,47 @@ validate_hook_security() {
 }
 
 # -------------------------------------------------------------------
+# Validate SKILL.md rules
+# -------------------------------------------------------------------
+validate_skills() {
+  local dir="$1"
+  local name="$(basename "$dir")"
+  
+  if [[ -d "$dir/skills" ]]; then
+    while IFS= read -r skill_file; do
+      local rel_path="${skill_file#$dir/}"
+      
+      # Extract name and description from YAML frontmatter
+      local skill_name=$(awk '/^---/{p++} p==1 && /^name:/{print substr($0, index($0,$2))} p==2{exit}' "$skill_file" | tr -d '"'\''\r' | sed 's/^[ \t]*//;s/[ \t]*$//')
+      local skill_desc=$(awk '/^---/{p++} p==1 && /^description:/{print substr($0, index($0,$2))} p==2{exit}' "$skill_file" | tr -d '"'\''\r' | sed 's/^[ \t]*//;s/[ \t]*$//')
+      
+      if [[ -z "$skill_name" ]]; then
+        log_fail "${name}/${rel_path}: missing name in frontmatter"
+        fail_count=$((fail_count + 1))
+      elif [[ ${#skill_name} -gt 64 ]]; then
+        log_fail "${name}/${rel_path}: name exceeds 64 characters (${#skill_name})"
+        fail_count=$((fail_count + 1))
+      fi
+      
+      if [[ -z "$skill_desc" ]]; then
+        log_fail "${name}/${rel_path}: missing description in frontmatter"
+        fail_count=$((fail_count + 1))
+      else
+        if [[ ${#skill_desc} -gt 1024 ]]; then
+          log_fail "${name}/${rel_path}: description exceeds 1024 characters (${#skill_desc})"
+          fail_count=$((fail_count + 1))
+        fi
+        
+        if ! echo "$skill_desc" | grep -qi "use when"; then
+          log_fail "${name}/${rel_path}: description missing 'Use when...' trigger"
+          fail_count=$((fail_count + 1))
+        fi
+      fi
+    done < <(find "$dir/skills" -name "SKILL.md" -type f 2>/dev/null)
+  fi
+}
+
+# -------------------------------------------------------------------
 # Skills Index Sync Check
 # -------------------------------------------------------------------
 validate_skills_index() {
@@ -412,6 +453,7 @@ for plugin_dir in "$PLUGINS_DIR"/*/; do
   [[ -d "$plugin_dir" ]] || continue
   validate_plugin "$plugin_dir"
   validate_hook_security "$plugin_dir"
+  validate_skills "$plugin_dir"
 done
 
 validate_skills_index
