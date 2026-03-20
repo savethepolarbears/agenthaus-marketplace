@@ -1,14 +1,16 @@
-# AgentHaus Marketplace - Agentic AI Plugins
+# AgentHaus Marketplace
 
-27 production-ready developer tools and plugins for Claude Code marketplaces, with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf. Optimizes your dev workflows with powerful agentic AI capabilities.
+27 production-ready plugins for Claude Code with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
 
 ## Plugins
 
 | Plugin | Description | MCP | Hooks |
-| -------- | ------------- | --- | ----- |
+|--------|-------------|-----|-------|
+| activepieces-flow-pilot | Agent plugin pack for designing, building, operating, and... | no | yes |
 | agent-handoff | State-based task handoff between agents using a shared bl... | no | yes |
 | agent-memory | Shared persistent memory across agent sessions using Neon... | yes | no |
 | apple-photos | Manage Apple Photos libraries using the osxphotos CLI — q... | no | yes |
+| apple-workflows | Manage Apple Notes, Reminders, and Shortcuts with AI agen... | yes | yes |
 | circuit-breaker | Pre-built safety guardrails as reusable hooks for Claude ... | no | yes |
 | clickup-tasks | Manage ClickUp tasks, lists and time tracking. | yes | no |
 | cloudflare-platform | Manage Cloudflare Workers, KV storage and AI Gateway reso... | yes | no |
@@ -37,7 +39,7 @@
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands | Skills |
-| -------- | --- | ----- | -------- | ------ |
+|----------|-----|-------|----------|--------|
 | Claude Code | full | full | full | full |
 | Codex CLI | none | none | partial | full |
 | Gemini CLI | via gemini-settings | none | partial | full |

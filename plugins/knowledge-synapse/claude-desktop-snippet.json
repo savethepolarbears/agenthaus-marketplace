@@ -10,7 +10,7 @@
       ],
       "command": "npx",
       "env": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_KEY}"
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
     },
     "google-drive": {
@@ -30,7 +30,7 @@
       ],
       "command": "npx",
       "env": {
-        "NOTION_API_KEY": "${NOTION_KEY}"
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
       }
     }
   }

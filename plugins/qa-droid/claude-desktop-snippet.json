@@ -10,7 +10,7 @@
       ],
       "command": "npx",
       "env": {
-        "GMAIL_CREDENTIALS": "${GMAIL_CREDS}"
+        "GMAIL_CREDENTIALS": "${GMAIL_CREDENTIALS}"
       }
     },
     "playwright-local": {
@@ -26,7 +26,7 @@
       ],
       "command": "npx",
       "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_TOKEN}",
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
         "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
       }
     }

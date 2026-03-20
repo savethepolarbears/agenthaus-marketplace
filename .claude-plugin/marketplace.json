@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A comprehensive marketplace of 25 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
-    "version": "3.5.0",
+    "version": "1.0.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -314,6 +314,19 @@
         "reminders",
         "shortcuts",
         "automation"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "activepieces-flow-pilot",
+      "source": "./plugins/activepieces-flow-pilot",
+      "category": "automation",
+      "description": "Connector-backed agent plugin pack for designing, building, operating, and releasing ActivePieces flows.",
+      "keywords": [
+        "activepieces",
+        "workflow",
+        "automation",
+        "api"
       ],
       "author": { "name": "AgentHaus Team" }
     }

@@ -7,7 +7,7 @@
       ],
       "command": "npx",
       "env": {
-        "CLICKUP_API_KEY": "${env:CLICKUP_KEY}"
+        "CLICKUP_API_KEY": "${env:CLICKUP_API_KEY}"
       }
     },
     "gmail": {
@@ -17,7 +17,7 @@
       ],
       "command": "npx",
       "env": {
-        "GMAIL_CREDENTIALS": "${env:GMAIL_CREDS}"
+        "GMAIL_CREDENTIALS": "${env:GMAIL_CREDENTIALS}"
       }
     },
     "google-calendar": {
@@ -37,7 +37,7 @@
       ],
       "command": "npx",
       "env": {
-        "SLACK_BOT_TOKEN": "${env:SLACK_TOKEN}",
+        "SLACK_BOT_TOKEN": "${env:SLACK_BOT_TOKEN}",
         "SLACK_DEFAULT_CHANNEL": "${env:SLACK_CHANNEL}"
       }
     }

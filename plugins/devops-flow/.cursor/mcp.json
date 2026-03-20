@@ -28,7 +28,7 @@
       ],
       "command": "npx",
       "env": {
-        "SLACK_BOT_TOKEN": "${env:SLACK_TOKEN}",
+        "SLACK_BOT_TOKEN": "${env:SLACK_BOT_TOKEN}",
         "SLACK_DEFAULT_CHANNEL": "${env:SLACK_CHANNEL}"
       }
     }
