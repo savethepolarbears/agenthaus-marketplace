@@ -1,0 +1,39 @@
+{
+  "name": "apple-workflows",
+  "version": "1.0.0",
+  "description": "Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP server on macOS.",
+  "author": {
+    "name": "AgentHaus Team"
+  },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "productivity",
+    "apple",
+    "macos",
+    "notes",
+    "reminders",
+    "shortcuts"
+  ],
+  "commands": [
+    "./commands/notes.md",
+    "./commands/reminders.md",
+    "./commands/shortcuts.md",
+    "./commands/daily-review.md",
+    "./commands/capture.md",
+    "./commands/status.md",
+    "./commands/organize.md"
+  ],
+  "agents": [
+    "./agents/productivity-assistant.md",
+    "./agents/workflow-automator.md"
+  ],
+  "skills": [
+    "./skills/apple-productivity/SKILL.md",
+    "./skills/apple-automation/SKILL.md"
+  ],
+  "hooks": [
+    "./hooks/hooks.json"
+  ]
+}

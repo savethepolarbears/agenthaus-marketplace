@@ -135,6 +135,59 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
     );
   }, [plugins]);
 
+  // Bolt ⚡ Optimization: Memoize the category links to prevent re-computing URL parameters
+  // on every keystroke. During typing, searchQuery updates trigger a re-render, but searchParams
+  // and categories remain stable. Memoizing this avoids O(M) URLSearchParams cloning and
+  // .toString() serializations during high-frequency render paths.
+  const categoryLinks = useMemo(() => {
+    return categories.map((cat) => {
+      const isActive = activeCategory === cat;
+      const targetCategory = isActive && cat !== "all" ? "all" : cat;
+      const params = new URLSearchParams(searchParams);
+      if (targetCategory !== "all") {
+        params.set("category", targetCategory);
+      } else {
+        params.delete("category");
+      }
+
+      return (
+        <Link
+          key={cat}
+          href={`?${params.toString()}`}
+          scroll={false}
+          prefetch={false}
+          aria-current={isActive ? "true" : undefined}
+          aria-label={
+            cat === "all"
+              ? isActive
+                ? "Viewing all categories"
+                : "View all categories"
+              : isActive
+              ? `Remove ${cat} category filter`
+              : `Filter by ${cat} category`
+          }
+          title={
+            cat === "all"
+              ? isActive
+                ? "Viewing all categories"
+                : "View all categories"
+              : isActive
+              ? `Remove ${cat} category filter`
+              : `Filter by ${cat} category`
+          }
+          className={clsx(
+            "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50",
+            isActive
+              ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-400"
+              : "bg-white/5 border border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300"
+          )}
+        >
+          {cat}
+        </Link>
+      );
+    });
+  }, [categories, activeCategory, searchParams]);
+
   const filtered = useMemo(() => {
     // Optimization: Pre-compute lowercase query once to avoid repetitive .toLowerCase() in loop
     const normalizedQuery = deferredSearchQuery.toLowerCase();
@@ -211,57 +264,7 @@ export default function PluginGrid({ plugins, categories }: PluginGridProps) {
         role="group"
         aria-label="Filter plugins by category"
       >
-        {(() => {
-          // Bolt ⚡ Optimization: Use URLSearchParams copy constructor instead of parsing strings.
-          // Parsing a serialized query string (URLSearchParams(string)) requires tokenizing and decoding,
-          // which is >3x slower than directly cloning an existing URLSearchParams object.
-          return categories.map((cat) => {
-            const isActive = activeCategory === cat;
-            const targetCategory = isActive && cat !== "all" ? "all" : cat;
-            const params = new URLSearchParams(searchParams);
-            if (targetCategory !== "all") {
-              params.set("category", targetCategory);
-            } else {
-              params.delete("category");
-            }
-
-            return (
-              <Link
-                key={cat}
-                href={`?${params.toString()}`}
-              scroll={false}
-              prefetch={false}
-              aria-current={isActive ? "true" : undefined}
-              aria-label={
-                cat === "all"
-                  ? isActive
-                    ? "Viewing all categories"
-                    : "View all categories"
-                  : isActive
-                  ? `Remove ${cat} category filter`
-                  : `Filter by ${cat} category`
-              }
-              title={
-                cat === "all"
-                  ? isActive
-                    ? "Viewing all categories"
-                    : "View all categories"
-                  : isActive
-                  ? `Remove ${cat} category filter`
-                  : `Filter by ${cat} category`
-              }
-              className={clsx(
-                "px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50",
-                isActive
-                  ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-400"
-                  : "bg-white/5 border border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300"
-              )}
-            >
-              {cat}
-            </Link>
-            );
-          });
-        })()}
+        {categoryLinks}
       </div>
 
       {/* Results count */}

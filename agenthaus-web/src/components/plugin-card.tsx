@@ -55,7 +55,7 @@ const PluginCard = memo(function PluginCard({ plugin }: PluginCardProps) {
       </p>
 
       <div className="flex items-center justify-between mb-4 mt-auto">
-        <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded">
+        <span className="text-xs font-mono text-cyan-500/70 bg-cyan-500/10 px-2 py-0.5 rounded select-all relative z-10">
           v{plugin.version}
         </span>
         <span

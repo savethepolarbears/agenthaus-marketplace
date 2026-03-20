@@ -73,3 +73,7 @@
 ## 2025-03-18 - String Parsing Overhead in URLSearchParams
 **Learning:** Pre-serializing `URLSearchParams` to a string and passing it to the constructor inside a loop actually degrades performance. Parsing a serialized query string (`new URLSearchParams("string")`) requires the browser/Node to tokenize and decode the string, which is >3x slower than using the copy constructor (`new URLSearchParams(existingObject)`).
 **Action:** Replaced `new URLSearchParams(currentParamsString)` with `new URLSearchParams(searchParams)` inside `.map` loops in `src/components/plugin-grid.tsx` to directly clone the object and avoid expensive string parsing overhead.
+
+## 2025-03-20 - Redundant object allocation/parameter serialization on search re-renders
+**Learning:** In a client component mapping over an array to build URL `<Link>` components, performing `new URLSearchParams(searchParams)` and calling `.toString()` on every map iteration inside the render function runs on *every single keystroke* when syncing a search state (e.g. `searchQuery` updates). Even when `searchParams` hasn't changed, this causes a flurry of O(N) object instantiations and string serializations that block the main thread and impact input responsiveness.
+**Action:** Extract the `.map()` block generating links into a `useMemo` hook, depending only on `categories`, `activeCategory`, and `searchParams`. This memoizes the entire block, avoiding expensive URL manipulation operations during typing/high-frequency state updates.
