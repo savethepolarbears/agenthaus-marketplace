@@ -1,0 +1,10 @@
+---
+description: "Generate high-engagement social media content with trend analysis and platform-specific commands."
+globs: "**/*"
+alwaysApply: true
+---
+
+# social-media
+
+Generate high-engagement social media content with trend analysis and platform-specific commands.
+> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.

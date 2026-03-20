@@ -1,0 +1,13 @@
+---
+description: "ClickUp task management with Slack, Gmail and Calendar notifications."
+globs: "**/*"
+alwaysApply: true
+---
+
+# task-commander
+
+ClickUp task management with Slack, Gmail and Calendar notifications.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

@@ -1,0 +1,9 @@
+---
+description: "Audit plugins for security risks before installation."
+globs: "**/*"
+alwaysApply: true
+---
+
+# plugin-auditor
+
+Audit plugins for security risks before installation.

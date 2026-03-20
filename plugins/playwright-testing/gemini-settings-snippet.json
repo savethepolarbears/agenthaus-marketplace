@@ -1,0 +1,12 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "playwright": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-playwright"
+      ],
+      "command": "npx"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+---
+description: "Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, and Apps Script using gogcli."
+globs: "**/*"
+alwaysApply: true
+---
+
+# gog-workspace
+
+Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, and Apps Script using gogcli.
+> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.

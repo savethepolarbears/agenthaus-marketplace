@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "context7": {
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "command": "npx",
+      "env": {
+        "CONTEXT7_API_KEY": "${env:CONTEXT7_KEY}"
+      }
+    },
+    "google-drive": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-google-drive"
+      ],
+      "command": "npx",
+      "env": {
+        "GOOGLE_DRIVE_TOKEN": "${env:GOOGLE_DRIVE_TOKEN}"
+      }
+    },
+    "notion": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-notion"
+      ],
+      "command": "npx",
+      "env": {
+        "NOTION_API_KEY": "${env:NOTION_KEY}"
+      }
+    }
+  }
+}

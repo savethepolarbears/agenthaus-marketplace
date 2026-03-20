@@ -1,0 +1,7 @@
+# seo-geo-rag
+
+Six-phase SEO, Generative Engine Optimization (GEO), and RAG optimization skill. Audits metadata variables, generates llms.txt and AI-FAQ.md, injects JSON-LD structured data, and optimizes codebases for Traditional Search, AI search engines (Perplexity, ChatGPT, Google AI Overviews), and LLM RAG ingestion (Cursor, Copilot, Windsurf).
+
+## Plugin Reference
+
+@plugins/seo-geo-rag/README.md

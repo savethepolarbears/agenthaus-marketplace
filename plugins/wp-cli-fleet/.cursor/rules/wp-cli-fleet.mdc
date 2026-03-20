@@ -1,0 +1,10 @@
+---
+description: "Agentic WP-CLI and WordPress fleet management for plugin inventory, updates, health checks, search-replace, Pods CPT management, and fleet-wide operations."
+globs: "**/*"
+alwaysApply: true
+---
+
+# wp-cli-fleet
+
+Agentic WP-CLI and WordPress fleet management for plugin inventory, updates, health checks, search-replace, Pods CPT management, and fleet-wide operations.
+> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.
