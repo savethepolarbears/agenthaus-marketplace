@@ -1,6 +1,6 @@
 # Technology Stack
 
-> Generated: 2026-03-19 | Source: GSD Map-Codebase
+> Generated: 2026-03-20 | Source: GSD Map-Codebase (sequential)
 
 ## Primary Languages
 
@@ -10,6 +10,7 @@
 | Markdown   | Plugin configs, skills, agents | YAML frontmatter  |
 | JSON       | Schemas, manifests, MCP configs| JSON Schema v7    |
 | Bash       | Validation/install scripts     | POSIX-compatible  |
+| Python 3   | Used by validation script      | JSON parsing only |
 | SQL        | Database schema definitions    | PostgreSQL dialect|
 
 ## Runtime & Framework
@@ -28,20 +29,20 @@
 |------------|----------------------------------------------|---------|
 | Provider   | Neon Serverless Postgres                     | —       |
 | Client SDK | @neondatabase/serverless                     | ^0.10.0 |
-| Schema     | 3 tables: plugins, capabilities, env_vars    | —       |
-| Indexes    | 6 (category, slug, install_count, tags GIN)  | —       |
+| Schema     | 3 tables: plugins, plugin_capabilities, plugin_env_vars | — |
+| Indexes    | GIN on tags, btree on slug/category/plugin_id | — |
 
-## Key Dependencies
+## Key Dependencies (`agenthaus-web/package.json` v2.0.0)
 
 | Package                  | Version  | Purpose                 |
 |--------------------------|----------|-------------------------|
 | next                     | ^16.0.0  | App framework           |
 | react / react-dom        | ^19.0.0  | UI rendering            |
 | @neondatabase/serverless | ^0.10.0  | Database client         |
+| zod                      | ^4.3.6   | Schema validation       |
 | lucide-react             | ^0.469.0 | Icon library            |
 | clsx                     | ^2.1.1   | Conditional class names |
 | tailwindcss              | ^4.0.0   | Utility-first CSS       |
-| zod                      | ^4.3.6   | Schema validation       |
 | typescript               | ^5.7.0   | Type checking           |
 
 ## DevDependencies
@@ -55,13 +56,33 @@
 | postcss          | ^8.4.0   | CSS processing        |
 | ts-node          | ^10.9.2  | TypeScript execution  |
 
+## Build Configuration
+
+### TypeScript (`agenthaus-web/tsconfig.json`)
+- **Target:** ES2022, **Module:** ESNext, **Resolution:** bundler
+- **Strict mode:** enabled
+- **Path alias:** `@/*` → `./src/*`
+- **JSX:** react-jsx (no React import needed)
+- **Incremental compilation:** enabled
+
+### Tailwind CSS 4
+- CSS-based configuration via `@import "tailwindcss"` in `src/app/globals.css`
+- No `tailwind.config.js` — v4 auto-detects content sources
+- No separate PostCSS config file
+
+### Next.js (`next.config.mjs`)
+- `poweredByHeader: false`
+- Security headers: HSTS, X-XSS-Protection, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, X-DNS-Prefetch-Control
+- No experimental features
+- Uses `middleware.ts` (not yet migrated to `proxy.ts` for Next.js 16)
+
 ## Build & Run Commands
 
 ```bash
 npm run dev    # next dev
 npm run build  # next build
 npm run start  # next start
-npm run lint   # tsc --noEmit
+npm run lint   # tsc --noEmit (type-checking only, NOT ESLint)
 ```
 
 ## Environment Variables
@@ -78,3 +99,7 @@ npm run lint   # tsc --noEmit
 | SLACK_BOT_TOKEN      | devops-flow                      | Slack bot access                |
 | NEON_API_KEY         | neon-db, data-core               | Neon platform API               |
 | NEON_DATABASE_URL    | agent-memory                     | Agent memory database           |
+| GOOGLE_CLIENT_ID     | gog-workspace                    | Google OAuth                    |
+| WP_CLI_SSH_KEY       | wp-cli-fleet                     | WordPress SSH access (optional) |
+
+Full list: `.env.example` (33 lines)
