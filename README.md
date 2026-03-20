@@ -9,6 +9,8 @@
 
 ## Installation
 
+> **Tip:** Each plugin's README includes a **Platform Support** table showing exactly which features (commands, skills, MCP, hooks) are available on your platform.
+
 ### Claude Code (recommended)
 
 ```bash
