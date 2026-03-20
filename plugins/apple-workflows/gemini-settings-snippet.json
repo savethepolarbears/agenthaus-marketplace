@@ -1,0 +1,17 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "apple-productivity": {
+      "args": [
+        "run",
+        "--project",
+        "${CLAUDE_PLUGIN_ROOT}/mcp",
+        "apple-productivity-mcp"
+      ],
+      "command": "uv",
+      "env": {
+        "APPLE_REMINDERS_BACKEND": "${APPLE_REMINDERS_BACKEND}"
+      }
+    }
+  }
+}

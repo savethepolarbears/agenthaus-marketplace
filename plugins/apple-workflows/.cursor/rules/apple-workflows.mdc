@@ -1,0 +1,15 @@
+---
+description: "Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP server on macOS."
+globs: "**/*"
+alwaysApply: true
+---
+
+# apple-workflows
+
+Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP server on macOS.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.
+
+> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.

@@ -1,0 +1,10 @@
+---
+description: "Agent plugin pack for designing, building, operating, and releasing ActivePieces flows."
+globs: "**/*"
+alwaysApply: true
+---
+
+# activepieces
+
+Agent plugin pack for designing, building, operating, and releasing ActivePieces flows.
+> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.

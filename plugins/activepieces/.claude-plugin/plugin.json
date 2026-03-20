@@ -1,0 +1,27 @@
+{
+  "name": "activepieces",
+  "version": "0.1.0",
+  "description": "Agent plugin pack for designing, building, operating, and releasing ActivePieces flows.",
+  "author": {
+    "name": "SaveThePolarBears",
+    "email": "dev@example.com"
+  },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["activepieces", "workflow", "automation", "api"],
+  "skills": [
+    "./skills/discover-capabilities/SKILL.md",
+    "./skills/design-flow-blueprint/SKILL.md",
+    "./skills/build-or-refactor-flow/SKILL.md",
+    "./skills/publish-enable-and-run/SKILL.md"
+  ],
+  "agents": [
+    "./agents/flow-architect.md",
+    "./agents/flow-operator.md",
+    "./agents/flow-auditor.md"
+  ],
+  "hooks": [
+    "./hooks/hooks.json"
+  ]
+}

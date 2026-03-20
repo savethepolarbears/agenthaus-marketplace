@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "ap_delete_step|ap_delete_branch",
+        "requires_approval": true,
+        "approval_message": "You are about to delete a step or branch in an ActivePieces flow. This is a destructive change. Do you approve?",
+        "hooks": []
+      },
+      {
+        "matcher": "ap_lock_and_publish|ap_change_flow_status",
+        "requires_approval": true,
+        "approval_message": "You are about to publish or change the status of an ActivePieces flow. Do you approve?",
+        "hooks": []
+      }
+    ]
+  }
+}
