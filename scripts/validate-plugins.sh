@@ -351,6 +351,50 @@ validate_hook_security() {
 }
 
 # -------------------------------------------------------------------
+# Validate AGENTS.md byte limit (per-plugin: 2 KiB)
+# -------------------------------------------------------------------
+validate_agents_md() {
+  local dir="$1"
+  local name; name="$(basename "$dir")"
+  local agents_file="$dir/AGENTS.md"
+  if [[ -f "$agents_file" ]]; then
+    local byte_count
+    byte_count="$(wc -c < "$agents_file" | tr -d ' ')"
+    if [[ "$byte_count" -gt 2048 ]]; then
+      log_fail "${name}/AGENTS.md exceeds 2 KiB (${byte_count} bytes)"
+      fail_count=$((fail_count + 1))
+    else
+      log_pass "${name}/AGENTS.md size OK (${byte_count} bytes)"
+    fi
+  fi
+}
+
+# -------------------------------------------------------------------
+# Validate .cursor/rules/*.mdc frontmatter fields
+# -------------------------------------------------------------------
+validate_cursor_mdc() {
+  local dir="$1"
+  local name; name="$(basename "$dir")"
+  local rules_dir="$dir/.cursor/rules"
+  if [[ -d "$rules_dir" ]]; then
+    while IFS= read -r mdc_file; do
+      local rel="${mdc_file#$dir/}"
+      local has_desc has_globs
+      has_desc="$(head -10 "$mdc_file" | grep -c '^description:' || true)"
+      has_globs="$(head -10 "$mdc_file" | grep -c '^globs:' || true)"
+      if [[ "$has_desc" -eq 0 ]]; then
+        log_fail "${name}/${rel}: missing 'description' in frontmatter"
+        fail_count=$((fail_count + 1))
+      fi
+      if [[ "$has_globs" -eq 0 ]]; then
+        log_fail "${name}/${rel}: missing 'globs' in frontmatter"
+        fail_count=$((fail_count + 1))
+      fi
+    done < <(find "$rules_dir" -name "*.mdc" -type f 2>/dev/null)
+  fi
+}
+
+# -------------------------------------------------------------------
 # Validate SKILL.md rules
 # -------------------------------------------------------------------
 validate_skills() {
@@ -454,9 +498,23 @@ for plugin_dir in "$PLUGINS_DIR"/*/; do
   validate_plugin "$plugin_dir"
   validate_hook_security "$plugin_dir"
   validate_skills "$plugin_dir"
+  validate_agents_md "$plugin_dir"
+  validate_cursor_mdc "$plugin_dir"
 done
 
 validate_skills_index
+
+# Repo-level AGENTS.md size check
+repo_agents="$ROOT_DIR/AGENTS.md"
+if [[ -f "$repo_agents" ]]; then
+  bytes="$(wc -c < "$repo_agents" | tr -d ' ')"
+  if [[ "$bytes" -gt 6144 ]]; then
+    log_fail "Repo-level AGENTS.md exceeds 6 KiB (${bytes} bytes)"
+    fail_count=$((fail_count + 1))
+  else
+    log_pass "Repo-level AGENTS.md size OK (${bytes} bytes)"
+  fi
+fi
 
 echo ""
 echo "========================="
