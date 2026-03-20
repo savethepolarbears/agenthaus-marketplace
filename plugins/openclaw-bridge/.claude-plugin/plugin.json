@@ -2,7 +2,9 @@
   "name": "openclaw-bridge",
   "version": "1.0.0",
   "description": "Convert AgentHaus plugins to OpenClaw skills and provide remote control.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

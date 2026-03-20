@@ -2,7 +2,9 @@
   "name": "ux-ui",
   "version": "1.0.0",
   "description": "Polish and improve your front-end UX/UI, accessibility, design and responsiveness for Tailwind CSS projects.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

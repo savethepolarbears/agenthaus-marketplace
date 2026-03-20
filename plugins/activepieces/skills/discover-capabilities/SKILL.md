@@ -1,6 +1,6 @@
 ---
 name: discover-capabilities
-description: Build a trustworthy capability map before making any change to an ActivePieces flow.
+description: Build a trustworthy capability map before making any change to an ActivePieces flow. Use when exploring available pieces, connectors, or triggers in ActivePieces.
 ---
 
 # Skill: Discover capabilities

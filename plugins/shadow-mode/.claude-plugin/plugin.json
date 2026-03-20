@@ -2,7 +2,9 @@
   "name": "shadow-mode",
   "version": "1.0.0",
   "description": "Agents draft outputs to a review queue instead of executing directly.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
@@ -15,9 +17,6 @@
     "./commands/enable.md",
     "./commands/disable.md",
     "./commands/review.md"
-  ],
-  "hooks": [
-    "./hooks/hooks.json"
   ],
   "skills": [
     "./skills/shadow-review/SKILL.md"

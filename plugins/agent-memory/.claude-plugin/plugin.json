@@ -2,7 +2,9 @@
   "name": "agent-memory",
   "version": "1.0.0",
   "description": "Shared persistent memory across agent sessions using Neon Postgres.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

@@ -9,7 +9,12 @@
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
-  "tags": ["activepieces", "workflow", "automation", "api"],
+  "tags": [
+    "activepieces",
+    "workflow",
+    "automation",
+    "api"
+  ],
   "skills": [
     "./skills/discover-capabilities/SKILL.md",
     "./skills/design-flow-blueprint/SKILL.md",
@@ -20,8 +25,5 @@
     "./agents/flow-architect.md",
     "./agents/flow-operator.md",
     "./agents/flow-auditor.md"
-  ],
-  "hooks": [
-    "./hooks/hooks.json"
   ]
 }

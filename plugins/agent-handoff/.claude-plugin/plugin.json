@@ -2,7 +2,9 @@
   "name": "agent-handoff",
   "version": "1.0.0",
   "description": "State-based task handoff between agents using a shared blackboard protocol.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
@@ -18,8 +20,5 @@
   ],
   "skills": [
     "./skills/blackboard-protocol/SKILL.md"
-  ],
-  "hooks": [
-    "./hooks/hooks.json"
   ]
 }

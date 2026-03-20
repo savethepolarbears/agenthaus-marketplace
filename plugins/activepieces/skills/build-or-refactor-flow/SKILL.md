@@ -1,6 +1,6 @@
 ---
 name: build-or-refactor-flow
-description: Turn a blueprint into actual ActivePieces connector operations with minimal risk.
+description: Turn a blueprint into actual ActivePieces connector operations with minimal risk. Use when building, editing, or refactoring an ActivePieces flow.
 ---
 
 # Skill: Build or refactor flow

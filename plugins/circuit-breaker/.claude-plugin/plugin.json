@@ -2,7 +2,9 @@
   "name": "circuit-breaker",
   "version": "1.0.0",
   "description": "Pre-built safety guardrails as reusable hooks for Claude Code workflows.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
@@ -13,9 +15,6 @@
   ],
   "commands": [
     "./commands/configure.md"
-  ],
-  "hooks": [
-    "./hooks/hooks.json"
   ],
   "skills": [
     "./skills/safety-guardrails/SKILL.md"

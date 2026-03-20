@@ -2,7 +2,9 @@
   "name": "fleet-commander",
   "version": "1.0.0",
   "description": "Visualization and control of running agent sessions.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

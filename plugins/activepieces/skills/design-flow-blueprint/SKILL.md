@@ -1,6 +1,6 @@
 ---
 name: design-flow-blueprint
-description: Convert a natural-language brief into a connector-ready ActivePieces build plan.
+description: Convert a natural-language brief into a connector-ready ActivePieces build plan. Use when designing or planning a new ActivePieces automation flow.
 ---
 
 # Skill: Design flow blueprint

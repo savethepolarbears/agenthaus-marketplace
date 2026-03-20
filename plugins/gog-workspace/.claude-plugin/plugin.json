@@ -2,7 +2,9 @@
   "name": "gog-workspace",
   "version": "1.0.0",
   "description": "Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, and Apps Script using gogcli.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",
@@ -37,8 +39,5 @@
   ],
   "skills": [
     "./skills/google-workspace-cli/SKILL.md"
-  ],
-  "hooks": [
-    "./hooks/hooks.json"
   ]
 }

@@ -1,6 +1,6 @@
 ---
 name: publish-enable-and-run
-description: Release an ActivePieces flow safely and choose an execution strategy that matches reality.
+description: Release an ActivePieces flow safely and choose an execution strategy that matches reality. Use when publishing, enabling, or testing an ActivePieces flow.
 ---
 
 # Skill: Publish, enable, and run
