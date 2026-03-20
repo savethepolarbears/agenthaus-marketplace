@@ -1,0 +1,17 @@
+[project]
+name = "apple-productivity-mcp"
+version = "0.1.0"
+description = "MCP server for Apple Notes, Apple Reminders, and Apple Shortcuts"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "mcp[cli]>=1.0.0",
+  "macnotesapp>=0.8.0; sys_platform == 'darwin'",
+]
+
+[project.scripts]
+apple-productivity-mcp = "apple_productivity_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
