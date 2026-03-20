@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-02-PLAN.md — validate-plugins.sh extended, 0 failures, all generated files committed
-last_updated: "2026-03-20T12:56:35.422Z"
+stopped_at: Completed 04-02-PLAN.md — 27-entry STATIC_PLUGINS fallback, added seo-geo-rag, gog-workspace, apple-photos, wp-cli-fleet
+last_updated: "2026-03-20T13:09:03.152Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Every plugin works reliably on every supported AI coding agent
-**Current focus:** Phase 03 — generation-run
+**Current focus:** Phase 04 — documentation-refresh
 
 ## Current Position
 
-Phase: 03 (generation-run) — EXECUTING
-Plan: 2 of 2
+Phase: 04 (documentation-refresh) — EXECUTING
+Plan: 1 of 3
 
 ## Performance Metrics
 
@@ -51,6 +51,8 @@ Plan: 2 of 2
 | Phase 02-generator-build P02 | 22 | 2 tasks | 15 files |
 | Phase 03-generation-run P01 | 15 | 2 tasks | 114 files |
 | Phase 03-generation-run P02 | 5 | 2 tasks | 8 files |
+| Phase 04-documentation-refresh P02 | 2 | 1 tasks | 1 files |
+| Phase 04 P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -77,6 +79,10 @@ Recent decisions affecting current work:
 - [Phase 03-02]: validate_agents_md uses wc -c (byte count) — consistent with Buffer.byteLength approach in renderer
 - [Phase 03-02]: validate_cursor_mdc checks head -10 lines only — frontmatter always appears at top of .mdc files
 - [Phase 03-02]: 7 untracked .mcp.json files from 03-01 committed in 03-02 to complete generation output
+- [Phase 04]: Installation section replaces Quick Start — 6-platform coverage is the primary entry point
+- [Phase 04]: Deprecated claude-3-7-sonnet-20250219 removed from CONTRIBUTING.md — alias-only model policy enforced
+- [Phase 04-documentation-refresh]: seo-geo-rag assigned to new 'seo' category — not folded into 'docs' or 'rag' to keep AI discoverability distinct
+- [Phase 04-documentation-refresh]: apple-photos assigned to new 'media' category — not 'utility', reflects media asset management domain
 
 ### Pending Todos
 
@@ -90,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T12:51:51.808Z
-Stopped at: Completed 03-02-PLAN.md — validate-plugins.sh extended, 0 failures, all generated files committed
+Last session: 2026-03-20T13:09:03.144Z
+Stopped at: Completed 04-02-PLAN.md — 27-entry STATIC_PLUGINS fallback, added seo-geo-rag, gog-workspace, apple-photos, wp-cli-fleet
 Resume file: None
