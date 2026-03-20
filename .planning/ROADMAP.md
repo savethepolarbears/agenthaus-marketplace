@@ -42,7 +42,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Running the generator twice on unchanged sources produces identical output both times (idempotency verified by diff)
   3. Generated AGENTS.md files for MCP-dependent plugins contain a visible Platform Limitations section stating Codex CLI cannot use MCP tools
   4. Generated Cursor .mdc files use `${env:VAR}` syntax for env vars (not `${VAR}`)
-**Plans**: TBD
+**Plans**: 2 plans
+- [ ] 02-01-PLAN.md — Generator scaffold: plugin discovery, data loading, error handling, serialization utilities
+- [ ] 02-02-PLAN.md — Claude Desktop snippet renderer + idempotency verification (XPLAT-10)
 
 ### Phase 3: Generation Run
 **Goal**: All 27 plugins have committed per-platform config files (AGENTS.md, GEMINI.md, .cursor/rules/*.mdc) that accurately reflect each plugin's capabilities and limitations on each target platform
@@ -75,6 +77,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Source Audit | 2/2 | Complete | 2026-03-20 |
-| 2. Generator Build | 0/TBD | Not started | - |
+| 2. Generator Build | 0/2 | Not started | - |
 | 3. Generation Run | 0/TBD | Not started | - |
 | 4. Documentation Refresh | 0/TBD | Not started | - |
