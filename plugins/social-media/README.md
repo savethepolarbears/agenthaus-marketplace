@@ -1,5 +1,14 @@
 # Social Media Plugin
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands/Agents | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Overview
 
 The **social‑media** plugin equips Claude with everything needed to craft compelling posts across major platforms.  It provides platform‑specific slash commands for Twitter, LinkedIn, Instagram and Facebook, a trend‑analysis command, two specialist subagents, and a logging hook.

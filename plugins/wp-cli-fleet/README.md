@@ -2,6 +2,15 @@
 
 Agentic WP-CLI and WordPress fleet management plugin for Claude Code. Provides commands, agents, and skills for managing single WordPress sites or entire fleets via WP-CLI, SSH aliases, and a companion WordPress plugin.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands/Agents | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Features
 
 - **Site inventory** — List plugins, themes, and core version with update status

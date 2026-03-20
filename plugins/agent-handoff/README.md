@@ -2,6 +2,15 @@
 
 State-based task handoff between agents using a shared blackboard protocol. Enables multi-agent workflows where one agent dispatches work and others claim and execute it.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Prerequisites
 
 No external dependencies or environment variables required. This plugin uses the local filesystem for coordination.

@@ -2,6 +2,15 @@
 
 Quickly fetch reliable documentation with the **context7-docs** plugin.  Instead of hallucinating API usage, Claude calls Context7 to retrieve official docs for the library you need.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Features
 
 * **Library resolution** – Use `/context7-docs:docs <library> <query>` to find the right documentation.  The plugin first resolves the library name to a unique ID and then queries the docs database.

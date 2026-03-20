@@ -2,6 +2,15 @@
 
 Google Workspace CLI integration for Claude Code using [gogcli](https://github.com/steipete/gogcli) (`gog`).
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands/Agents | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Overview
 
 Manage your entire Google Workspace from the terminal — Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, and Apps Script — all through natural language commands powered by the `gog` CLI.
