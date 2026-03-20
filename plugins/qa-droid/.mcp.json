@@ -13,7 +13,7 @@
         "@modelcontextprotocol/server-slack"
       ],
       "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_TOKEN}",
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
         "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
       }
     },
@@ -24,7 +24,7 @@
         "@modelcontextprotocol/server-gmail"
       ],
       "env": {
-        "GMAIL_CREDENTIALS": "${GMAIL_CREDS}"
+        "GMAIL_CREDENTIALS": "${GMAIL_CREDENTIALS}"
       }
     }
   }
