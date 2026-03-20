@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/savethepolarbears/agenthaus-marketplace/schemas/skills-index.schema.json",
   "version": "1.0.0",
-  "generated": "2026-03-19",
+  "generated": "2026-03-20",
   "description": "Lightweight skill index for progressive disclosure. Agents load this at startup; full SKILL.md content is loaded on demand.",
   "entries": [
     {
@@ -459,6 +459,14 @@
       "name": "deep-research",
       "path": "plugins/knowledge-synapse/skills/deep-research/SKILL.md",
       "description": "Synthesize comprehensive research by combining official library documentation, internal knowledge bases, and note storage. Use when researching a software library, API, framework, or technical concept that benefits from cross-referencing official docs with internal documents. Covers Context7 doc lookup, Google Drive internal search, and Notion research note creation."
+    },
+    {
+      "id": "marketplace-cli:compile",
+      "plugin": "marketplace-cli",
+      "type": "command",
+      "name": "Compile",
+      "path": "plugins/marketplace-cli/commands/compile.md",
+      "description": "Compile a plugin manifest into cross-platform formats (MCP, Gemini Extensions, OpenAI Actions). Reads plugin.json as the Universal Source of Truth and generates target-specific output."
     },
     {
       "id": "marketplace-cli:install",
