@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-02-PLAN.md — 27-entry STATIC_PLUGINS fallback, added seo-geo-rag, gog-workspace, apple-photos, wp-cli-fleet
-last_updated: "2026-03-20T13:09:03.152Z"
+stopped_at: Completed 04-03-PLAN.md — platform support tables added to all 27 plugin READMEs
+last_updated: "2026-03-20T13:10:15.074Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -53,6 +53,7 @@ Plan: 2 of 3
 | Phase 03-generation-run P02 | 5 | 2 tasks | 8 files |
 | Phase 04-documentation-refresh P02 | 2 | 1 tasks | 1 files |
 | Phase 04 P01 | 2 | 2 tasks | 2 files |
+| Phase 04-documentation-refresh P03 | 8 | 1 tasks | 27 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Deprecated claude-3-7-sonnet-20250219 removed from CONTRIBUTING.md — alias-only model policy enforced
 - [Phase 04-documentation-refresh]: seo-geo-rag assigned to new 'seo' category — not folded into 'docs' or 'rag' to keep AI discoverability distinct
 - [Phase 04-documentation-refresh]: apple-photos assigned to new 'media' category — not 'utility', reflects media asset management domain
+- [Phase 04-03]: Commands row labeled Commands/Agents when plugin has agents; MCP shows none for Codex CLI; Hooks shows none (not n/a) on non-Claude-Code platforms when present
 
 ### Pending Todos
 
@@ -96,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T13:09:03.144Z
-Stopped at: Completed 04-02-PLAN.md — 27-entry STATIC_PLUGINS fallback, added seo-geo-rag, gog-workspace, apple-photos, wp-cli-fleet
+Last session: 2026-03-20T13:10:09.150Z
+Stopped at: Completed 04-03-PLAN.md — platform support tables added to all 27 plugin READMEs
 Resume file: None

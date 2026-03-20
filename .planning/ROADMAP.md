@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Source Audit** - Fix all 27 plugins until sources are trustworthy input for the generator
 - [x] **Phase 2: Generator Build** - Build the idempotent Node.js cross-platform config generator (completed 2026-03-20)
 - [x] **Phase 3: Generation Run** - Execute generator, validate all output, commit per-platform configs for all 27 plugins (completed 2026-03-20)
-- [ ] **Phase 4: Documentation Refresh** - Update README, CONTRIBUTING.md, and plugins-static.ts with cross-platform guidance
+- [x] **Phase 4: Documentation Refresh** - Update README, CONTRIBUTING.md, and plugins-static.ts with cross-platform guidance (completed 2026-03-20)
 
 ## Phase Details
 
@@ -84,4 +84,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Source Audit | 2/2 | Complete | 2026-03-20 |
 | 2. Generator Build | 2/2 | Complete   | 2026-03-20 |
 | 3. Generation Run | 2/2 | Complete   | 2026-03-20 |
-| 4. Documentation Refresh | 2/3 | In Progress|  |
+| 4. Documentation Refresh | 3/3 | Complete   | 2026-03-20 |
