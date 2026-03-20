@@ -1,8 +1,8 @@
-# AGENTS.md
+# CLAUDE.md
 
-This file provides guidance to AI coding assistants working in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
-**Note:** CLAUDE.md, .clinerules, .cursorrules, .windsurfrules, .replit.md, and .idx/airules.md are symlinks to this AGENTS.md file. GEMINI.md and .github/copilot-instructions.md are standalone files with platform-specific guidance.
+**Platform configs:** AGENTS.md (Codex CLI), GEMINI.md (Gemini CLI), .github/copilot-instructions.md (Copilot), .cursorrules (Cursor), .windsurfrules (Windsurf) contain platform-specific guidance. This file is the Claude Code canonical source.
 
 ## AgentHaus Marketplace
 
