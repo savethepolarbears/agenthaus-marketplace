@@ -28,7 +28,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **XPLAT-07**: Platform limitation notices embedded for MCP-dependent plugins on Codex (devops-flow, knowledge-synapse, data-core, agent-memory, clickup-tasks, task-commander, qa-droid)
 - [ ] **XPLAT-08**: Platform capability matrix table generated per plugin (what works on Claude/Codex/Gemini/Cursor/Windsurf)
 - [ ] **XPLAT-09**: skills_index.json extended with platforms field for cross-platform discovery
-- [ ] **XPLAT-10**: Generator is idempotent (re-running on unchanged sources produces identical output)
+- [x] **XPLAT-10**: Generator is idempotent (re-running on unchanged sources produces identical output)
 
 ### Infrastructure
 
@@ -99,7 +99,7 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | XPLAT-07 | Phase 3 | Pending |
 | XPLAT-08 | Phase 3 | Pending |
 | XPLAT-09 | Phase 3 | Pending |
-| XPLAT-10 | Phase 2 | Pending |
+| XPLAT-10 | Phase 2 | Complete |
 | INFRA-01 | Phase 1 | Pending |
 | INFRA-02 | Phase 3 | Pending |
 | INFRA-03 | Phase 3 | Pending |
