@@ -1,0 +1,16 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "agent-memory",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "postgres": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${NEON_DATABASE_URL}"
+      ],
+      "command": "npx",
+      "env": {}
+    }
+  }
+}

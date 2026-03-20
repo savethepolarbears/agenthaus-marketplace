@@ -1,0 +1,17 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "clickup-tasks",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "clickup": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-clickup"
+      ],
+      "command": "npx",
+      "env": {
+        "CLICKUP_API_KEY": "${CLICKUP_API_KEY}"
+      }
+    }
+  }
+}

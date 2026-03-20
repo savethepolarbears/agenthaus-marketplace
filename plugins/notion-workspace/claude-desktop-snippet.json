@@ -1,0 +1,17 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "notion-workspace",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "notion": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-notion"
+      ],
+      "command": "npx",
+      "env": {
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
+      }
+    }
+  }
+}
