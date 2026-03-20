@@ -14,18 +14,6 @@
   "commands": [
     "./commands/query.md"
   ],
-  "mcpServers": {
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres"
-      ],
-      "env": {
-        "DATABASE_URL": "${NEON_DATABASE_URL}"
-      }
-    }
-  },
   "skills": [
     "./skills/neon-database/SKILL.md"
   ]

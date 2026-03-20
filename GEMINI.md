@@ -8,7 +8,7 @@ For the complete plugin development guide, architecture details, and full refere
 
 A marketplace of 27 production-ready plugins for AI coding assistants. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend assistant capabilities.
 
-Repository: https://github.com/savethepolarbears/agenthaus-marketplace
+Repository: [agenthaus-marketplace](https://github.com/savethepolarbears/agenthaus-marketplace)
 
 ## Architecture
 
@@ -93,8 +93,8 @@ When working with this repository, use Gemini's context caching to retain the fu
 
 Use @include patterns to pull in relevant plugin manifests when working on specific plugins:
 
-- @plugins/<plugin-name>/.claude-plugin/plugin.json for the manifest
-- @plugins/<plugin-name>/README.md for plugin documentation
+- `@plugins/<plugin-name>/.claude-plugin/plugin.json` for the manifest
+- `@plugins/<plugin-name>/README.md` for plugin documentation
 - @.claude-plugin/marketplace.json for the full registry
 
 ### Working with Plugins

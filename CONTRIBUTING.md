@@ -311,7 +311,7 @@ AgentHaus plugins target 6 platforms: Claude Code, Codex CLI, Gemini CLI, Cursor
 For each plugin, the generator produces:
 
 | File | Platform | Purpose |
-|------|----------|---------|
+| ---- | -------- | ------- |
 | `AGENTS.md` | Codex CLI, Windsurf | Prose context: capabilities, limitations, usage |
 | `GEMINI.md` | Gemini CLI | Prose context with MCP configuration guidance |
 | `.cursor/rules/<name>.mdc` | Cursor | MDC rule file with description, globs, alwaysApply frontmatter |
@@ -388,6 +388,7 @@ Plugins that perform destructive or externally-visible actions **must** include 
 - WordPress site modifications (core updates, search-replace)
 
 Example hook with HITL:
+
 ```json
 {
   "matcher": "Bash",
@@ -415,6 +416,7 @@ Plugins requiring API keys or tokens must declare them in `plugin.json` using th
 ```
 
 Guidelines:
+
 - Always specify minimum required scopes
 - Recommend rotation periods for long-lived tokens
 - Document the credential's purpose in the description
@@ -424,9 +426,9 @@ Guidelines:
 
 Every SKILL.md must include a `## Failure Modes & Recovery` section with a table:
 
-| Failure | Detection | Recovery |
-|---------|-----------|----------|
-| Describe what can go wrong | How the agent detects it | What the agent should do |
+| Failure                     | Detection                | Recovery                    |
+| --------------------------- | ------------------------ | --------------------------- |
+| Describe what can go wrong  | How the agent detects it | What the agent should do    |
 
 This ensures agents handle errors gracefully instead of hallucinating or retrying indefinitely. See existing skills in `.agent/skills/` for examples.
 
