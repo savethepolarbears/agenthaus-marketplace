@@ -19,7 +19,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Cross-Platform Generation
 
-- [ ] **XPLAT-01**: Node.js generator script built (scripts/generate-cross-platform.js) that reads Claude-native sources and emits per-platform configs
+- [x] **XPLAT-01**: Node.js generator script built (scripts/generate-cross-platform.js) that reads Claude-native sources and emits per-platform configs
 - [ ] **XPLAT-02**: Per-plugin AGENTS.md generated for Codex CLI and Windsurf (prose Markdown, under 2 KiB each)
 - [ ] **XPLAT-03**: Per-plugin GEMINI.md generated for Gemini CLI (with @include for supplemental content where needed)
 - [ ] **XPLAT-04**: Per-plugin .cursor/rules/<name>.mdc generated for Cursor (MDC format with description, globs, alwaysApply frontmatter)
@@ -90,7 +90,7 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | AUDIT-05 | Phase 1 | Pending |
 | AUDIT-06 | Phase 1 | Pending |
 | AUDIT-07 | Phase 1 | Pending |
-| XPLAT-01 | Phase 2 | Pending |
+| XPLAT-01 | Phase 2 | Complete |
 | XPLAT-02 | Phase 3 | Pending |
 | XPLAT-03 | Phase 3 | Pending |
 | XPLAT-04 | Phase 3 | Pending |
