@@ -36,10 +36,10 @@ Plan: 2 of 3
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-source-audit | 2 | ~20 min | ~10 min |
-| 02-generator-build | 2 | ~31 min | ~15 min |
+| Phase              | Plans | Total   | Avg/Plan |
+| ------------------ | ----- | ------- | -------- |
+| 01-source-audit    | 2     | ~20 min | ~10 min  |
+| 02-generator-build | 2     | ~31 min | ~15 min  |
 
 **Recent Trend:**
 

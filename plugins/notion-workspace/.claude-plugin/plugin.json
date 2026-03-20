@@ -15,18 +15,6 @@
     "./commands/search.md",
     "./commands/create-page.md"
   ],
-  "mcpServers": {
-    "notion": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-notion"
-      ],
-      "env": {
-        "NOTION_API_KEY": "${NOTION_API_KEY}"
-      }
-    }
-  },
   "skills": [
     "./skills/notion-management/SKILL.md"
   ]

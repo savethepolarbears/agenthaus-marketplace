@@ -34,14 +34,14 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [ ] **INFRA-01**: CLAUDE.md symlink decoupled from AGENTS.md (converted to real file with Claude-specific content)
 - [x] **INFRA-02**: Repo-level AGENTS.md kept under 6 KiB for Codex compatibility
-- [ ] **INFRA-03**: Validation script (validate-plugins.sh) extended with cross-platform checks (AGENTS.md byte count, .mdc frontmatter validation, file reference resolution)
+- [x] **INFRA-03**: Validation script (validate-plugins.sh) extended with cross-platform checks (AGENTS.md byte count, .mdc frontmatter validation, file reference resolution)
 
 ### Documentation
 
-- [ ] **DOCS-01**: README.md updated with per-platform installation instructions (Claude Code, Codex CLI, Gemini CLI, Cursor, Windsurf)
-- [ ] **DOCS-02**: CONTRIBUTING.md updated with generator usage and cross-platform development guide
-- [ ] **DOCS-03**: plugins-static.ts updated to include 4 missing plugins (seo-geo-rag, gog-workspace, apple-photos, wp-cli-fleet)
-- [ ] **DOCS-04**: Per-plugin README sections document which features are available on which platform
+- [x] **DOCS-01**: README.md updated with per-platform installation instructions (Claude Code, Codex CLI, Gemini CLI, Cursor, Windsurf)
+- [x] **DOCS-02**: CONTRIBUTING.md updated with generator usage and cross-platform development guide
+- [x] **DOCS-03**: plugins-static.ts updated to include 4 missing plugins (seo-geo-rag, gog-workspace, apple-photos, wp-cli-fleet)
+- [x] **DOCS-04**: Per-plugin README sections document which features are available on which platform
 
 ## v2 Requirements
 
@@ -102,11 +102,11 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | XPLAT-10 | Phase 2 | Complete |
 | INFRA-01 | Phase 1 | Pending |
 | INFRA-02 | Phase 3 | Complete |
-| INFRA-03 | Phase 3 | Pending |
-| DOCS-01 | Phase 4 | Pending |
-| DOCS-02 | Phase 4 | Pending |
-| DOCS-03 | Phase 4 | Pending |
-| DOCS-04 | Phase 4 | Pending |
+| INFRA-03 | Phase 3 | Complete |
+| DOCS-01 | Phase 4 | Complete |
+| DOCS-02 | Phase 4 | Complete |
+| DOCS-03 | Phase 4 | Complete |
+| DOCS-04 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total
