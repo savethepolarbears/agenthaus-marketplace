@@ -1,0 +1,18 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "cloudflare-platform",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "cloudflare": {
+      "args": [
+        "-y",
+        "@cloudflare/mcp-server-cloudflare"
+      ],
+      "command": "npx",
+      "env": {
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}",
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}"
+      }
+    }
+  }
+}

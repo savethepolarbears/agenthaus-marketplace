@@ -1,0 +1,48 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "task-commander",
+  "_version": "1.1.0",
+  "mcpServers": {
+    "clickup": {
+      "args": [
+        "-y",
+        "@taazkareem/clickup-mcp-server"
+      ],
+      "command": "npx",
+      "env": {
+        "CLICKUP_API_KEY": "${CLICKUP_KEY}"
+      }
+    },
+    "gmail": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-gmail"
+      ],
+      "command": "npx",
+      "env": {
+        "GMAIL_CREDENTIALS": "${GMAIL_CREDS}"
+      }
+    },
+    "google-calendar": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-google-calendar"
+      ],
+      "command": "npx",
+      "env": {
+        "GOOGLE_CALENDAR_TOKEN": "${GOOGLE_CALENDAR_TOKEN}"
+      }
+    },
+    "slack": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-slack"
+      ],
+      "command": "npx",
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_TOKEN}",
+        "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
+      }
+    }
+  }
+}

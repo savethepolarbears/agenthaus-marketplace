@@ -1,0 +1,37 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "knowledge-synapse",
+  "_version": "1.1.0",
+  "mcpServers": {
+    "context7": {
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "command": "npx",
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_KEY}"
+      }
+    },
+    "google-drive": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-google-drive"
+      ],
+      "command": "npx",
+      "env": {
+        "GOOGLE_DRIVE_TOKEN": "${GOOGLE_DRIVE_TOKEN}"
+      }
+    },
+    "notion": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-notion"
+      ],
+      "command": "npx",
+      "env": {
+        "NOTION_API_KEY": "${NOTION_KEY}"
+      }
+    }
+  }
+}
