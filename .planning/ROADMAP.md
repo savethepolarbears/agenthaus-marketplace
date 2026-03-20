@@ -69,7 +69,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. CONTRIBUTING.md explains how to run the generator and what files it produces, so a contributor can regenerate cross-platform configs after editing a plugin
   3. The storefront static fallback (plugins-static.ts) includes all 27 plugins (seo-geo-rag, gog-workspace, apple-photos, wp-cli-fleet no longer missing)
   4. Each plugin's README has a platform support table showing which features (commands, agents, skills, MCP, hooks) work on each platform
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 04-01-PLAN.md — README per-platform installation section + CONTRIBUTING.md generator guide
+- [ ] 04-02-PLAN.md — plugins-static.ts: add 4 missing plugins and 2 new category entries
+- [ ] 04-03-PLAN.md — Per-plugin README platform support tables (all 27 plugins)
 
 ## Progress
 
@@ -81,4 +84,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Source Audit | 2/2 | Complete | 2026-03-20 |
 | 2. Generator Build | 2/2 | Complete   | 2026-03-20 |
 | 3. Generation Run | 2/2 | Complete   | 2026-03-20 |
-| 4. Documentation Refresh | 0/TBD | Not started | - |
+| 4. Documentation Refresh | 0/3 | Not started | - |
