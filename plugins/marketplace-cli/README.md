@@ -2,6 +2,15 @@
 
 CLI utilities for searching, browsing, and managing AgentHaus marketplace plugins.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Prerequisites
 
 No environment variables or API keys required.

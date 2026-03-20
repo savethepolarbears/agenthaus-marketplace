@@ -2,6 +2,15 @@
 
 Automate end‑to‑end testing with the **playwright-testing** plugin.  It leverages Playwright to launch a headless browser, run scripted interactions, and return detailed results.  A QA engineer subagent writes and executes tests on demand.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands/Agents | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Features
 
 * **Automated test generation** – When you ask Claude to test a flow (for example, "Test the login page"), the QA agent writes a Playwright script tailored to your scenario.

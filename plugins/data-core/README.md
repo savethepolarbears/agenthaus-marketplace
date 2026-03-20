@@ -2,6 +2,15 @@
 
 Advanced Neon/Postgres database operations with migration support and query optimization.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | n/a | n/a | n/a | n/a | n/a | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Prerequisites
 
 | Variable | Description |

@@ -2,6 +2,15 @@
 
 Agents draft outputs to a review queue instead of executing directly. Useful for training new agents, auditing agent behavior, or adding a human approval step to sensitive workflows.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Prerequisites
 
 No external dependencies or environment variables required.

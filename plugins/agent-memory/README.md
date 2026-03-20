@@ -2,6 +2,15 @@
 
 Shared persistent memory across agent sessions using Neon Postgres. Store, search, and manage knowledge that persists between conversations.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Prerequisites
 
 | Variable | Description |

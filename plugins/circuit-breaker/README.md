@@ -2,6 +2,15 @@
 
 Pre-built safety guardrails as reusable hooks for Claude Code workflows. Prevents common mistakes like deploying outside business hours, committing without tests, or running excessive tool calls.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Prerequisites
 
 No external dependencies or environment variables required. Shell scripts use standard POSIX utilities.

@@ -2,6 +2,15 @@
 
 Convert AgentHaus plugins to OpenClaw skill format and send commands to remote OpenClaw instances. Enables interoperability between the two agent platforms.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Prerequisites
 
 | Variable | Description | Required For |

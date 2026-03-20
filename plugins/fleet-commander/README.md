@@ -2,6 +2,15 @@
 
 Visualization and control of running agent sessions. Monitor active agents, view task queues, take over stuck sessions, and dispatch new work to the fleet.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands/Agents | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Prerequisites
 
 No external dependencies required. This plugin builds on the blackboard protocol from the `agent-handoff` plugin. Install `agent-handoff` for the full multi-agent workflow.

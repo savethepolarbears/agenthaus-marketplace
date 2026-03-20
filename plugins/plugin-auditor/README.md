@@ -2,6 +2,15 @@
 
 Audit plugins for security risks before installation. Scans hook scripts for injection vulnerabilities, validates MCP server configurations, checks for hardcoded credentials, and produces a security report with a pass/fail verdict.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands/Agents | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Prerequisites
 
 No external dependencies or environment variables required.

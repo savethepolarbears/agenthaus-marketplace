@@ -2,6 +2,15 @@
 
 The **notion-workspace** plugin connects Claude to Notion, allowing you to search your workspace and create new pages or database entries without leaving the conversation.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Features
 
 * **Search** – Use `/notion-workspace:search <query>` to find pages or database entries matching your query.  Claude will call the Notion MCP search API and return a list of results with titles and links.
