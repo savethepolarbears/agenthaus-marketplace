@@ -1,0 +1,15 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "clickup": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-clickup"
+      ],
+      "command": "npx",
+      "env": {
+        "CLICKUP_API_KEY": "${CLICKUP_API_KEY}"
+      }
+    }
+  }
+}

@@ -2,6 +2,15 @@
 
 RAG agent combining Context7 docs, Notion memory, and Google Drive search for intelligent knowledge retrieval.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | n/a | n/a | n/a | n/a | n/a | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Prerequisites
 
 | Variable | Description |

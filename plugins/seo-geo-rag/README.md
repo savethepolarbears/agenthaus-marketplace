@@ -2,6 +2,15 @@
 
 Six-phase SEO, Generative Engine Optimization (GEO), and RAG optimization skill for Claude Code. Audits any codebase, front-end, or blog for missing metadata, generates `llms.txt` and `AI-FAQ.md`, and makes projects discoverable by Traditional Search, AI search engines, and LLM RAG systems.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## What This Plugin Does
 
 The `seo-geo-rag` plugin optimizes your project for three discovery surfaces:

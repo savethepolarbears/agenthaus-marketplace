@@ -1,0 +1,13 @@
+---
+description: "Shared persistent memory across agent sessions using Neon Postgres."
+globs: "**/*"
+alwaysApply: true
+---
+
+# agent-memory
+
+Shared persistent memory across agent sessions using Neon Postgres.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

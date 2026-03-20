@@ -14,15 +14,6 @@
   "agents": [
     "./agents/qa-engineer.md"
   ],
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-playwright"
-      ]
-    }
-  },
   "skills": [
     "./skills/e2e-testing/SKILL.md"
   ]

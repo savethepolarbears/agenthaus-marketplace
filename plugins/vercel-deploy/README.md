@@ -2,6 +2,15 @@
 
 Deploy and manage your Vercel projects from within Claude using the **vercel-deploy** plugin.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Features
 
 * **Trigger deployments** – Use `/vercel-deploy:deploy` to deploy your project.  Optionally specify a project name and branch to deploy a feature branch.

@@ -1,5 +1,14 @@
 # Apple Photos Plugin
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands/Agents | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | n/a | n/a | n/a | n/a | n/a | n/a |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Overview
 
 The **apple-photos** plugin brings Apple Photos library management to Claude Code using the [osxphotos](https://github.com/RhetTbull/osxphotos) CLI tool (v0.75.6+). It provides ten slash commands for querying, exporting, importing, backing up, and editing photo metadata, plus two specialist subagents and comprehensive skills for photo management and migration workflows.

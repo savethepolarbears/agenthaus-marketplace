@@ -1,0 +1,13 @@
+---
+description: "Manage Vercel projects and deployments."
+globs: "**/*"
+alwaysApply: true
+---
+
+# vercel-deploy
+
+Manage Vercel projects and deployments.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

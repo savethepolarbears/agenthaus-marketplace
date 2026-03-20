@@ -1,0 +1,13 @@
+---
+description: "Interact with Neon serverless Postgres databases."
+globs: "**/*"
+alwaysApply: true
+---
+
+# neon-db
+
+Interact with Neon serverless Postgres databases.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

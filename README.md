@@ -1,25 +1,99 @@
 # AgentHaus Marketplace
 
-> A comprehensive marketplace of **27 production-ready plugins** for [Claude Code](https://code.claude.com/docs/en/plugins).
+> A comprehensive marketplace of **27 production-ready plugins** for Claude Code and other AI coding assistants.
 
 [![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](./CHANGELOG.md)
 [![Plugins](https://img.shields.io/badge/plugins-27-green.svg)](#available-plugins)
+[![Platforms](https://img.shields.io/badge/platforms-6-blue.svg)](#installation)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
 
-## Quick Start
+## Installation
+
+> **Tip:** Each plugin's README includes a **Platform Support** table showing exactly which features (commands, skills, MCP, hooks) are available on your platform.
+
+### Claude Code (recommended)
 
 ```bash
-# Add the marketplace to Claude Code
+# Add the full marketplace
 /plugin marketplace add https://github.com/savethepolarbears/agenthaus-marketplace
 
-# Browse available plugins
+# Or install a single plugin
 /plugin install social-media@AgentHaus
-
-# Or install any plugin by name
-/plugin install circuit-breaker@AgentHaus
 ```
 
-> Requires Claude Code 1.0.33+. See the [official plugin docs](https://code.claude.com/docs/en/plugins) for setup help.
+Requires Claude Code 1.0.33+. Gives full access: commands, agents, skills, hooks, and MCP servers.
+
+### Codex CLI
+
+Codex CLI supports prose context files (AGENTS.md) but not MCP servers or hooks.
+
+1. Copy the plugin's AGENTS.md to your project root:
+   ```bash
+   cp plugins/neon-db/AGENTS.md ./AGENTS.md
+   ```
+2. Codex reads AGENTS.md automatically on session start.
+
+**Note:** MCP-dependent plugins (neon-db, github-integration, cloudflare-platform, etc.) will document their tools in AGENTS.md but cannot execute them — Codex CLI has no MCP runtime. Hook-dependent plugins list their hooks as prose guidance only.
+
+### Gemini CLI
+
+Gemini CLI reads GEMINI.md context files and supports MCP servers via `~/.gemini/settings.json`.
+
+1. Copy the plugin's GEMINI.md to your project root:
+   ```bash
+   cp plugins/neon-db/GEMINI.md ./GEMINI.md
+   ```
+2. For MCP plugins, merge the snippet into your Gemini settings:
+   ```bash
+   # View the snippet
+   cat plugins/neon-db/gemini-settings-snippet.json
+   # Manually merge mcpServers block into ~/.gemini/settings.json
+   ```
+3. Set required environment variables (see each plugin's README).
+
+### Cursor
+
+Cursor reads `.cursor/rules/*.mdc` files and supports MCP servers via `.cursor/mcp.json`.
+
+1. Copy the plugin's Cursor rules to your project:
+   ```bash
+   cp -r plugins/neon-db/.cursor/rules/ ./.cursor/rules/
+   ```
+2. For MCP plugins, merge the MCP config:
+   ```bash
+   # View the snippet
+   cat plugins/neon-db/.cursor/mcp.json
+   # Manually merge mcpServers into your project's .cursor/mcp.json
+   ```
+3. Cursor uses `${env:VAR}` syntax for environment variable references in MCP configs.
+
+### Windsurf
+
+Windsurf reads `.windsurfrules` context files from the project root.
+
+1. Copy the plugin's AGENTS.md as `.windsurfrules`:
+   ```bash
+   cp plugins/neon-db/AGENTS.md ./.windsurfrules
+   ```
+2. For MCP plugins, configure servers in Windsurf's global MCP settings (Windsurf → Preferences → MCP).
+
+**Note:** Hooks are not supported on Windsurf.
+
+### Claude Desktop
+
+Claude Desktop supports MCP servers configured in `claude_desktop_config.json`. Context files are not applicable.
+
+1. Locate your config file:
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+2. Merge the plugin's snippet:
+   ```bash
+   cat plugins/neon-db/claude-desktop-snippet.json
+   ```
+   Copy the `mcpServers` entries into your existing config's `mcpServers` object.
+3. Restart Claude Desktop to load the new MCP servers.
+
+**Note:** Only MCP plugins provide functionality in Claude Desktop. 14 plugins include `claude-desktop-snippet.json`.
 
 ## Available Plugins
 

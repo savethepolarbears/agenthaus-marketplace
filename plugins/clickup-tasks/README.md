@@ -2,6 +2,15 @@
 
 The **clickup-tasks** plugin connects Claude to ClickUp so you can manage tasks, lists and time tracking.  It includes an MCP server configuration but no custom slash commands; instead, Claude can use the ClickUp tools autonomously when asked.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | n/a | n/a | n/a | n/a | n/a | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Features
 
 * **Task creation and updates** – Ask Claude to create a task, assign it to someone, set priorities or due dates, or update fields.  Claude will call the ClickUp API via the MCP server.

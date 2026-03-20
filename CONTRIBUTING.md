@@ -134,7 +134,7 @@ model: sonnet
 System prompt for the agent.
 ```
 
-Available models: `sonnet`, `haiku`, `opus`, `claude-3-7-sonnet-20250219`.
+Available models: `sonnet`, `haiku`, `opus`. Always use the alias, never a pinned version string — pinned versions go stale and break the generator's model validation.
 
 ## Skills
 
@@ -302,6 +302,56 @@ claude --plugin-dir ./plugins/plugin-one --plugin-dir ./plugins/plugin-two
 6. **Use the official hooks format** — Object with `hooks` key, not flat arrays
 7. **Document required environment variables** — In both README and plugin description
 
+## Cross-Platform Support
+
+AgentHaus plugins target 6 platforms: Claude Code, Codex CLI, Gemini CLI, Cursor, Windsurf, and Claude Desktop. The generator at `scripts/generate-cross-platform.js` reads Claude-native plugin sources and emits per-platform config files automatically.
+
+### Generated Files
+
+For each plugin, the generator produces:
+
+| File | Platform | Purpose |
+| ---- | -------- | ------- |
+| `AGENTS.md` | Codex CLI, Windsurf | Prose context: capabilities, limitations, usage |
+| `GEMINI.md` | Gemini CLI | Prose context with MCP configuration guidance |
+| `.cursor/rules/<name>.mdc` | Cursor | MDC rule file with description, globs, alwaysApply frontmatter |
+| `gemini-settings-snippet.json` | Gemini CLI | mcpServers snippet for `~/.gemini/settings.json` (MCP plugins only) |
+| `.cursor/mcp.json` | Cursor | mcpServers config with `${env:VAR}` syntax (MCP plugins only) |
+| `claude-desktop-snippet.json` | Claude Desktop | mcpServers snippet for `claude_desktop_config.json` (MCP plugins only) |
+
+The generator is idempotent: re-running on unchanged sources produces byte-for-byte identical output.
+
+### Running the Generator
+
+After editing any plugin source file (plugin.json, SKILL.md, hooks.json, .mcp.json), regenerate all cross-platform configs:
+
+```bash
+node scripts/generate-cross-platform.js
+```
+
+Then validate the output:
+
+```bash
+bash scripts/validate-plugins.sh
+```
+
+The validation script checks AGENTS.md byte count (must be under 2 KiB per plugin), .mdc frontmatter validity, and file reference resolution.
+
+### Platform Limitations
+
+The generator embeds platform limitation notices automatically based on plugin capabilities:
+
+- **Hook-dependent plugins** (`circuit-breaker`, `shadow-mode`, `agent-handoff`, `social-media`, `gog-workspace`, `wp-cli-fleet`): Generated files include a notice that hooks are Claude Code-exclusive.
+- **MCP-dependent plugins** on Codex CLI: Generated AGENTS.md includes a notice that MCP tools are unavailable on Codex CLI.
+
+If your new plugin uses hooks or MCP servers, the generator detects this from `plugin.json` and adds the correct notices — you do not need to write them manually.
+
+### AGENTS.md Size Budget
+
+Generated `AGENTS.md` files must stay under 2 KiB (2048 bytes). The generator enforces this by truncating content if the budget is exceeded. Keep plugin descriptions and agent prompts concise to stay within budget.
+
+---
+
 ## Submitting Your Plugin
 
 1. Fork this repository at <https://github.com/savethepolarbears/agenthaus-marketplace>
@@ -338,6 +388,7 @@ Plugins that perform destructive or externally-visible actions **must** include 
 - WordPress site modifications (core updates, search-replace)
 
 Example hook with HITL:
+
 ```json
 {
   "matcher": "Bash",
@@ -365,6 +416,7 @@ Plugins requiring API keys or tokens must declare them in `plugin.json` using th
 ```
 
 Guidelines:
+
 - Always specify minimum required scopes
 - Recommend rotation periods for long-lived tokens
 - Document the credential's purpose in the description
@@ -374,9 +426,9 @@ Guidelines:
 
 Every SKILL.md must include a `## Failure Modes & Recovery` section with a table:
 
-| Failure | Detection | Recovery |
-|---------|-----------|----------|
-| Describe what can go wrong | How the agent detects it | What the agent should do |
+| Failure                     | Detection                | Recovery                    |
+| --------------------------- | ------------------------ | --------------------------- |
+| Describe what can go wrong  | How the agent detects it | What the agent should do    |
 
 This ensures agents handle errors gracefully instead of hallucinating or retrying indefinitely. See existing skills in `.agent/skills/` for examples.
 

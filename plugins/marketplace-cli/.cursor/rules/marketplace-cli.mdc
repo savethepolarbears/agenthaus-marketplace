@@ -1,0 +1,9 @@
+---
+description: "Utility commands for searching and installing AgentHaus plugins."
+globs: "**/*"
+alwaysApply: true
+---
+
+# marketplace-cli
+
+Utility commands for searching and installing AgentHaus plugins.

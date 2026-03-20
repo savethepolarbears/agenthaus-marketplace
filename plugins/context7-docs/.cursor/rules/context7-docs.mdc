@@ -1,0 +1,13 @@
+---
+description: "Fetch up-to-date, hallucination-free documentation for any library via Context7."
+globs: "**/*"
+alwaysApply: true
+---
+
+# context7-docs
+
+Fetch up-to-date, hallucination-free documentation for any library via Context7.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

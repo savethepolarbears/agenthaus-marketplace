@@ -1,0 +1,9 @@
+---
+description: "Convert AgentHaus plugins to OpenClaw skills and provide remote control."
+globs: "**/*"
+alwaysApply: true
+---
+
+# openclaw-bridge
+
+Convert AgentHaus plugins to OpenClaw skills and provide remote control.

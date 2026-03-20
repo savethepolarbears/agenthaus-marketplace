@@ -1,0 +1,15 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "postgres": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres"
+      ],
+      "command": "npx",
+      "env": {
+        "DATABASE_URL": "${NEON_DATABASE_URL}"
+      }
+    }
+  }
+}

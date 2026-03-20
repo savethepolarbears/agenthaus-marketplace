@@ -1,0 +1,15 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "notion": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-notion"
+      ],
+      "command": "npx",
+      "env": {
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
+      }
+    }
+  }
+}

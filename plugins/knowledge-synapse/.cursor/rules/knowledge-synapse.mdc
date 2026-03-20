@@ -1,0 +1,13 @@
+---
+description: "RAG Agent combining Context7 docs, Notion memory and Google Drive search."
+globs: "**/*"
+alwaysApply: true
+---
+
+# knowledge-synapse
+
+RAG Agent combining Context7 docs, Notion memory and Google Drive search.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

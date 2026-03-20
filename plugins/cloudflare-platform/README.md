@@ -2,6 +2,15 @@
 
 Use Claude to manage your Cloudflare account with the **cloudflare-platform** plugin.  It exposes commands for deploying Worker scripts, manipulating KV storage and, in the future, interacting with AI Gateway.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | n/a | n/a | n/a | n/a | n/a | n/a |
+
 ## Features
 
 * **Deploy Workers** – Deploy JavaScript or TypeScript Worker scripts to your Cloudflare account.  Specify the file path and optional environment; the plugin calls the Cloudflare API to upload and activate the worker.

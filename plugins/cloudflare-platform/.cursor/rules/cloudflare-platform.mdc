@@ -1,0 +1,13 @@
+---
+description: "Manage Cloudflare Workers, KV storage and AI Gateway resources."
+globs: "**/*"
+alwaysApply: true
+---
+
+# cloudflare-platform
+
+Manage Cloudflare Workers, KV storage and AI Gateway resources.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

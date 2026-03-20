@@ -2,6 +2,15 @@
 
 Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications in integrated workflows.
 
+## Platform Support
+
+| Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
+|---------|-------------|-----------|------------|--------|----------|----------------|
+| Commands | full | partial | partial | partial | partial | n/a |
+| Skills | full | full | full | full | full | n/a |
+| MCP | full | none | full | full | partial | full |
+| Hooks | full | none | none | none | none | n/a |
+
 ## Prerequisites
 
 | Variable | Description |
