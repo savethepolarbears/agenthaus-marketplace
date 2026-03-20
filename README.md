@@ -254,18 +254,6 @@ Automatically prompt team members to install the marketplace when they trust the
 }
 ```
 
-## Web Storefront
-
-A Next.js web app is included in `agenthaus-web/`:
-
-```bash
-cd agenthaus-web
-npm install
-npm run dev
-```
-
-Features: search, category filtering, plugin detail pages, install count tracking.
-
 ## Validation
 
 Run the plugin validation script to check all 27 plugins:

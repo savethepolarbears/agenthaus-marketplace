@@ -373,7 +373,6 @@ Pull requests automatically run:
 
 - Plugin validation (all plugins checked against schema)
 - Marketplace.json validation (structure and duplicate detection)
-- Web storefront lint and build
 
 See `.github/workflows/validate.yml` for details.
 

@@ -14,7 +14,6 @@ A marketplace of 27 production-ready plugins for Claude Code and Claude Cowork. 
 
 ```text
 agenthaus-marketplace/
-├── agenthaus-web/          # Next.js 16 storefront (React 19, Tailwind 4, Neon Postgres)
 ├── plugins/                # 27 production plugins
 │   ├── social-media/       # Content: Twitter, LinkedIn, Instagram, Facebook posts
 │   ├── github-integration/ # DevOps: GitHub issues & PRs via MCP
@@ -53,18 +52,6 @@ agenthaus-marketplace/
 
 ## Build & Commands
 
-### Web Application (agenthaus-web/)
-
-```bash
-cd agenthaus-web && npm install     # Install dependencies
-npm run dev                         # Start Next.js dev server
-npm run build                       # Production build
-npm run start                       # Start production server
-npm run lint                        # Run Next.js linter (ESLint)
-```
-
-**Important:** The web app requires `DATABASE_URL` environment variable pointing to a Neon Postgres connection string.
-
 ### Plugin Installation (for end users)
 
 ```bash
@@ -79,28 +66,7 @@ npm run lint                        # Run Next.js linter (ESLint)
 
 No build step for plugins. They are Markdown/JSON configurations consumed directly by Claude Code. See CONTRIBUTING.md for the full development guide.
 
-### Script Consistency
-
-When modifying npm scripts in `agenthaus-web/package.json`, ensure all references are updated in:
-
-- README.md installation instructions
-- Any deployment configurations
-- CI/CD pipelines (if added)
-
 ## Code Style
-
-### TypeScript (agenthaus-web/)
-
-- **Strict mode** enabled in tsconfig.json (`strict: true`, target ES2022)
-- **Path aliases:** `@/*` maps to `./src/*`
-- **Imports:** Named imports from packages, group by external → internal
-- **Components:** React functional components with TypeScript interfaces
-- **Formatting:** Double quotes for JSX strings, no semicolons enforcement (project uses semicolons)
-- **Naming:** PascalCase for components/interfaces, camelCase for variables/functions, kebab-case for files
-- **CSS:** Tailwind CSS utility classes inline, no separate CSS files
-- **Icons:** Lucide React library exclusively
-- **Types:** Explicit interfaces for component props and data structures (e.g., `interface Plugin { ... }`)
-- **Exports:** Default exports for page components, named exports for utilities
 
 ### Plugin Files
 
@@ -120,15 +86,8 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 - Never hardcode secrets; use environment variables with `${VAR}` syntax in MCP configs
 - Comments only when intent is non-obvious
 - Favor simple, modular solutions
-- Semantic HTML and accessible components in the web app
 
 ## Testing
-
-### Web Application
-
-- **Framework:** Next.js built-in linting (`npm run lint`)
-- **No test framework configured yet** — when adding tests, use Jest or Vitest with React Testing Library
-- **Test file pattern:** `*.test.ts`, `*.test.tsx`, `*.spec.ts`, `*.spec.tsx`
 
 ### Plugin Testing
 
@@ -175,7 +134,6 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 | agent-memory | `NEON_DATABASE_URL` |
 | gog-workspace | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` |
 | wp-cli-fleet | `WP_CLI_SSH_KEY` (optional, for remote sites) |
-| agenthaus-web | `DATABASE_URL`, `NEXT_PUBLIC_API_URL` |
 
 ## Configuration
 
@@ -183,15 +141,6 @@ When modifying npm scripts in `agenthaus-web/package.json`, ensure all reference
 
 1. Copy `.env.example` to `.env`
 2. Fill in credentials for the plugins you use
-3. For the web app: set `DATABASE_URL` to a Neon Postgres connection string
-
-### Tech Stack
-
-- **Web:** Next.js 16.0.0, React 19.0.0, TypeScript 5.7.0, Tailwind CSS 4.0.0
-- **Database:** Neon Serverless Postgres (`@neondatabase/serverless`)
-- **Icons:** Lucide React 0.469.0
-- **Utilities:** clsx 2.1.1
-- **Package Manager:** npm
 
 ### MCP Servers Used (14 unique)
 
@@ -299,11 +248,8 @@ Update memory bank docs when making significant architectural changes. Use the `
 
 Use the built-in Browser Agent for visual QA and research:
 
-- **Storefront QA**: Navigate to `http://localhost:3000`, verify plugin cards render, test responsive layouts at mobile (375px), tablet (768px), and desktop (1920px) widths
 - **Screenshot Evidence**: Capture full-page screenshots and save recordings as artifacts in `reports/`
 - **Prompt Style**: Give strict, step-by-step instructions with explicit success criteria — the browser agent executes autonomously
-
-Use the `/qa-browser-test` workflow for a structured QA flow.
 
 ### Planning Mode
 

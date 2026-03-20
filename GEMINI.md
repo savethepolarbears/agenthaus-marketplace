@@ -14,7 +14,6 @@ Repository: [agenthaus-marketplace](https://github.com/savethepolarbears/agentha
 
 ```text
 agenthaus-marketplace/
-├── agenthaus-web/          # Next.js 16 storefront (React 19, Tailwind 4, Neon Postgres)
 ├── plugins/                # 27 production plugins
 ├── schemas/                # JSON schemas for validation
 ├── scripts/                # Validation and utility scripts
@@ -25,18 +24,6 @@ agenthaus-marketplace/
 ```
 
 ## Build Commands
-
-### Web Application (agenthaus-web/)
-
-```bash
-cd agenthaus-web && npm install     # Install dependencies
-npm run dev                         # Start Next.js dev server
-npm run build                       # Production build
-npm run start                       # Start production server
-npm run lint                        # Run Next.js linter (ESLint)
-```
-
-The web app requires `DATABASE_URL` environment variable pointing to a Neon Postgres connection string.
 
 ### Plugin Validation
 
@@ -109,10 +96,7 @@ Plugins are Markdown/JSON configurations with no build step. When creating or ed
 
 ### Tech Stack
 
-- Web: Next.js 16.0.0, React 19.0.0, TypeScript 5.7.0, Tailwind CSS 4.0.0
-- Database: Neon Serverless Postgres (@neondatabase/serverless)
 - Validation: Zod 4.3.6
-- Icons: Lucide React 0.469.0
 - Package Manager: npm
 
 ## Security
