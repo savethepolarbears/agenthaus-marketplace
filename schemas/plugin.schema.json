@@ -1,0 +1,292 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/savethepolarbears/agenthaus-marketplace/schemas/plugin.schema.json",
+  "title": "AgentHaus Plugin Manifest",
+  "description": "Schema for .claude-plugin/plugin.json in AgentHaus marketplace plugins. Aligned with the official Claude Code plugin manifest specification.",
+  "type": "object",
+  "required": ["name", "version", "description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Plugin identifier in kebab-case. Used as the skill namespace prefix (e.g., /my-plugin:command)."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-([0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*))?(\\+([0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*))?$",
+      "description": "Semantic version string (semver)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Human-readable plugin description shown in the plugin manager"
+    },
+    "author": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Author name or organization"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Author contact email"
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Plugin author — string or object with name and optional email"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Plugin homepage or documentation URL"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "Source code repository URL"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier (e.g., MIT, Apache-2.0)"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Categorization tags for marketplace discovery"
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Keywords for plugin search and categorization"
+    },
+    "commands": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      ],
+      "description": "Relative paths to command Markdown files or directories"
+    },
+    "agents": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      ],
+      "description": "Relative paths to agent definition files"
+    },
+    "skills": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      ],
+      "description": "Relative paths to skill Markdown files (skills/<name>/SKILL.md)"
+    },
+    "openapi": {
+      "type": "string",
+      "description": "Relative path to an OpenAPI 3.1 specification for Gemini Extensions and OpenAI Actions compilation"
+    },
+    "capabilities_manifest": {
+      "type": "object",
+      "description": "MCP capability declarations (tools, resources, prompts) for protocol-level discovery",
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of MCP tool names this plugin provides"
+        },
+        "resources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of MCP resource URIs this plugin provides"
+        },
+        "prompts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of MCP prompt names this plugin provides"
+        }
+      },
+      "additionalProperties": false
+    },
+    "required_credentials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Environment variable name (e.g., GITHUB_TOKEN)"
+          },
+          "scopes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Required OAuth/API scopes"
+          },
+          "rotation": {
+            "type": "string",
+            "pattern": "^[0-9]+[dhm]$",
+            "description": "Recommended rotation period (e.g., 90d, 24h)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of what this credential is used for"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Credential declarations with scope and rotation metadata"
+    },
+    "hooks": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        {
+          "type": "object",
+          "description": "Inline hooks configuration with optional HITL approval flags",
+          "properties": {
+            "hooks": {
+              "type": "object",
+              "description": "Hook event definitions (PreToolUse, PostToolUse)",
+              "properties": {
+                "PreToolUse": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "matcher": { "type": "string", "description": "Tool name pattern to match (* for all)" },
+                      "requires_approval": { "type": "boolean", "default": false, "description": "If true, pause execution and request human approval before running" },
+                      "approval_message": { "type": "string", "description": "Message shown to user when approval is required" },
+                      "hooks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["type", "command"],
+                          "properties": {
+                            "type": { "type": "string", "enum": ["command"] },
+                            "command": { "type": "string" }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "PostToolUse": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "matcher": { "type": "string" },
+                      "hooks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["type", "command"],
+                          "properties": {
+                            "type": { "type": "string", "enum": ["command"] },
+                            "command": { "type": "string" }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Relative paths to hook JSON files, inline hooks configuration, or hooks with HITL approval flags"
+    },
+    "mcpServers": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Executable command to start the MCP server"
+              },
+              "args": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Arguments passed to the command"
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": { "type": "string" },
+                "description": "Environment variables for the MCP server. Use ${ENV_VAR} for secrets."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ],
+      "description": "MCP server configurations or path to .mcp.json"
+    },
+    "lspServers": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "LSP server executable command"
+              },
+              "args": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Arguments passed to the LSP server"
+              },
+              "extensionToLanguage": {
+                "type": "object",
+                "additionalProperties": { "type": "string" },
+                "description": "Map of file extensions to language identifiers"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ],
+      "description": "LSP server configurations for code intelligence"
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Plugin permission declarations",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

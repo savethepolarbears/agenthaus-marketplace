@@ -1,0 +1,13 @@
+---
+description: "Interact with your Notion workspace - search pages, query databases and create new content."
+globs: "**/*"
+alwaysApply: true
+---
+
+# notion-workspace
+
+Interact with your Notion workspace - search pages, query databases and create new content.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

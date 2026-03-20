@@ -1,0 +1,49 @@
+{
+  "name": "knowledge-synapse",
+  "version": "1.1.0",
+  "description": "RAG Agent combining Context7 docs, Notion memory and Google Drive search.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "rag",
+    "knowledge",
+    "research"
+  ],
+  "skills": [
+    "./skills/deep-research/SKILL.md"
+  ],
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_KEY}"
+      }
+    },
+    "notion": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-notion"
+      ],
+      "env": {
+        "NOTION_API_KEY": "${NOTION_KEY}"
+      }
+    },
+    "google-drive": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-google-drive"
+      ],
+      "env": {
+        "GOOGLE_DRIVE_TOKEN": "${GOOGLE_DRIVE_TOKEN}"
+      }
+    }
+  }
+}

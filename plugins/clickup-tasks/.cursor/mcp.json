@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "clickup": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-clickup"
+      ],
+      "command": "npx",
+      "env": {
+        "CLICKUP_API_KEY": "${env:CLICKUP_API_KEY}"
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "matcher": {
+        "tool": "{{TOOL_NAME}}"
+      },
+      "action": {
+        "type": "script",
+        "script": "./scripts/{{SCRIPT_NAME}}.sh"
+      },
+      "description": "{{Hook description}}"
+    },
+    {
+      "event": "PostToolUse",
+      "matcher": {
+        "tool": "Write"
+      },
+      "action": {
+        "type": "script",
+        "script": "./scripts/format-output.sh"
+      },
+      "description": "Format files after writing"
+    },
+    {
+      "event": "PreCommit",
+      "action": {
+        "type": "script",
+        "script": "./scripts/pre-commit.sh"
+      },
+      "description": "Run validations before git commits"
+    }
+  ]
+}

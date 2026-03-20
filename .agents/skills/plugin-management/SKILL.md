@@ -1,0 +1,1 @@
+../../../plugins/marketplace-cli/skills/plugin-management/SKILL.md

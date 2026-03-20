@@ -1,0 +1,1 @@
+../../../plugins/notion-workspace/skills/notion-management/SKILL.md

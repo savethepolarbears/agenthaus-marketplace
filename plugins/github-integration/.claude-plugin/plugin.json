@@ -1,0 +1,21 @@
+{
+  "name": "github-integration",
+  "version": "1.0.0",
+  "description": "Full GitHub management: create/search issues and pull requests using GitHub's MCP server.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "devops",
+    "github",
+    "version-control"
+  ],
+  "commands": [
+    "./commands/issue.md",
+    "./commands/pr.md"
+  ],
+  "skills": [
+    "./skills/github-workflow/SKILL.md"
+  ]
+}

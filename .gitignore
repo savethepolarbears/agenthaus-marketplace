@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+venv/
+.venv/
+
+# Claude Code settings
+.claude/settings.local.json
+
+# Agent journals
+.Jules/
+.jules/
+
+# Lock file conflicts (project uses npm/package-lock.json)
+pnpm-lock.yaml
+
+# Generated files
+*.zip
+skills_index.json
+
+# Internal planning / development files
+.planning/
+
+# Web storefront (removed — not part of the open-source distribution)
+agenthaus-web/

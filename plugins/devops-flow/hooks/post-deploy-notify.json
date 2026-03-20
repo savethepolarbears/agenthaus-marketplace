@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "cloudflare.*deploy",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[post-deploy] Deployment completed. Notifying team...' && exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

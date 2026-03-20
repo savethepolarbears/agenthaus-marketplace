@@ -1,0 +1,9 @@
+---
+description: "Visualization and control of running agent sessions."
+globs: "**/*"
+alwaysApply: true
+---
+
+# fleet-commander
+
+Visualization and control of running agent sessions.

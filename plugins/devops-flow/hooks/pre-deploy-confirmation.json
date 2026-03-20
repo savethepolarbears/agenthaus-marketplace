@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "cloudflare.*deploy",
+        "requires_approval": true,
+        "approval_message": "DevOps deployment workflow triggered. Confirm to proceed.",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[pre-deploy] Confirm: you are about to deploy to Cloudflare. Proceeding...' && exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

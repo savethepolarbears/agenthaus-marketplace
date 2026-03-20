@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "requires_approval": true,
+        "approval_message": "Potentially destructive WP-CLI operation detected. Review before proceeding.",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qiE 'wp (core update|db (drop|reset|import)|search-replace)' && ! echo \"$TOOL_INPUT\" | grep -qiE '(--dry-run|check-update|verify-checksums)'; then bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/wp-safety-check.sh\"; fi"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qiE '^wp |wp-cli|wp @'; then echo \"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] WP-CLI: $(echo \"$TOOL_INPUT\" | head -c 200)\" >> \"$CLAUDE_PROJECT_DIR/wp-cli-audit.log\" 2>/dev/null; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

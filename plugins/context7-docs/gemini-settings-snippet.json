@@ -1,0 +1,15 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "context7": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-context7"
+      ],
+      "command": "npx",
+      "env": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
+    }
+  }
+}

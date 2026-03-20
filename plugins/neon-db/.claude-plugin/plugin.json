@@ -1,0 +1,20 @@
+{
+  "name": "neon-db",
+  "version": "1.0.0",
+  "description": "Interact with Neon serverless Postgres databases.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "database",
+    "postgres",
+    "serverless"
+  ],
+  "commands": [
+    "./commands/query.md"
+  ],
+  "skills": [
+    "./skills/neon-database/SKILL.md"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "fleet-commander",
+  "version": "1.0.0",
+  "description": "Visualization and control of running agent sessions.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "orchestration",
+    "monitoring",
+    "multi-agent"
+  ],
+  "commands": [
+    "./commands/fleet-status.md",
+    "./commands/takeover.md",
+    "./commands/dispatch.md"
+  ],
+  "agents": [
+    "./agents/fleet-monitor.md"
+  ],
+  "skills": [
+    "./skills/fleet-management/SKILL.md"
+  ]
+}

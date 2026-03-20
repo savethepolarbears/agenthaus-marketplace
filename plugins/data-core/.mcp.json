@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${NEON_DATABASE_URL}"
+      ],
+      "env": {}
+    }
+  }
+}

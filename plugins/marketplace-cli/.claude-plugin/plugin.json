@@ -1,0 +1,22 @@
+{
+  "name": "marketplace-cli",
+  "version": "0.1.0",
+  "description": "Utility commands for searching and installing AgentHaus plugins.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "utility",
+    "marketplace"
+  ],
+  "commands": [
+    "./commands/search.md",
+    "./commands/install.md",
+    "./commands/validate.md",
+    "./commands/migrate.md"
+  ],
+  "skills": [
+    "./skills/plugin-management/SKILL.md"
+  ]
+}

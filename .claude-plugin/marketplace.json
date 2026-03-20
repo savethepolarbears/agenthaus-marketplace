@@ -1,0 +1,321 @@
+{
+  "name": "AgentHaus",
+  "owner": {
+    "name": "AgentHaus Team",
+    "email": "support@agenthaus.dev"
+  },
+  "metadata": {
+    "description": "A comprehensive marketplace of 25 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
+    "version": "3.5.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "social-media",
+      "source": "./plugins/social-media",
+      "category": "content",
+      "description": "Generate high-engagement posts for Twitter, LinkedIn, Instagram and Facebook with trend analysis and content-writer agents.",
+      "keywords": [
+        "content",
+        "social-media",
+        "marketing",
+        "twitter",
+        "linkedin"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "github-integration",
+      "source": "./plugins/github-integration",
+      "category": "devops",
+      "description": "Manage GitHub issues and pull requests through custom commands and the GitHub MCP server.",
+      "keywords": [
+        "devops",
+        "github",
+        "version-control",
+        "issues",
+        "pull-requests"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "notion-workspace",
+      "source": "./plugins/notion-workspace",
+      "category": "knowledge",
+      "description": "Search and update Notion pages and databases via the Notion MCP server.",
+      "keywords": ["knowledge", "notion", "documentation", "wiki"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "clickup-tasks",
+      "source": "./plugins/clickup-tasks",
+      "category": "productivity",
+      "description": "Create and manage ClickUp tasks, lists and time tracking using the ClickUp MCP server.",
+      "keywords": [
+        "productivity",
+        "clickup",
+        "task-management",
+        "project-management"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "playwright-testing",
+      "source": "./plugins/playwright-testing",
+      "category": "qa",
+      "description": "Write and execute end-to-end browser tests with Playwright and a QA engineer subagent.",
+      "keywords": ["testing", "playwright", "e2e", "browser", "qa"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "context7-docs",
+      "source": "./plugins/context7-docs",
+      "category": "docs",
+      "description": "Fetch hallucination-free documentation for any library using Context7.",
+      "keywords": ["documentation", "context7", "libraries", "reference"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "cloudflare-platform",
+      "source": "./plugins/cloudflare-platform",
+      "category": "cloud",
+      "description": "Deploy Cloudflare Workers, manage KV storage and interact with AI Gateway via Cloudflare MCP servers.",
+      "keywords": ["cloud", "cloudflare", "workers", "kv-storage", "edge"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "neon-db",
+      "source": "./plugins/neon-db",
+      "category": "database",
+      "description": "Interact with serverless Postgres databases on Neon using the Postgres MCP server.",
+      "keywords": ["database", "postgres", "neon", "serverless", "sql"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "vercel-deploy",
+      "source": "./plugins/vercel-deploy",
+      "category": "deployment",
+      "description": "Manage Vercel projects and deployments through the Vercel MCP server.",
+      "keywords": ["deployment", "vercel", "hosting", "ci-cd"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "devops-flow",
+      "source": "./plugins/devops-flow",
+      "category": "devops",
+      "description": "Integrated DevOps workflow combining Cloudflare deployments, GitHub PR management, and Slack notifications with hooks.",
+      "keywords": ["devops", "cloudflare", "github", "slack", "workflow"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "knowledge-synapse",
+      "source": "./plugins/knowledge-synapse",
+      "category": "rag",
+      "description": "Knowledge retrieval combining Context7 documentation, Notion notes, and Google Drive with intelligent synthesis.",
+      "keywords": ["rag", "knowledge", "context7", "notion", "google-drive"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "task-commander",
+      "source": "./plugins/task-commander",
+      "category": "productivity",
+      "description": "Unified task management with ClickUp, Slack notifications, Gmail integration, and Google Calendar scheduling.",
+      "keywords": ["productivity", "clickup", "slack", "gmail", "calendar"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "qa-droid",
+      "source": "./plugins/qa-droid",
+      "category": "qa",
+      "description": "Automated QA workflow with Playwright testing, Slack/Gmail result notifications, and test report generation.",
+      "keywords": [
+        "testing",
+        "qa",
+        "playwright",
+        "automation",
+        "notifications"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "data-core",
+      "source": "./plugins/data-core",
+      "category": "database",
+      "description": "Advanced Neon/Postgres database operations with migration support and query optimization.",
+      "keywords": [
+        "database",
+        "postgres",
+        "neon",
+        "migrations",
+        "optimization"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "marketplace-cli",
+      "source": "./plugins/marketplace-cli",
+      "category": "utility",
+      "description": "CLI utilities for searching, browsing, validating, and managing AgentHaus marketplace plugins.",
+      "keywords": ["utility", "cli", "marketplace", "management"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "ux-ui",
+      "source": "./plugins/ux-ui",
+      "category": "ux",
+      "description": "Polish and improve front-end UX/UI, accessibility, design and responsiveness for Tailwind CSS projects.",
+      "keywords": ["ux", "ui", "accessibility", "tailwind", "design"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "agent-handoff",
+      "source": "./plugins/agent-handoff",
+      "category": "orchestration",
+      "description": "State-based task handoff between agents using a shared blackboard protocol for multi-agent workflows.",
+      "keywords": [
+        "orchestration",
+        "multi-agent",
+        "blackboard",
+        "task-handoff"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "circuit-breaker",
+      "source": "./plugins/circuit-breaker",
+      "category": "safety",
+      "description": "Pre-built safety guardrails as reusable hooks: deploy gates, test requirements, and budget warnings.",
+      "keywords": ["safety", "guardrails", "hooks", "deploy-gate", "budget"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "agent-memory",
+      "source": "./plugins/agent-memory",
+      "category": "memory",
+      "description": "Shared persistent memory across agent sessions using Neon Postgres for recall and learning.",
+      "keywords": ["memory", "persistence", "neon", "recall", "learning"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "shadow-mode",
+      "source": "./plugins/shadow-mode",
+      "category": "training",
+      "description": "Training mode where agents draft outputs to a review queue instead of executing directly.",
+      "keywords": ["training", "review", "shadow", "human-in-the-loop"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "fleet-commander",
+      "source": "./plugins/fleet-commander",
+      "category": "orchestration",
+      "description": "Visualization and control of running agent sessions with task board monitoring and dispatch.",
+      "keywords": [
+        "orchestration",
+        "monitoring",
+        "fleet",
+        "sessions",
+        "dispatch"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "plugin-auditor",
+      "source": "./plugins/plugin-auditor",
+      "category": "security",
+      "description": "Security scanner that audits plugins for risks including shell injection, credential exposure, and unsafe patterns.",
+      "keywords": ["security", "audit", "scanning", "validation", "injection"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "openclaw-bridge",
+      "source": "./plugins/openclaw-bridge",
+      "category": "integration",
+      "description": "Convert AgentHaus plugins to OpenClaw skill format and provide remote control via messaging.",
+      "keywords": ["integration", "openclaw", "conversion", "interoperability"],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "seo-geo-rag",
+      "source": "./plugins/seo-geo-rag",
+      "category": "seo",
+      "description": "Six-phase SEO, GEO, and RAG optimization skill. Audits metadata, generates llms.txt and AI-FAQ.md, injects JSON-LD schemas, and optimizes projects for Traditional Search, AI search engines, and LLM RAG ingestion.",
+      "keywords": [
+        "seo",
+        "geo",
+        "rag",
+        "llms-txt",
+        "metadata",
+        "json-ld",
+        "structured-data",
+        "ai-search",
+        "discoverability"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "gog-workspace",
+      "source": "./plugins/gog-workspace",
+      "category": "productivity",
+      "description": "Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, and Chat using gogcli.",
+      "keywords": [
+        "google-workspace",
+        "gmail",
+        "google-drive",
+        "google-docs",
+        "google-sheets",
+        "google-calendar",
+        "productivity",
+        "cli"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "apple-photos",
+      "source": "./plugins/apple-photos",
+      "category": "media",
+      "description": "Manage Apple Photos libraries with osxphotos — query, export, import, backup, fix metadata, find duplicates, and migrate photos.",
+      "keywords": [
+        "photos",
+        "apple",
+        "macos",
+        "osxphotos",
+        "metadata",
+        "backup",
+        "migration",
+        "media"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "wp-cli-fleet",
+      "source": "./plugins/wp-cli-fleet",
+      "category": "devops",
+      "description": "Manage WordPress sites and fleets via WP-CLI with agentic workflows for inventory, updates, health checks, search-replace, and Pods CPT management.",
+      "keywords": [
+        "wordpress",
+        "wp-cli",
+        "fleet",
+        "devops",
+        "maintenance",
+        "pods"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "apple-workflows",
+      "source": "./plugins/apple-workflows",
+      "category": "productivity",
+      "description": "Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP server on macOS.",
+      "keywords": [
+        "productivity",
+        "apple",
+        "macos",
+        "notes",
+        "reminders",
+        "shortcuts",
+        "automation"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    }
+  ]
+}

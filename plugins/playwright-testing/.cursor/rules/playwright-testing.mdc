@@ -1,0 +1,13 @@
+---
+description: "End-to-end browser automation and testing using Playwright."
+globs: "**/*"
+alwaysApply: true
+---
+
+# playwright-testing
+
+End-to-end browser automation and testing using Playwright.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

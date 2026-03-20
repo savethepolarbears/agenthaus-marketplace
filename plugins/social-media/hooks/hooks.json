@@ -1,0 +1,16 @@
+{
+  "description": "Log social media content and trend analyses created by this plugin to a file for later review.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "social-media:(tweet|linkedin|instagram|facebook|analyze-trend)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[$(date)] $CLAUDE_OUTPUT\" >> \"$CLAUDE_PROJECT_DIR/social_audit.log\""
+          }
+        ]
+      }
+    ]
+  }
+}

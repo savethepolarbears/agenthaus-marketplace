@@ -1,0 +1,28 @@
+{
+  "name": "wp-cli-fleet",
+  "version": "1.0.0",
+  "description": "Agentic WP-CLI and WordPress fleet management for plugin inventory, updates, health checks, search-replace, Pods CPT management, and fleet-wide operations.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["wordpress", "devops", "fleet-management", "wp-cli"],
+  "commands": [
+    "./commands/inventory.md",
+    "./commands/update.md",
+    "./commands/health.md",
+    "./commands/fleet.md",
+    "./commands/search-replace.md",
+    "./commands/pods.md"
+  ],
+  "agents": [
+    "./agents/wp-fleet-operator.md",
+    "./agents/wp-site-inspector.md"
+  ],
+  "skills": [
+    "./skills/wp-cli-operations/SKILL.md"
+  ],
+  "hooks": [
+    "./hooks/hooks.json"
+  ]
+}

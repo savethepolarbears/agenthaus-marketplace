@@ -1,0 +1,37 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "requires_approval": true,
+        "approval_message": "Deploy/publish detected. Circuit breaker will check business hours.",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qiE '(deploy|push|publish|release)'; then bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-prod-deploy.sh\"; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "requires_approval": true,
+        "approval_message": "Commit detected. Verifying test files are included.",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$TOOL_INPUT\" | grep -qiE 'git commit'; then bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/require-tests.sh\"; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/budget-guard.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

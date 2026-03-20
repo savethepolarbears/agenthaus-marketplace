@@ -1,0 +1,31 @@
+{
+  "name": "social-media",
+  "version": "2.0.0",
+  "description": "Generate high-engagement social media content with trend analysis and platform-specific commands.",
+  "author": "AgentHaus Team",
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "content",
+    "social-media",
+    "marketing"
+  ],
+  "commands": [
+    "./commands/tweet.md",
+    "./commands/linkedin.md",
+    "./commands/instagram.md",
+    "./commands/facebook.md",
+    "./commands/analyze-trend.md"
+  ],
+  "agents": [
+    "./agents/content-writer.md",
+    "./agents/trend-analyzer.md"
+  ],
+  "hooks": [
+    "./hooks/hooks.json"
+  ],
+  "skills": [
+    "./skills/social-content/SKILL.md"
+  ]
+}

@@ -1,0 +1,1 @@
+../../../plugins/qa-droid/skills/qa-automation/SKILL.md

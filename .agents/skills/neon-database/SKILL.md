@@ -1,0 +1,1 @@
+../../../plugins/neon-db/skills/neon-database/SKILL.md
