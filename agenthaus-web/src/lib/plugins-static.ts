@@ -444,6 +444,104 @@ export const STATIC_PLUGINS: StaticPlugin[] = [
     ],
     env_vars: [],
   },
+  {
+    id: 24,
+    name: "seo-geo-rag",
+    slug: "seo-geo-rag",
+    description: "Six-phase SEO, GEO, and RAG optimization. Audits metadata variables, generates llms.txt and AI-FAQ.md, and makes projects discoverable by traditional search, AI search engines, and LLM RAG systems.",
+    version: "1.0.0",
+    category: "seo",
+    author: "AgentHaus Team",
+    tags: ["seo", "geo", "rag", "llms-txt", "ai-search", "metadata", "discoverability"],
+    install_count: 178,
+    icon: "TrendingUp",
+    capabilities: [
+      { type: "command", name: "audit", description: "/audit command" },
+      { type: "command", name: "generate-llms", description: "/generate-llms command" },
+      { type: "command", name: "generate-faq", description: "/generate-faq command" },
+      { type: "skill", name: "seo-geo-rag-optimizer", description: "seo-geo-rag-optimizer skill" },
+    ],
+    env_vars: [],
+  },
+  {
+    id: 25,
+    name: "gog-workspace",
+    slug: "gog-workspace",
+    description: "Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, and Contacts via gogcli.",
+    version: "1.0.0",
+    category: "productivity",
+    author: "AgentHaus Team",
+    tags: ["google-workspace", "gmail", "google-drive", "productivity", "cli"],
+    install_count: 201,
+    icon: "LayoutGrid",
+    capabilities: [
+      { type: "command", name: "gmail", description: "/gmail command" },
+      { type: "command", name: "calendar", description: "/calendar command" },
+      { type: "command", name: "drive", description: "/drive command" },
+      { type: "command", name: "docs", description: "/docs command" },
+      { type: "command", name: "sheets", description: "/sheets command" },
+      { type: "agent", name: "workspace-assistant", description: "workspace-assistant subagent" },
+      { type: "agent", name: "email-composer", description: "email-composer subagent" },
+      { type: "skill", name: "google-workspace-cli", description: "google-workspace-cli skill" },
+      { type: "hook", name: "hooks", description: "hooks event hook" },
+    ],
+    env_vars: [
+      { var_name: "GOOGLE_CLIENT_ID", description: "Google OAuth client ID", required: true },
+      { var_name: "GOOGLE_CLIENT_SECRET", description: "Google OAuth client secret", required: true },
+      { var_name: "GOOGLE_REFRESH_TOKEN", description: "Google OAuth refresh token", required: true },
+    ],
+  },
+  {
+    id: 26,
+    name: "apple-photos",
+    slug: "apple-photos",
+    description: "Manage Apple Photos libraries with osxphotos CLI — query, export, import, backup, and migrate photos on macOS.",
+    version: "1.0.0",
+    category: "media",
+    author: "AgentHaus Team",
+    tags: ["photos", "apple", "macos", "osxphotos", "metadata", "backup"],
+    install_count: 143,
+    icon: "Image",
+    capabilities: [
+      { type: "command", name: "export", description: "/export command" },
+      { type: "command", name: "query", description: "/query command" },
+      { type: "command", name: "import", description: "/import command" },
+      { type: "command", name: "backup", description: "/backup command" },
+      { type: "command", name: "albums", description: "/albums command" },
+      { type: "agent", name: "photo-librarian", description: "photo-librarian subagent" },
+      { type: "agent", name: "migration-specialist", description: "migration-specialist subagent" },
+      { type: "skill", name: "photo-management", description: "photo-management skill" },
+      { type: "skill", name: "photo-migration", description: "photo-migration skill" },
+      { type: "hook", name: "safety-guard", description: "safety-guard event hook" },
+    ],
+    env_vars: [],
+  },
+  {
+    id: 27,
+    name: "wp-cli-fleet",
+    slug: "wp-cli-fleet",
+    description: "Manage WordPress sites at scale with WP-CLI — plugin inventory, updates, health checks, and fleet operations.",
+    version: "1.0.0",
+    category: "devops",
+    author: "AgentHaus Team",
+    tags: ["wordpress", "devops", "fleet-management", "wp-cli"],
+    install_count: 156,
+    icon: "Server",
+    capabilities: [
+      { type: "command", name: "inventory", description: "/inventory command" },
+      { type: "command", name: "update", description: "/update command" },
+      { type: "command", name: "health", description: "/health command" },
+      { type: "command", name: "fleet", description: "/fleet command" },
+      { type: "command", name: "search-replace", description: "/search-replace command" },
+      { type: "agent", name: "wp-fleet-operator", description: "wp-fleet-operator subagent" },
+      { type: "agent", name: "wp-site-inspector", description: "wp-site-inspector subagent" },
+      { type: "skill", name: "wp-cli-operations", description: "wp-cli-operations skill" },
+      { type: "hook", name: "hooks", description: "hooks event hook" },
+    ],
+    env_vars: [
+      { var_name: "WP_CLI_SSH_KEY", description: "SSH key path for remote WordPress sites (optional)", required: false },
+    ],
+  },
 ];
 
 export const ALL_CATEGORIES = [
@@ -527,5 +625,13 @@ export const CATEGORY_META: Record<string, { title: string; description: string 
   integration: {
     title: "Cross-Platform AI Integrations",
     description: "Bridge Claude agents with external AI platforms, APIs, and enterprise systems."
+  },
+  seo: {
+    title: "SEO & AI Discoverability Plugins",
+    description: "Optimize projects for traditional search, AI search engines, and LLM RAG ingestion with Claude."
+  },
+  media: {
+    title: "Media Management AI Plugins",
+    description: "Manage photo libraries and media assets directly from Claude using platform-native CLI tools."
   }
 };
