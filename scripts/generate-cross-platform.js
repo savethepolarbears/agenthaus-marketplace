@@ -85,33 +85,96 @@ function discoverPlugins() {
 }
 
 // ---------------------------------------------------------------------------
-// Main
+// Renderers
 // ---------------------------------------------------------------------------
 
-function main() {
-  const errors = [];
-  const plugins = [];
-
-  // Discover and load all plugins
-  let discovered;
-  try {
-    discovered = discoverPlugins();
-  } catch (err) {
-    console.error('FATAL: plugin discovery failed:', err.message);
-    process.exit(1);
+/**
+ * Transform ${VAR} env var syntax for the target platform format.
+ * 'claude'  → no change (${VAR} is native)
+ * 'cursor'  → ${env:VAR} (Phase 3 fills this in)
+ * 'gemini'  → no change (Phase 3 fills this in)
+ */
+function transformEnvVars(obj, format) {
+  if (format === 'claude' || format === 'claude-desktop') return obj;
+  if (format === 'cursor') {
+    const str = JSON.stringify(obj);
+    const transformed = str.replace(/\$\{([^}]+)\}/g, '$${env:$1}');
+    return JSON.parse(transformed);
   }
+  // Other formats: passthrough until Phase 3
+  return obj;
+}
 
-  for (const plugin of discovered) {
+/**
+ * Generate claude-desktop-snippet.json content for MCP-equipped plugins.
+ * Returns null for plugins without MCP servers.
+ */
+function renderClaudeDesktop(plugin) {
+  if (!plugin.hasMcp) return null;
+  const snippet = {
+    _comment: 'Paste the "mcpServers" entries below into your claude_desktop_config.json',
+    _plugin: plugin.name,
+    _version: plugin.manifest.version,
+    mcpServers: plugin.mcpServers  // ${VAR} syntax is correct for Claude Desktop
+  };
+  return stableStringify(snippet);
+}
+
+/**
+ * Run all renderers over the full plugin list.
+ * Returns { written, skipped } counts (excludes no-MCP skips from both).
+ */
+function generateAll(plugins, errors) {
+  let written = 0;
+  let skipped = 0;
+
+  for (const plugin of plugins) {
     try {
-      plugins.push(plugin);
+      // --- Claude Desktop snippet ---
+      const snippetContent = renderClaudeDesktop(plugin);
+      if (snippetContent !== null) {
+        const snippetPath = path.join(plugin.dir, 'claude-desktop-snippet.json');
+        const changed = writeIfChanged(snippetPath, snippetContent);
+        if (changed) {
+          console.log(`[${plugin.name}] claude-desktop-snippet.json written`);
+          written++;
+        } else {
+          console.log(`[${plugin.name}] claude-desktop-snippet.json unchanged`);
+          skipped++;
+        }
+      } else {
+        console.log(`[${plugin.name}] claude-desktop-snippet.json skipped (no MCP servers)`);
+      }
     } catch (err) {
       errors.push({ plugin: plugin.name, error: err.message });
     }
   }
 
-  // Phase 2 generation happens here (renderers added in plan 02)
-  // For now: report discovery summary
+  return { written, skipped };
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+function main() {
+  const errors = [];
+
+  let plugins;
+  try {
+    plugins = discoverPlugins();
+  } catch (err) {
+    console.error('FATAL: plugin discovery failed:', err.message);
+    process.exit(1);
+  }
+
   console.log(`Discovered ${plugins.length} plugins.`);
+
+  const { written, skipped } = generateAll(plugins, errors);
+
+  const mcpCount = plugins.filter(p => p.hasMcp).length;
+  const noMcpCount = plugins.length - mcpCount;
+  console.log(`Generated ${written} snippet(s), ${skipped} unchanged, ${noMcpCount} skipped (no MCP). ${errors.length} error(s).`);
 
   if (errors.length > 0) {
     errors.forEach(e => console.error(`ERROR [${e.plugin}]: ${e.error}`));
@@ -121,4 +184,4 @@ function main() {
 
 main();
 
-module.exports = { discoverPlugins, loadPlugin, parseFrontmatter, stableStringify, writeIfChanged };
+module.exports = { discoverPlugins, generateAll, loadPlugin, parseFrontmatter, renderClaudeDesktop, stableStringify, transformEnvVars, writeIfChanged };
