@@ -20,20 +20,20 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Cross-Platform Generation
 
 - [x] **XPLAT-01**: Node.js generator script built (scripts/generate-cross-platform.js) that reads Claude-native sources and emits per-platform configs
-- [ ] **XPLAT-02**: Per-plugin AGENTS.md generated for Codex CLI and Windsurf (prose Markdown, under 2 KiB each)
-- [ ] **XPLAT-03**: Per-plugin GEMINI.md generated for Gemini CLI (with @include for supplemental content where needed)
-- [ ] **XPLAT-04**: Per-plugin .cursor/rules/<name>.mdc generated for Cursor (MDC format with description, globs, alwaysApply frontmatter)
-- [ ] **XPLAT-05**: MCP config snippets generated for Gemini (gemini-settings-snippet.json) and Cursor (.cursor/mcp.json with ${env:VAR} syntax)
-- [ ] **XPLAT-06**: Platform limitation notices embedded in generated files for hook-dependent plugins (circuit-breaker, shadow-mode, agent-handoff, social-media, gog-workspace, wp-cli-fleet)
-- [ ] **XPLAT-07**: Platform limitation notices embedded for MCP-dependent plugins on Codex (devops-flow, knowledge-synapse, data-core, agent-memory, clickup-tasks, task-commander, qa-droid)
-- [ ] **XPLAT-08**: Platform capability matrix table generated per plugin (what works on Claude/Codex/Gemini/Cursor/Windsurf)
-- [ ] **XPLAT-09**: skills_index.json extended with platforms field for cross-platform discovery
+- [x] **XPLAT-02**: Per-plugin AGENTS.md generated for Codex CLI and Windsurf (prose Markdown, under 2 KiB each)
+- [x] **XPLAT-03**: Per-plugin GEMINI.md generated for Gemini CLI (with @include for supplemental content where needed)
+- [x] **XPLAT-04**: Per-plugin .cursor/rules/<name>.mdc generated for Cursor (MDC format with description, globs, alwaysApply frontmatter)
+- [x] **XPLAT-05**: MCP config snippets generated for Gemini (gemini-settings-snippet.json) and Cursor (.cursor/mcp.json with ${env:VAR} syntax)
+- [x] **XPLAT-06**: Platform limitation notices embedded in generated files for hook-dependent plugins (circuit-breaker, shadow-mode, agent-handoff, social-media, gog-workspace, wp-cli-fleet)
+- [x] **XPLAT-07**: Platform limitation notices embedded for MCP-dependent plugins on Codex (devops-flow, knowledge-synapse, data-core, agent-memory, clickup-tasks, task-commander, qa-droid)
+- [x] **XPLAT-08**: Platform capability matrix table generated per plugin (what works on Claude/Codex/Gemini/Cursor/Windsurf)
+- [x] **XPLAT-09**: skills_index.json extended with platforms field for cross-platform discovery
 - [x] **XPLAT-10**: Generator is idempotent (re-running on unchanged sources produces identical output)
 
 ### Infrastructure
 
 - [ ] **INFRA-01**: CLAUDE.md symlink decoupled from AGENTS.md (converted to real file with Claude-specific content)
-- [ ] **INFRA-02**: Repo-level AGENTS.md kept under 6 KiB for Codex compatibility
+- [x] **INFRA-02**: Repo-level AGENTS.md kept under 6 KiB for Codex compatibility
 - [ ] **INFRA-03**: Validation script (validate-plugins.sh) extended with cross-platform checks (AGENTS.md byte count, .mdc frontmatter validation, file reference resolution)
 
 ### Documentation
@@ -91,17 +91,17 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | AUDIT-06 | Phase 1 | Pending |
 | AUDIT-07 | Phase 1 | Pending |
 | XPLAT-01 | Phase 2 | Complete |
-| XPLAT-02 | Phase 3 | Pending |
-| XPLAT-03 | Phase 3 | Pending |
-| XPLAT-04 | Phase 3 | Pending |
-| XPLAT-05 | Phase 3 | Pending |
-| XPLAT-06 | Phase 3 | Pending |
-| XPLAT-07 | Phase 3 | Pending |
-| XPLAT-08 | Phase 3 | Pending |
-| XPLAT-09 | Phase 3 | Pending |
+| XPLAT-02 | Phase 3 | Complete |
+| XPLAT-03 | Phase 3 | Complete |
+| XPLAT-04 | Phase 3 | Complete |
+| XPLAT-05 | Phase 3 | Complete |
+| XPLAT-06 | Phase 3 | Complete |
+| XPLAT-07 | Phase 3 | Complete |
+| XPLAT-08 | Phase 3 | Complete |
+| XPLAT-09 | Phase 3 | Complete |
 | XPLAT-10 | Phase 2 | Complete |
 | INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 3 | Pending |
+| INFRA-02 | Phase 3 | Complete |
 | INFRA-03 | Phase 3 | Pending |
 | DOCS-01 | Phase 4 | Pending |
 | DOCS-02 | Phase 4 | Pending |

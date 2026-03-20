@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-02-PLAN.md — Claude Desktop snippet renderer, 14 snippets emitted, idempotency proven
-last_updated: "2026-03-20T12:26:47.077Z"
+stopped_at: Completed 03-01-PLAN.md — 6 renderer functions + injectSkillsPlatforms, all 27 plugins have AGENTS.md/GEMINI.md/.cursor/
+last_updated: "2026-03-20T14:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 8
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Every plugin works reliably on every supported AI coding agent
-**Current focus:** Phase 02 — generator-build
+**Current focus:** Phase 03 — generation-run
 
 ## Current Position
 
-Phase: 02 (generator-build) — COMPLETE
+Phase: 03 (generation-run) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -49,6 +49,7 @@ Plan: 2 of 2
 *Updated after each plan completion*
 | Phase 02-generator-build P01 | 9 | 2 tasks | 1 files |
 | Phase 02-generator-build P02 | 22 | 2 tasks | 15 files |
+| Phase 03-generation-run P01 | 15 | 2 tasks | 114 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Recent decisions affecting current work:
 - [Phase 02-02]: renderClaudeDesktop emits ${VAR} unchanged — Claude Desktop is native, no translation needed
 - [Phase 02-02]: transformEnvVars() stub added now so Phase 3 Cursor renderer has a ready architecture hook
 - [Phase 02-02]: generateAll() loop design allows Phase 3 to add renderers without modifying main()
+- [Phase 03-01]: renderAgentsMd uses Buffer.byteLength (not str.length) for the 2 KiB gate — multibyte-safe
+- [Phase 03-01]: renderRepoAgentsMd pushes to errors[] rather than throwing to keep generator running on budget overrun
+- [Phase 03-01]: injectSkillsPlatforms assigns all 5 platforms to every entry — skills are Markdown, platform-agnostic
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T11:59:33Z
-Stopped at: Completed 02-02-PLAN.md — Claude Desktop snippet renderer, 14 snippets emitted, idempotency proven
+Last session: 2026-03-20T14:00:00Z
+Stopped at: Completed 03-01-PLAN.md — 6 renderer functions + injectSkillsPlatforms, all 27 plugins have AGENTS.md/GEMINI.md/.cursor/
 Resume file: None

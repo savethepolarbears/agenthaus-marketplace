@@ -80,5 +80,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Source Audit | 2/2 | Complete | 2026-03-20 |
 | 2. Generator Build | 2/2 | Complete   | 2026-03-20 |
-| 3. Generation Run | 0/2 | Not started | - |
+| 3. Generation Run | 1/2 | In Progress|  |
 | 4. Documentation Refresh | 0/TBD | Not started | - |
