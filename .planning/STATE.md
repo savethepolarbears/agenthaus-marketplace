@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-01-PLAN.md — 6 renderer functions + injectSkillsPlatforms, all 27 plugins have AGENTS.md/GEMINI.md/.cursor/
-last_updated: "2026-03-20T14:00:00.000Z"
+stopped_at: Completed 03-02-PLAN.md — validate-plugins.sh extended, 0 failures, all generated files committed
+last_updated: "2026-03-20T12:51:51.814Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 5
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -50,6 +50,7 @@ Plan: 2 of 2
 | Phase 02-generator-build P01 | 9 | 2 tasks | 1 files |
 | Phase 02-generator-build P02 | 22 | 2 tasks | 15 files |
 | Phase 03-generation-run P01 | 15 | 2 tasks | 114 files |
+| Phase 03-generation-run P02 | 5 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,9 @@ Recent decisions affecting current work:
 - [Phase 03-01]: renderAgentsMd uses Buffer.byteLength (not str.length) for the 2 KiB gate — multibyte-safe
 - [Phase 03-01]: renderRepoAgentsMd pushes to errors[] rather than throwing to keep generator running on budget overrun
 - [Phase 03-01]: injectSkillsPlatforms assigns all 5 platforms to every entry — skills are Markdown, platform-agnostic
+- [Phase 03-02]: validate_agents_md uses wc -c (byte count) — consistent with Buffer.byteLength approach in renderer
+- [Phase 03-02]: validate_cursor_mdc checks head -10 lines only — frontmatter always appears at top of .mdc files
+- [Phase 03-02]: 7 untracked .mcp.json files from 03-01 committed in 03-02 to complete generation output
 
 ### Pending Todos
 
@@ -86,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T14:00:00Z
-Stopped at: Completed 03-01-PLAN.md — 6 renderer functions + injectSkillsPlatforms, all 27 plugins have AGENTS.md/GEMINI.md/.cursor/
+Last session: 2026-03-20T12:51:51.808Z
+Stopped at: Completed 03-02-PLAN.md — validate-plugins.sh extended, 0 failures, all generated files committed
 Resume file: None
