@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path // empty' | grep -q '\\.context/.*\\.json$' && echo \"$(date -u +%Y-%m-%dT%H:%M:%SZ) | TASK_TRANSITION | file=$(jq -r '.tool_input.file_path')\" >> .context/audit.log || true"
+            "command": "file_path=$(jq -r '.tool_input.file_path // empty') && if echo \"$file_path\" | grep -q '\\.context/.*\\.json$'; then echo \"$(date -u +%Y-%m-%dT%H:%M:%SZ) | TASK_TRANSITION | file=$file_path\" >> .context/audit.log; fi || true"
           }
         ]
       }
