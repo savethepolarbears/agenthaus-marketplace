@@ -1,0 +1,3 @@
+## 2025-03-20 - [Performance] Stable JSON Stringification Optimization
+**Learning:** For stable JSON stringification, using `Object.entries().sort(([a], [b]) => a.localeCompare(b))` followed by `Object.fromEntries()` is significantly slower due to O(N) tuple array allocations per object, and `localeCompare` which is ~1.5x-2x slower than standard V8 UTF-16 code unit sorts (and potentially non-deterministic across environments).
+**Action:** When implementing stable object key sorting, sort `Object.keys(value).sort()` using the default UTF-16 sort and manually construct the resulting object using a standard `for` loop to avoid intermediate array allocation overhead.
