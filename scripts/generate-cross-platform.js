@@ -31,9 +31,13 @@ function parseFrontmatter(content) {
 function stableStringify(obj) {
   return JSON.stringify(obj, (key, value) => {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      return Object.fromEntries(
-        Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
-      );
+      const sortedKeys = Object.keys(value).sort();
+      const result = {};
+      for (let i = 0; i < sortedKeys.length; i++) {
+        const k = sortedKeys[i];
+        result[k] = value[k];
+      }
+      return result;
     }
     return value;
   }, 2) + '\n';
