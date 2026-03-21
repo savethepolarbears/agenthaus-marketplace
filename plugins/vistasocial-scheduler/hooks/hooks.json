@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "VistaSocial:schedulePost",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "BEFORE scheduling this post, verify ALL of the following or BLOCK the call:\n\n1. TIMEZONE: The publish_at parameter uses an explicit UTC offset (e.g., +02:00), NOT bare Z or UTC. If it ends in 'Z', BLOCK and recalculate with the correct brand timezone offset.\n\n2. PROFILE ID: Confirm the profile_id matches an active, non-paused, non-sunset brand. Consult the profile-lookup skill for the active profile map.\n\n3. FIRST-COMMENT LINK: If the brand's scheduling SOP requires first-comment links (check the scheduling-sop skill), the comments array MUST contain one. If missing, BLOCK and add it.\n\n4. LABELS: The labels parameter must be a non-empty comma-separated string in the format 'brand-name,network,week-of-date'. If empty or malformed, BLOCK and fix.\n\n5. MESSAGE BODY: If the brand's SOP prohibits links in the message body, verify the message does NOT contain http:// or https:// URLs. Move any URLs to comments.\n\n6. THREADS CHARACTER LIMIT: If the network_code is 'threads', the message must be under 500 characters. If over, BLOCK and request shortening.\n\nIf all checks pass, allow the call. If any check fails, explain which check failed and what needs to be fixed."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "VistaSocial:.*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "After this VistaSocial MCP call, check the response for rate limit information:\n\n1. Look for x-vs-rate-limit-remaining in the response headers or metadata.\n2. If remaining < 10: warn the user that rate limit is getting low and slow down subsequent calls.\n3. If remaining < 5: STOP all VistaSocial MCP calls immediately and inform the user to wait 60 seconds.\n4. If the response indicates a 429 error: inform the user that rate limit was hit, wait 60 seconds before any retry.\n5. If the call was a schedulePost that succeeded: briefly confirm the post was scheduled with the key details (brand, network, time).\n6. If the call failed for any reason: report the error clearly and suggest next steps.\n\nKeep the status report concise — one line for success, two lines for warnings."
+          }
+        ]
+      }
+    ]
+  }
+}

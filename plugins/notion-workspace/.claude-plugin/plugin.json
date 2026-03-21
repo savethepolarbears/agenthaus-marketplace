@@ -2,7 +2,9 @@
   "name": "notion-workspace",
   "version": "1.0.0",
   "description": "Interact with your Notion workspace - search pages, query databases and create new content.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

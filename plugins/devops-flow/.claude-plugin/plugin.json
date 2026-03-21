@@ -2,7 +2,9 @@
   "name": "devops-flow",
   "version": "2.0.0",
   "description": "Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

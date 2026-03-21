@@ -1,0 +1,37 @@
+{
+  "name": "vistasocial-scheduler",
+  "version": "1.0.0",
+  "description": "Social media scheduling and management plugin using VistaSocial MCP. Handles post scheduling, content creation, queue auditing, profile lookups, rate-limit-aware batch operations, and multi-brand social media operations.",
+  "author": {
+    "name": "AgentHaus Team"
+  },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "social-media",
+    "vistasocial",
+    "scheduling",
+    "content",
+    "marketing"
+  ],
+  "commands": [
+    "./commands/schedule-post.md",
+    "./commands/batch-schedule.md",
+    "./commands/queue-audit.md",
+    "./commands/content-week.md",
+    "./commands/profile-lookup.md",
+    "./commands/optimal-times.md"
+  ],
+  "agents": [
+    "./agents/scheduling-agent.md",
+    "./agents/content-planner.md"
+  ],
+  "skills": [
+    "./skills/scheduling-sop/SKILL.md",
+    "./skills/content-creation/SKILL.md",
+    "./skills/greece-cluster/SKILL.md",
+    "./skills/profile-lookup/SKILL.md",
+    "./skills/rate-limit-guard/SKILL.md"
+  ]
+}

@@ -2,7 +2,9 @@
   "name": "context7-docs",
   "version": "1.0.0",
   "description": "Fetch up-to-date, hallucination-free documentation for any library via Context7.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

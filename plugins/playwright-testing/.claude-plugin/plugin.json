@@ -2,7 +2,9 @@
   "name": "playwright-testing",
   "version": "1.0.0",
   "description": "End-to-end browser automation and testing using Playwright.",
-  "author": "AgentHaus Team",
+  "author": {
+    "name": "AgentHaus Team"
+  },
   "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
   "license": "MIT",

@@ -32,8 +32,5 @@
   "skills": [
     "./skills/apple-productivity/SKILL.md",
     "./skills/apple-automation/SKILL.md"
-  ],
-  "hooks": [
-    "./hooks/hooks.json"
   ]
 }

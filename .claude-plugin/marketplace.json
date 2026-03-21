@@ -329,6 +329,20 @@
         "api"
       ],
       "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "vistasocial-scheduler",
+      "source": "./plugins/vistasocial-scheduler",
+      "category": "content",
+      "description": "Social media scheduling and management using VistaSocial MCP with rate-limit-safe batch operations, content planning, queue auditing, and multi-brand support.",
+      "keywords": [
+        "social-media",
+        "vistasocial",
+        "scheduling",
+        "content",
+        "marketing"
+      ],
+      "author": { "name": "AgentHaus Team" }
     }
   ]
 }
