@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"[$(date)] $CLAUDE_OUTPUT\" >> \"$CLAUDE_PROJECT_DIR/social_audit.log\""
+            "command": "printf \"[%s] %s\\n\" \"$(date)\" \"$CLAUDE_OUTPUT\" >> \"$CLAUDE_PROJECT_DIR/social_audit.log\""
           }
         ]
       }
