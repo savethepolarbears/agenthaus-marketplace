@@ -24,7 +24,7 @@ LIMIT 20;
 ```sql
 SELECT id, content, tags, created_at, session_id
 FROM memories
-WHERE '<tagname>' = ANY(tags)
+WHERE tags @> ARRAY['<tagname>']::text[]
 ORDER BY created_at DESC;
 ```
 
