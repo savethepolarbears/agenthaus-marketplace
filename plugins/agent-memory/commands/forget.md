@@ -30,7 +30,7 @@ Follow these steps:
    - Report how many memories were removed
 
 5. **If deleting by tag**:
-   - Run: `DELETE FROM memories WHERE '<tagname>' = ANY(tags) RETURNING id, content;`
+   - Run: `DELETE FROM memories WHERE tags @> ARRAY['<tagname>']::text[] RETURNING id, content;`
    - Report how many memories were removed
 
 6. **Confirm deletion**: Display the count of deleted memories and their IDs.

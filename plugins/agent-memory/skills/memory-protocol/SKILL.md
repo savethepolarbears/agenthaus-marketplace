@@ -53,7 +53,7 @@ Before starting a new task in a familiar area, query existing memories:
 SELECT id, content, tags, created_at
 FROM memories
 WHERE content ILIKE '%<relevant-keyword>%'
-   OR '<tag>' = ANY(tags)
+   OR tags @> ARRAY['<tag>']::text[]
 ORDER BY created_at DESC
 LIMIT 10;
 ```
@@ -72,7 +72,7 @@ This provides context from previous sessions and avoids re-discovering known inf
 | Operation | SQL | When |
 |-----------|-----|------|
 | Store | `INSERT INTO memories (content, tags, session_id, context) VALUES (...)` | End of task with new learnings |
-| Recall | `SELECT ... FROM memories WHERE content ILIKE '%keyword%' OR 'tag' = ANY(tags)` | Start of task in familiar area |
+| Recall | `SELECT ... FROM memories WHERE content ILIKE '%keyword%' OR tags @> ARRAY['tag']::text[]` | Start of task in familiar area |
 | Update | DELETE old + INSERT new | Memory is outdated |
 | Delete | `DELETE FROM memories WHERE id = <id>` | Deprecated API, removed code |
 
