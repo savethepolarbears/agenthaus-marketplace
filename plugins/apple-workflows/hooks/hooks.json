@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] apple-workflows command: $TOOL_NAME\" >> \"$CLAUDE_PROJECT_DIR/apple_workflows_audit.log\""
+            "command": "printf '[%s] apple-workflows command: %s\\n' \"$(date '+%Y-%m-%d %H:%M:%S')\" \"$TOOL_NAME\" >> \"$CLAUDE_PROJECT_DIR/apple_workflows_audit.log\""
           }
         ]
       }

@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$TOOL_INPUT\" | grep -qiE 'wp (core update|db (drop|reset|import)|search-replace)' && ! echo \"$TOOL_INPUT\" | grep -qiE '(--dry-run|check-update|verify-checksums)'; then bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/wp-safety-check.sh\"; fi"
+            "command": "if printf '%s\\n' \"$TOOL_INPUT\" | grep -qiE 'wp (core update|db (drop|reset|import)|search-replace)' && ! printf '%s\\n' \"$TOOL_INPUT\" | grep -qiE '(--dry-run|check-update|verify-checksums)'; then bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/wp-safety-check.sh\"; fi"
           }
         ]
       }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$TOOL_INPUT\" | grep -qiE '^wp |wp-cli|wp @'; then echo \"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] WP-CLI: $(echo \"$TOOL_INPUT\" | head -c 200)\" >> \"$CLAUDE_PROJECT_DIR/wp-cli-audit.log\" 2>/dev/null; fi"
+            "command": "if printf '%s\\n' \"$TOOL_INPUT\" | grep -qiE '^wp |wp-cli|wp @'; then printf '[%s] WP-CLI: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$(printf '%s\\n' \"$TOOL_INPUT\" | head -c 200)\" >> \"$CLAUDE_PROJECT_DIR/wp-cli-audit.log\" 2>/dev/null; fi"
           }
         ]
       }
