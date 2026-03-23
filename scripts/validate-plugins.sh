@@ -35,47 +35,42 @@ validate_marketplace() {
   fi
   log_pass ".claude-plugin/marketplace.json exists"
 
-  if ! python3 -c "import json; json.load(open('$MARKETPLACE'))" 2>/dev/null; then
+  if ! jq . "$MARKETPLACE" >/dev/null 2>&1; then
     log_fail "marketplace.json is not valid JSON"
     return 1
   fi
   log_pass "marketplace.json is valid JSON"
 
   # Check required fields
-  local result
-  result="$(python3 -c "
-import json, sys
-data = json.load(open('$MARKETPLACE'))
-errors = []
-if 'name' not in data: errors.append('name')
-if 'owner' not in data: errors.append('owner')
-elif 'name' not in data.get('owner', {}): errors.append('owner.name')
-if 'plugins' not in data: errors.append('plugins')
-elif not isinstance(data['plugins'], list): errors.append('plugins (must be array)')
+  local errors
+  errors="$(jq -r '
+    [
+      (if has("name") then empty else "name" end),
+      (if has("owner") then (if .owner | has("name") then empty else "owner.name" end) else "owner" end),
+      (if has("plugins") then (if (.plugins | type) == "array" then empty else "plugins (must be array)" end) else "plugins" end)
+    ] |
+    if has("plugins") and (.plugins | type) == "array" then
+      . + [
+        (.plugins | map(select(has("name") | not)) | to_entries | map("plugins[" + (.key|tostring) + "] missing name")[]),
+        (.plugins | map(select(has("source") | not)) | to_entries | map("plugins[" + (.key|tostring) + "] missing source")[]),
+        (
+          .plugins | map(select(has("name")).name) |
+          reduce .[] as $item ({}; .[$item] += 1) |
+          to_entries | map(select(.value > 1).key) |
+          if length > 0 then "duplicate plugin names: " + join(", ") else empty end
+        )
+      ]
+    else . end | join("|")
+  ' "$MARKETPLACE" 2>/dev/null)" || true
 
-# Check for duplicate plugin names
-if 'plugins' in data and isinstance(data['plugins'], list):
-    names = [p.get('name') for p in data['plugins'] if 'name' in p]
-    dupes = [n for n in names if names.count(n) > 1]
-    if dupes:
-        errors.append(f'duplicate plugin names: {set(dupes)}')
-
-    # Check each plugin entry has required fields
-    for i, p in enumerate(data['plugins']):
-        if 'name' not in p: errors.append(f'plugins[{i}] missing name')
-        if 'source' not in p: errors.append(f'plugins[{i}] missing source')
-
-if errors:
-    print('|'.join(errors))
-    sys.exit(1)
-" 2>/dev/null)" || true
-
-  if [[ -n "$result" ]]; then
-    IFS='|' read -ra errs <<< "$result"
+  if [[ -n "$errors" ]]; then
+    IFS='|' read -ra errs <<< "$errors"
     for err in "${errs[@]}"; do
-      log_fail "marketplace.json: missing or invalid field '${err}'"
+      if [[ -n "$err" ]]; then
+        log_fail "marketplace.json: missing or invalid field '${err}'"
+      fi
     done
-    return 1
+    if [[ -n "$errors" ]]; then return 1; fi
   fi
   log_pass "marketplace.json has required fields (name, owner, plugins)"
 
@@ -115,7 +110,7 @@ validate_plugin() {
   log_pass ".claude-plugin/plugin.json exists"
 
   # 2. Validate JSON syntax
-  if ! python3 -c "import json; json.load(open('$manifest'))" 2>/dev/null; then
+  if ! jq . "$manifest" >/dev/null 2>&1; then
     log_fail "plugin.json is not valid JSON"
     fail_count=$((fail_count + 1))
     return
@@ -125,14 +120,7 @@ validate_plugin() {
   # 3. Check required fields: name, version, description
   for field in name version description; do
     local value
-    value="$(python3 -c "
-import json, sys
-data = json.load(open('$manifest'))
-val = data.get('$field')
-if val is None or (isinstance(val, str) and not val.strip()):
-    sys.exit(1)
-print(val)
-" 2>/dev/null)" || true
+    value="$(jq -r ".$field // empty" "$manifest" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')" || true
 
     if [[ -z "$value" ]]; then
       log_fail "Required field '${field}' is missing or empty"
@@ -145,11 +133,7 @@ print(val)
   # 4. Check recommended fields
   for field in author license; do
     local has_field
-    has_field="$(python3 -c "
-import json
-data = json.load(open('$manifest'))
-print('yes' if '$field' in data else 'no')
-" 2>/dev/null)" || true
+    has_field="$(jq -e "has(\"$field\")" "$manifest" >/dev/null 2>&1 && echo "yes" || echo "no")"
 
     if [[ "$has_field" != "yes" ]]; then
       log_warn "Recommended field '${field}' missing"
@@ -168,15 +152,7 @@ print('yes' if '$field' in data else 'no')
   # 6. Check referenced files in commands, agents, skills, hooks arrays
   for array_field in commands agents skills hooks; do
     local files
-    files="$(python3 -c "
-import json
-data = json.load(open('$manifest'))
-val = data.get('$array_field', [])
-if isinstance(val, list):
-    for f in val:
-        if isinstance(f, str):
-            print(f)
-" 2>/dev/null)" || true
+    files="$(jq -r ".${array_field}[]? | strings" "$manifest" 2>/dev/null)" || true
 
     if [[ -n "$files" ]]; then
       while IFS= read -r ref_file; do
@@ -193,7 +169,7 @@ if isinstance(val, list):
   # 7. Validate .mcp.json if present
   local mcp_file="$dir/.mcp.json"
   if [[ -f "$mcp_file" ]]; then
-    if ! python3 -c "import json; json.load(open('$mcp_file'))" 2>/dev/null; then
+    if ! jq . "$mcp_file" >/dev/null 2>&1; then
       log_fail ".mcp.json is not valid JSON"
       failed=1
     else
@@ -203,36 +179,22 @@ if isinstance(val, list):
 
   # 8. Validate hooks format (should use object with "hooks" key, not flat array)
   local hooks_files
-  hooks_files="$(python3 -c "
-import json
-data = json.load(open('$manifest'))
-val = data.get('hooks', [])
-if isinstance(val, list):
-    for f in val:
-        if isinstance(f, str):
-            print(f)
-" 2>/dev/null)" || true
+  hooks_files="$(jq -r ".hooks[]? | strings" "$manifest" 2>/dev/null)" || true
 
   if [[ -n "$hooks_files" ]]; then
     while IFS= read -r hook_file; do
       local hook_path="$dir/$hook_file"
       if [[ -f "$hook_path" ]]; then
-        local hook_format
-        hook_format="$(python3 -c "
-import json
-data = json.load(open('$hook_path'))
-if isinstance(data, list):
-    print('array')
-elif isinstance(data, dict) and 'hooks' in data:
-    print('object')
-else:
-    print('unknown')
-" 2>/dev/null)" || true
+        local is_array
+        local has_hooks_key
 
-        if [[ "$hook_format" == "array" ]]; then
+        is_array="$(jq 'type == "array"' "$hook_path" 2>/dev/null || echo "false")"
+        has_hooks_key="$(jq 'type == "object" and has("hooks")' "$hook_path" 2>/dev/null || echo "false")"
+
+        if [[ "$is_array" == "true" ]]; then
           log_warn "Hooks file '${hook_file}' uses flat array format — should use object with 'hooks' key"
           warn_count=$((warn_count + 1))
-        elif [[ "$hook_format" == "object" ]]; then
+        elif [[ "$has_hooks_key" == "true" ]]; then
           log_pass "Hooks file '${hook_file}' uses correct format"
         fi
       fi
@@ -240,44 +202,41 @@ else:
   fi
 
   # 9. Check for relative paths in hooks/MCP that should use CLAUDE_PLUGIN_ROOT
-  python3 -c "
-import json, re
-data = json.load(open('$manifest'))
+  local hooks_warnings
+  hooks_warnings="$(jq -r '
+    if .hooks | type == "object" then
+      if (.hooks | tostring | test("\\./hooks/|\\./scripts/")) then "WARN_HOOKS" else empty end
+    else empty end
+  ' "$manifest" 2>/dev/null)" || true
 
-# Check inline hooks
-if isinstance(data.get('hooks'), dict):
-    text = json.dumps(data['hooks'])
-    if re.search(r'\./hooks/', text) or re.search(r'\./scripts/', text):
-        print('WARN_HOOKS')
+  local mcp_warnings
+  mcp_warnings="$(jq -r '
+    if .mcpServers | type == "object" then
+      .mcpServers | to_entries[] |
+      if (.value.args | type == "array" and (.value.args | join(" ") | test("\\./[a-z]"))) or (.value.command | type == "string" and (.value.command | test("\\./[a-z]"))) then
+        "WARN_MCP:" + .key
+      else empty end
+    else empty end
+  ' "$manifest" 2>/dev/null)" || true
 
-# Check inline mcpServers
-for name, cfg in data.get('mcpServers', {}).items():
-    args_str = ' '.join(cfg.get('args', []))
-    cmd = cfg.get('command', '')
-    if re.search(r'\./[a-z]', args_str) or re.search(r'\./[a-z]', cmd):
-        print(f'WARN_MCP:{name}')
-" 2>/dev/null | while IFS= read -r warning; do
-    if [[ "$warning" == "WARN_HOOKS" ]]; then
-      log_warn "Inline hooks use relative paths — consider using \${CLAUDE_PLUGIN_ROOT}"
-      warn_count=$((warn_count + 1))
-    elif [[ "$warning" == WARN_MCP:* ]]; then
-      local srv="${warning#WARN_MCP:}"
-      log_warn "MCP server '${srv}' uses relative paths — consider using \${CLAUDE_PLUGIN_ROOT}"
-      warn_count=$((warn_count + 1))
-    fi
-  done
+  if [[ "$hooks_warnings" == "WARN_HOOKS" ]]; then
+    log_warn "Inline hooks use relative paths — consider using \${CLAUDE_PLUGIN_ROOT}"
+    warn_count=$((warn_count + 1))
+  fi
+
+  if [[ -n "$mcp_warnings" ]]; then
+    while IFS= read -r warning; do
+      if [[ -n "$warning" && "$warning" == WARN_MCP:* ]]; then
+        local srv="${warning#WARN_MCP:}"
+        log_warn "MCP server '${srv}' uses relative paths — consider using \${CLAUDE_PLUGIN_ROOT}"
+        warn_count=$((warn_count + 1))
+      fi
+    done <<< "$mcp_warnings"
+  fi
 
   # 10. MCP consistency: if plugin.json has mcpServers, warn if .mcp.json missing
   local has_mcp_in_manifest
-  has_mcp_in_manifest="$(python3 -c "
-import json
-data = json.load(open('$manifest'))
-servers = data.get('mcpServers', {})
-if isinstance(servers, dict) and len(servers) > 0:
-    print('yes')
-else:
-    print('no')
-" 2>/dev/null)" || true
+  has_mcp_in_manifest="$(jq -e '.mcpServers | type == "object" and length > 0' "$manifest" >/dev/null 2>&1 && echo "yes" || echo "no")"
 
   if [[ "$has_mcp_in_manifest" == "yes" && ! -f "$mcp_file" ]]; then
     log_warn "plugin.json declares mcpServers but .mcp.json does not exist"
@@ -450,7 +409,7 @@ validate_skills_index() {
   fi
   log_pass "skills_index.json exists"
 
-  if ! python3 -c "import json; json.load(open('$index_file'))" 2>/dev/null; then
+  if ! jq . "$index_file" >/dev/null 2>&1; then
     log_fail "skills_index.json is not valid JSON"
     fail_count=$((fail_count + 1))
     return
@@ -462,11 +421,7 @@ validate_skills_index() {
   actual_count="$(find "$PLUGINS_DIR" \( -path "*/agents/*.md" -o -path "*/skills/*/SKILL.md" -o -path "*/commands/*.md" \) | wc -l | tr -d ' ')"
 
   local index_count
-  index_count="$(python3 -c "
-import json
-data = json.load(open('$index_file'))
-print(len(data.get('entries', [])))
-" 2>/dev/null)" || index_count=0
+  index_count="$(jq -r '.entries | length' "$index_file" 2>/dev/null)" || index_count=0
 
   local diff=$((actual_count - index_count))
   if [[ "$diff" -lt 0 ]]; then diff=$((-diff)); fi
