@@ -226,15 +226,15 @@ if ( ! class_exists( 'Agentic_WP_CLI_Plugin' ) ) {
 						<tr>
 							<th scope="row"><label for="agentic-binary">WP-CLI binary</label></th>
 							<td>
-								<input id="agentic-binary" type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[wp_cli_binary]" value="<?php echo esc_attr( (string) $settings['wp_cli_binary'] ); ?>">
-								<p class="description">Usually <code>wp</code> or a full path like <code>/usr/local/bin/wp</code>.</p>
+								<input id="agentic-binary" aria-describedby="agentic-binary-desc" type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[wp_cli_binary]" value="<?php echo esc_attr( (string) $settings['wp_cli_binary'] ); ?>">
+								<p id="agentic-binary-desc" class="description">Usually <code>wp</code> or a full path like <code>/usr/local/bin/wp</code>.</p>
 							</td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="agentic-ssh">Default SSH target</label></th>
 							<td>
-								<input id="agentic-ssh" type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[default_ssh_target]" value="<?php echo esc_attr( (string) $settings['default_ssh_target'] ); ?>">
-								<p class="description">Example: <code>deploy@example.com</code></p>
+								<input id="agentic-ssh" aria-describedby="agentic-ssh-desc" type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[default_ssh_target]" value="<?php echo esc_attr( (string) $settings['default_ssh_target'] ); ?>">
+								<p id="agentic-ssh-desc" class="description">Example: <code>deploy@example.com</code></p>
 							</td>
 						</tr>
 						<tr>
@@ -248,8 +248,8 @@ if ( ! class_exists( 'Agentic_WP_CLI_Plugin' ) ) {
 						<tr>
 							<th scope="row"><label for="agentic-secret">Shared secret</label></th>
 							<td>
-								<input id="agentic-secret" type="text" class="large-text code" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[shared_secret]" value="<?php echo esc_attr( (string) $settings['shared_secret'] ); ?>">
-								<p class="description">Send this value as <code>X-Agentic-WP-Secret</code> with REST requests.</p>
+								<input id="agentic-secret" aria-describedby="agentic-secret-desc" type="text" class="large-text code" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[shared_secret]" value="<?php echo esc_attr( (string) $settings['shared_secret'] ); ?>">
+								<p id="agentic-secret-desc" class="description">Send this value as <code>X-Agentic-WP-Secret</code> with REST requests.</p>
 							</td>
 						</tr>
 						<tr>
@@ -276,10 +276,10 @@ if ( ! class_exists( 'Agentic_WP_CLI_Plugin' ) ) {
 					<table class="widefat striped">
 						<thead>
 							<tr>
-								<th>Time</th>
-								<th>Operation</th>
-								<th>Source</th>
-								<th>Status</th>
+								<th scope="col">Time</th>
+								<th scope="col">Operation</th>
+								<th scope="col">Source</th>
+								<th scope="col">Status</th>
 							</tr>
 						</thead>
 						<tbody>
