@@ -227,14 +227,14 @@ if ( ! class_exists( 'Agentic_WP_CLI_Plugin' ) ) {
 							<th scope="row"><label for="agentic-binary">WP-CLI binary</label></th>
 							<td>
 								<input id="agentic-binary" aria-describedby="agentic-binary-desc" type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[wp_cli_binary]" value="<?php echo esc_attr( (string) $settings['wp_cli_binary'] ); ?>">
-								<p id="agentic-binary-desc" class="description">Usually <code>wp</code> or a full path like <code>/usr/local/bin/wp</code>.</p>
+								<p id="agentic-binary-desc" class="description">Usually <code style="user-select: all;">wp</code> or a full path like <code style="user-select: all;">/usr/local/bin/wp</code>.</p>
 							</td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="agentic-ssh">Default SSH target</label></th>
 							<td>
 								<input id="agentic-ssh" aria-describedby="agentic-ssh-desc" type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[default_ssh_target]" value="<?php echo esc_attr( (string) $settings['default_ssh_target'] ); ?>">
-								<p id="agentic-ssh-desc" class="description">Example: <code>deploy@example.com</code></p>
+								<p id="agentic-ssh-desc" class="description">Example: <code style="user-select: all;">deploy@example.com</code></p>
 							</td>
 						</tr>
 						<tr>
@@ -249,19 +249,22 @@ if ( ! class_exists( 'Agentic_WP_CLI_Plugin' ) ) {
 							<th scope="row"><label for="agentic-secret">Shared secret</label></th>
 							<td>
 								<input id="agentic-secret" aria-describedby="agentic-secret-desc" type="text" class="large-text code" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[shared_secret]" value="<?php echo esc_attr( (string) $settings['shared_secret'] ); ?>">
-								<p id="agentic-secret-desc" class="description">Send this value as <code>X-Agentic-WP-Secret</code> with REST requests.</p>
+								<p id="agentic-secret-desc" class="description">Send this value as <code style="user-select: all;">X-Agentic-WP-Secret</code> with REST requests.</p>
 							</td>
 						</tr>
 						<tr>
 							<th scope="row">Allowed mutating operations</th>
 							<td>
-								<?php foreach ( $catalog as $key => $spec ) : ?>
-									<?php if ( empty( $spec['mutating'] ) ) { continue; } ?>
-									<label style="display:block;margin-bottom:6px;">
-										<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[allowed_mutations][]" value="<?php echo esc_attr( $key ); ?>" <?php checked( in_array( $key, $settings['allowed_mutations'], true ) ); ?>>
-										<code><?php echo esc_html( $key ); ?></code> &mdash; <?php echo esc_html( (string) $spec['description'] ); ?>
-									</label>
-								<?php endforeach; ?>
+								<fieldset>
+									<legend class="screen-reader-text"><span>Allowed mutating operations</span></legend>
+									<?php foreach ( $catalog as $key => $spec ) : ?>
+										<?php if ( empty( $spec['mutating'] ) ) { continue; } ?>
+										<label style="display:block;margin-bottom:6px;">
+											<input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[allowed_mutations][]" value="<?php echo esc_attr( $key ); ?>" <?php checked( in_array( $key, $settings['allowed_mutations'], true ) ); ?>>
+											<code style="user-select: all;"><?php echo esc_html( $key ); ?></code> &mdash; <?php echo esc_html( (string) $spec['description'] ); ?>
+										</label>
+									<?php endforeach; ?>
+								</fieldset>
 							</td>
 						</tr>
 					</table>
@@ -286,7 +289,7 @@ if ( ! class_exists( 'Agentic_WP_CLI_Plugin' ) ) {
 							<?php foreach ( array_reverse( array_slice( $logs, -20 ) ) as $log ) : ?>
 								<tr>
 									<td><?php echo esc_html( $log['time'] ?? '' ); ?></td>
-									<td><code><?php echo esc_html( $log['operation'] ?? '' ); ?></code></td>
+									<td><code style="user-select: all;"><?php echo esc_html( $log['operation'] ?? '' ); ?></code></td>
 									<td><?php echo esc_html( $log['source'] ?? '' ); ?></td>
 									<td><?php echo esc_html( $log['status'] ?? '' ); ?></td>
 								</tr>
