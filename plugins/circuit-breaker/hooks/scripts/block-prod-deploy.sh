@@ -9,13 +9,7 @@ CONFIG_FILE=".circuit-breaker-config.json"
 # Validate CONFIG_FILE contains only safe characters (prevent path traversal)
 [[ "$CONFIG_FILE" =~ ^[a-zA-Z0-9._-]+$ ]] || exit 0
 if [ -f "$CONFIG_FILE" ]; then
-    ENABLED=$(python3 -c "
-import json, sys
-try:
-    cfg = json.load(open('$CONFIG_FILE'))
-    print(cfg.get('breakers', {}).get('block-prod-deploy', {}).get('enabled', True))
-except: print('True')
-" 2>/dev/null || echo "True")
+    ENABLED=$(jq -r 'if .breakers?."block-prod-deploy"?.enabled? == false then "False" else "True" end' "$CONFIG_FILE" 2>/dev/null || echo "True")
     if [ "$ENABLED" = "False" ]; then
         exit 0
     fi

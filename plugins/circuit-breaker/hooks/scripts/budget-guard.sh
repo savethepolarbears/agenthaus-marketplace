@@ -12,26 +12,13 @@ CONFIG_FILE=".circuit-breaker-config.json"
 # Validate CONFIG_FILE contains only safe characters (prevent path traversal)
 [[ "$CONFIG_FILE" =~ ^[a-zA-Z0-9._-]+$ ]] || exit 0
 if [ -f "$CONFIG_FILE" ]; then
-    ENABLED=$(python3 -c "
-import json, sys
-try:
-    cfg = json.load(open('$CONFIG_FILE'))
-    b = cfg.get('breakers', {}).get('budget-guard', {})
-    print(b.get('enabled', True))
-except: print('True')
-" 2>/dev/null || echo "True")
+    ENABLED=$(jq -r 'if .breakers?."budget-guard"?.enabled? == false then "False" else "True" end' "$CONFIG_FILE" 2>/dev/null || echo "True")
     if [ "$ENABLED" = "False" ]; then
         exit 0
     fi
 
     # Read custom threshold
-    CUSTOM_THRESHOLD=$(python3 -c "
-import json, sys
-try:
-    cfg = json.load(open('$CONFIG_FILE'))
-    print(cfg.get('breakers', {}).get('budget-guard', {}).get('threshold', 100))
-except: print('100')
-" 2>/dev/null || echo "100")
+    CUSTOM_THRESHOLD=$(jq -r '.breakers?."budget-guard"?.threshold? // 100' "$CONFIG_FILE" 2>/dev/null || echo "100")
     THRESHOLD="$CUSTOM_THRESHOLD"
 fi
 
