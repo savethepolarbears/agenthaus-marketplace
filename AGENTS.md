@@ -1,49 +1,84 @@
 # AgentHaus Marketplace
 
-27 production-ready plugins for Claude Code with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
+A highly discoverable marketplace of 30 production-ready developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend AI assistant workflows.
 
-## Plugins
+**Platform configs:** This file (`AGENTS.md`) is the canonical source for AI agents. `CLAUDE.md` and `GEMINI.md` are symlinked to this file.
 
-| Plugin | Description | MCP | Hooks |
-|--------|-------------|-----|-------|
-| activepieces | Agent plugin pack for designing, building, operating, and... | no | yes |
-| agent-handoff | State-based task handoff between agents using a shared bl... | no | yes |
-| agent-memory | Shared persistent memory across agent sessions using Neon... | yes | no |
-| apple-photos | Manage Apple Photos libraries using the osxphotos CLI — q... | no | yes |
-| apple-workflows | Manage Apple Notes, Reminders, and Shortcuts with AI agen... | yes | yes |
-| circuit-breaker | Pre-built safety guardrails as reusable hooks for Claude ... | no | yes |
-| clickup-tasks | Manage ClickUp tasks, lists and time tracking. | yes | no |
-| cloudflare-platform | Manage Cloudflare Workers, KV storage and AI Gateway reso... | yes | no |
-| context7-docs | Fetch up-to-date, hallucination-free documentation for an... | yes | no |
-| data-core | Serverless Postgres database management via Neon. | yes | no |
-| devops-flow | Orchestrate Cloudflare deployments, GitHub PRs, and Slack... | yes | yes |
-| fleet-commander | Visualization and control of running agent sessions. | no | no |
-| github-integration | Full GitHub management: create/search issues and pull req... | yes | no |
-| gog-workspace | Google Workspace CLI integration for Gmail, Calendar, Dri... | no | yes |
-| knowledge-synapse | RAG Agent combining Context7 docs, Notion memory and Goog... | yes | no |
-| marketplace-cli | Utility commands for searching and installing AgentHaus p... | no | no |
-| neon-db | Interact with Neon serverless Postgres databases. | yes | no |
-| notion-workspace | Interact with your Notion workspace - search pages, query... | yes | no |
-| openclaw-bridge | Convert AgentHaus plugins to OpenClaw skills and provide ... | no | no |
-| playwright-testing | End-to-end browser automation and testing using Playwright. | yes | no |
-| plugin-auditor | Audit plugins for security risks before installation. | no | no |
-| qa-droid | Automated Playwright tests with Slack/Gmail notifications. | yes | no |
-| seo-geo-rag | Six-phase SEO, Generative Engine Optimization (GEO), and ... | no | no |
-| shadow-mode | Agents draft outputs to a review queue instead of executi... | no | yes |
-| social-media | Generate high-engagement social media content with trend ... | no | yes |
-| task-commander | ClickUp task management with Slack, Gmail and Calendar no... | yes | no |
-| ux-ui | Polish and improve your front-end UX/UI, accessibility, d... | no | no |
-| vercel-deploy | Manage Vercel projects and deployments. | yes | no |
-| wp-cli-fleet | Agentic WP-CLI and WordPress fleet management for plugin ... | no | yes |
+## Repository Map & Architecture
+
+```text
+agenthaus-marketplace/
+├── plugins/                # 30 production plugins (e.g. social-media, notion-workspace, qa-droid)
+├── schemas/                # JSON schemas for validation
+├── scripts/                # Validation and utility scripts
+├── reports/                # ALL project reports and documentation go here
+├── .env.example            # Required environment variables
+├── CONTRIBUTING.md         # Plugin development guide
+└── README.md               # Project overview
+```
+
+## Build & Core Commands
+
+```bash
+bash scripts/validate-plugins.sh         # Validate all plugins and marketplace
+bash scripts/generate-skills-index.sh    # Re-generate the skills index when skills are added/removed
+bash scripts/install-plugins.sh          # Interactively install plugins
+bash scripts/generate-cross-platform.js  # Generate MCP and hooks files
+```
+
+## Tech Stack & Conventions
+
+- **Validation:** Zod 4.3.6
+- **Package Manager:** npm (v11+) or pnpm (v10+). No root `package.json` exists; run PM commands in subdirectories where appropriate.
+- **Manifest:** JSON in `.claude-plugin/plugin.json` (name, version, description). Use explicit paths, not globs.
+- **Commands & Agents:** Markdown with YAML frontmatter. `description` field required.
+- **Skills:** Markdown in `skills/<name>/SKILL.md` with YAML frontmatter.
+- **Hooks:** JSON with `{ "hooks": { "PreToolUse": [...], "PostToolUse": [...] } }` format (object, not array).
+- **MCP Configs:** JSON in `.mcp.json`.
+- **LSP Configs:** JSON in `.lsp.json`.
+- **Naming:** kebab-case for plugin directories and file names.
+
+## Agent Boundaries & Guidelines
+
+- **Never commit** API keys, tokens, or credentials. Use `.env` and `.env.local` (which are gitignored).
+- **Environment variables:** Use `${ENV_VAR}` interpolation in MCP configs; never inline credentials.
+- **Path references:** Use `${CLAUDE_PLUGIN_ROOT}` for plugin-local scripts in hooks and MCP configs. Plugins are cached, so `../` won't resolve.
+- **Security:** Plugin hooks run shell commands — review carefully for injection risks. Only use trusted MCP servers. Validate inputs at system boundaries.
+- **Files:** Temp files go in `temp/` or `tmp/` and must not be committed. ALL output reports go to `reports/` (e.g., `TEST_RESULTS_2026-02-06.md`).
+- **PRs:** All plugins must pass validation (`bash scripts/validate-plugins.sh`). Do not modify global `.json` files unless instructed.
+- **Development:** Favor simple, modular solutions. Fix the code, not the test. Failing tests reveal bugs — fix the root cause.
 
 ## Platform Support
 
-| Platform | MCP | Hooks | Commands | Skills |
-|----------|-----|-------|----------|--------|
+| Platform | MCP | Hooks | Commands/Agents | Skills |
+|----------|-----|-------|-----------------|--------|
 | Claude Code | full | full | full | full |
 | Codex CLI | none | none | partial | full |
 | Gemini CLI | via gemini-settings | none | partial | full |
 | Cursor | via .cursor/mcp.json | none | partial | full |
 | Windsurf | global config | none | partial | full |
 
-> Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.
+## Gemini Context Caching
+
+When working with Gemini, use context caching to retain the full plugin catalog and `marketplace.json` across turns. Use `@include` patterns to pull in relevant plugin manifests (e.g., `@plugins/<plugin-name>/.claude-plugin/plugin.json`).
+
+## Antigravity IDE Integration (Memory Bank)
+
+Before starting large tasks, read `.agent/memory-bank/` for persistent project context:
+- `architecture.md` — Repo structure, plugin anatomy
+- `api-contracts.md` — Schema specs for manifests
+- `decision-log.md` — Architectural decisions (ADRs)
+
+Update these docs when making significant changes. For non-trivial tasks, plan before executing and get user approval.
+
+## Agent Delegation & Parallel Execution
+
+Use specialized agents when available. When performing multiple independent operations (like searching patterns, reading files, grep operations), send all tool calls in a single message for parallel execution (3-5x faster). Sequential execution is only for when the output of one call is needed for the next.
+
+## Required Environment Variables
+
+Check `.env.example`. Key examples:
+- `cloudflare-platform` / `devops-flow`: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+- `github-integration`: `GITHUB_TOKEN`
+- `notion-workspace`: `NOTION_API_KEY`
+- `neon-db` / `data-core`: `DATABASE_URL`, `NEON_API_KEY`
