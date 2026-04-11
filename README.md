@@ -1,9 +1,9 @@
 # AgentHaus Marketplace - Developer Tools for Agentic AI
 
-> A comprehensive marketplace of **27 production-ready developer tools and Claude Cowork plugins** for agentic AI ecosystems. Discover, install, and build powerful workflows across Claude Code marketplaces and other AI coding assistants.
+> A comprehensive marketplace of **31 production-ready developer tools and Claude Cowork plugins** for agentic AI ecosystems. Discover, install, and build powerful workflows across Claude Code marketplaces and other AI coding assistants.
 
 [![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](./CHANGELOG.md)
-[![Plugins](https://img.shields.io/badge/plugins-27-green.svg)](#available-plugins)
+[![Plugins](https://img.shields.io/badge/plugins-31-green.svg)](#available-plugins)
 [![Platforms](https://img.shields.io/badge/platforms-6-blue.svg)](#installation)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
 
@@ -162,6 +162,7 @@ Claude Desktop supports MCP servers configured in `claude_desktop_config.json`. 
 | Plugin          | Description                                         |
 | --------------- | --------------------------------------------------- |
 | **seo-geo-rag** | SEO + GEO + RAG optimization for AI-era search      |
+| **toprank**     | Portable SEO workflows from nowork-studio/toprank   |
 
 ### UX & Design
 

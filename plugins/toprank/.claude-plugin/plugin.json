@@ -1,0 +1,24 @@
+{
+  "name": "toprank",
+  "version": "0.1.0",
+  "description": "SEO workflows for keyword research, metadata optimization, and JSON-LD schema generation adapted from nowork-studio/toprank.",
+  "author": {
+    "name": "nowork-studio"
+  },
+  "category": "seo",
+  "homepage": "https://github.com/nowork-studio/toprank",
+  "repository": "https://github.com/nowork-studio/toprank",
+  "license": "MIT",
+  "tags": [
+    "seo",
+    "keyword-research",
+    "metadata",
+    "schema",
+    "structured-data"
+  ],
+  "skills": [
+    "./skills/keyword-research/SKILL.md",
+    "./skills/meta-tags-optimizer/SKILL.md",
+    "./skills/schema-markup-generator/SKILL.md"
+  ]
+}

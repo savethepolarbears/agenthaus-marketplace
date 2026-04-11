@@ -5,7 +5,7 @@
     "email": "support@agenthaus.dev"
   },
   "metadata": {
-    "description": "A comprehensive marketplace of 25 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
+    "description": "A comprehensive marketplace of 31 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
     "version": "1.0.0",
     "pluginRoot": "./plugins"
   },
@@ -251,6 +251,20 @@
         "discoverability"
       ],
       "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "toprank",
+      "source": "./plugins/toprank",
+      "category": "seo",
+      "description": "Portable keyword research, metadata optimization, and schema-markup workflows adapted from nowork-studio/toprank.",
+      "keywords": [
+        "seo",
+        "keyword-research",
+        "metadata",
+        "schema",
+        "structured-data"
+      ],
+      "author": { "name": "nowork-studio" }
     },
     {
       "name": "gog-workspace",

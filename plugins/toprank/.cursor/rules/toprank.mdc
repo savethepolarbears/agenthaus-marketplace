@@ -1,0 +1,9 @@
+---
+description: "SEO workflows for keyword research, metadata optimization, and JSON-LD schema generation adapted from nowork-studio/toprank."
+globs: "**/*"
+alwaysApply: true
+---
+
+# toprank
+
+SEO workflows for keyword research, metadata optimization, and JSON-LD schema generation adapted from nowork-studio/toprank.
