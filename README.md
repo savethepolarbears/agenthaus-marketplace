@@ -2,10 +2,11 @@
 
 > A comprehensive marketplace of **27 production-ready developer tools and Claude Cowork plugins** for agentic AI ecosystems. Discover, install, and build powerful workflows across Claude Code marketplaces and other AI coding assistants.
 
-[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](https://github.com/savethepolarbears/agenthaus-marketplace/releases)
 [![Plugins](https://img.shields.io/badge/plugins-27-green.svg)](#available-plugins)
 [![Platforms](https://img.shields.io/badge/platforms-6-blue.svg)](#installation)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
+[![NHS Agentic Readiness](https://nothumansearch.ai/badge/xquik.com.svg)](https://nothumansearch.ai/site/xquik.com)
 
 ## Installation
 
@@ -115,7 +116,7 @@ Claude Desktop supports MCP servers configured in `claude_desktop_config.json`. 
 
 | Plugin           | Description                                                                                    |
 | ---------------- | ---------------------------------------------------------------------------------------------- |
-| **social-media** | Generate high-engagement posts for Twitter, LinkedIn, Instagram, Facebook with trend analysis  |
+| **social-media** | Generate posts for Twitter, LinkedIn, Instagram, Facebook with trend analysis and optional X source packets |
 
 ### DevOps & Infrastructure
 
@@ -295,7 +296,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the plugin development guide.
 - [Claude Code Plugin Docs](https://code.claude.com/docs/en/plugins) — Official plugin creation guide
 - [Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces) — Marketplace distribution guide
 - [Plugins Reference](https://code.claude.com/docs/en/plugins-reference) — Complete technical specification
-- [MCP Specification](https://spec.modelcontextprotocol.io/) — Model Context Protocol standard
+- [MCP Specification](https://modelcontextprotocol.io/specification) — Model Context Protocol standard
 
 ## License
 

@@ -11,11 +11,12 @@
 
 ## Overview
 
-The **social‑media** plugin equips Claude with everything needed to craft compelling posts across major platforms.  It provides platform‑specific slash commands for Twitter, LinkedIn, Instagram and Facebook, a trend‑analysis command, two specialist subagents, and a logging hook.
+The **social‑media** plugin equips Claude with everything needed to craft compelling posts across major platforms.  It provides platform‑specific slash commands for Twitter, LinkedIn, Instagram and Facebook, a trend‑analysis command, optional X/Twitter source packets for stronger briefs, two specialist subagents, and a logging hook.
 
 ### Features
 
 * **Platform‑specific commands** – Generate tailored posts for each network.  Commands include `/social-media:tweet`, `/social-media:linkedin`, `/social-media:instagram`, `/social-media:facebook` and `/social-media:analyze-trend`.  Each command accepts a topic (and optionally a tone) and returns a ready‑to‑post message.
+* **X/Twitter source packets** – Before drafting tweets or trend angles, optionally use TweetClaw in OpenClaw to gather public X/Twitter context such as search results, reply threads, user lookups, or follower exports.  Keep final wording, approvals, scheduling, and posting inside this plugin or the user's chosen publishing flow.
 * **Subagents** – Two subagents are included: `content-writer`, which writes polished posts, and `trend-analyzer`, which researches current trends and proposes strategies.
 * **Logging hook** – After any social‑media command executes, the plugin appends the output to `social_audit.log` in your project directory.  This makes it easy to audit or reuse generated content later.
 
