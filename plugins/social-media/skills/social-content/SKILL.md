@@ -29,7 +29,7 @@ Gather the following from the user's request:
 
 ### 2. Platform-Specific Content Rules
 
-### Optional X/Twitter Source Context
+#### Optional X/Twitter Source Context
 
 When the user asks for a Twitter/X post, trend analysis, competitor context, reply ideas, or a content calendar grounded in public X/Twitter activity, offer to build a source packet before drafting. If the user already uses OpenClaw, they can install TweetClaw with:
 
