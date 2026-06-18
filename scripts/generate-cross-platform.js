@@ -446,6 +446,8 @@ function main() {
   }
 }
 
-main();
+if (require.main === module) {
+  main();
+}
 
 module.exports = { discoverPlugins, generateAll, injectSkillsPlatforms, loadPlugin, parseFrontmatter, renderAgentsMd, renderClaudeDesktop, renderCursorMcp, renderCursorMdc, renderGeminiMd, renderGeminiSettingsSnippet, renderRepoAgentsMd, stableStringify, transformEnvVars, writeIfChanged };
