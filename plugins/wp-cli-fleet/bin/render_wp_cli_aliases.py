@@ -16,7 +16,14 @@ from pathlib import Path
 
 
 def load_manifest(path: str) -> dict:
-    """Load and validate a fleet manifest JSON file."""
+    """Load and validate a fleet manifest JSON file.
+
+    Args:
+        path: File system path to the JSON manifest.
+
+    Returns:
+        The parsed manifest dictionary.
+    """
     manifest_path = Path(path)
     if not manifest_path.exists():
         print(f"Error: Manifest file not found: {path}", file=sys.stderr)
@@ -26,7 +33,14 @@ def load_manifest(path: str) -> dict:
 
 
 def render_aliases(manifest: dict) -> str:
-    """Render a wp-cli.yml aliases section from the manifest."""
+    """Render a YAML string representing WP-CLI aliases and groups.
+
+    Args:
+        manifest: The loaded fleet manifest dictionary.
+
+    Returns:
+        A formatted YAML string containing site and group alias definitions.
+    """
     sites = manifest.get("sites", [])
     groups = defaultdict(list)
     lines = ["# Auto-generated from fleet manifest", "# Do not edit manually", ""]
@@ -71,6 +85,7 @@ def render_aliases(manifest: dict) -> str:
 
 
 def main():
+    """Parse CLI arguments and generate the WP-CLI aliases file."""
     parser = argparse.ArgumentParser(
         description="Generate wp-cli.yml aliases from a fleet manifest."
     )

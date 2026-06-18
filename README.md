@@ -1,9 +1,9 @@
 # AgentHaus Marketplace - Developer Tools for Agentic AI
 
-> A comprehensive marketplace of **27 production-ready developer tools and Claude Cowork plugins** for agentic AI ecosystems. Discover, install, and build powerful workflows across Claude Code marketplaces and other AI coding assistants.
+> A comprehensive marketplace of **30 production-ready developer tools and Claude Cowork plugins** for agentic AI ecosystems. Discover, install, and build powerful workflows across Claude Code marketplaces and other AI coding assistants.
 
 [![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](https://github.com/savethepolarbears/agenthaus-marketplace/releases)
-[![Plugins](https://img.shields.io/badge/plugins-27-green.svg)](#available-plugins)
+[![Plugins](https://img.shields.io/badge/plugins-30-green.svg)](#available-plugins)
 [![Platforms](https://img.shields.io/badge/platforms-6-blue.svg)](#installation)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
 [![NHS Agentic Readiness](https://nothumansearch.ai/badge/xquik.com.svg)](https://nothumansearch.ai/site/xquik.com)
@@ -275,7 +275,7 @@ Automatically prompt team members to install the marketplace when they trust the
 
 ## Validation
 
-Run the plugin validation script to check all 27 plugins:
+Run the plugin validation script to check all 30 plugins:
 
 ```bash
 bash scripts/validate-plugins.sh

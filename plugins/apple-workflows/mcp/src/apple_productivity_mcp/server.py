@@ -621,7 +621,11 @@ def reminders_list(
 
 @mcp.tool()
 def reminder_get(reminder_ref: str) -> dict[str, Any]:
-    """Fetch one reminder by exact id, id prefix, or exact title."""
+    """Fetch one reminder by exact id, id prefix, or exact title.
+
+    If the active backend is 'rem', it will attempt to fetch directly via 'rem get -o json' for speed.
+    Otherwise, it falls back to fetching all reminders and filtering locally.
+    """
     backend = _get_reminder_backend()
     if backend.name == "rem":
         proc = _run_cmd([backend.binary, "get", reminder_ref, "-o", "json"], check=False)
@@ -644,7 +648,11 @@ def reminders_add(
     url: str | None = None,
     flagged: bool = False,
 ) -> dict[str, Any]:
-    """Create a reminder."""
+    """Create a reminder.
+
+    Command construction differs slightly depending on the backend ('remindctl' uses --title,
+    whereas 'rem' takes the title as a positional argument).
+    """
     backend = _get_reminder_backend()
 
     if backend.name == "remindctl":
@@ -689,7 +697,12 @@ def reminders_update(
     url: str | None = None,
     list_name: str | None = None,
 ) -> dict[str, Any]:
-    """Update a reminder."""
+    """Update a reminder.
+
+    Backend behavior divergence:
+    - 'remindctl' uses 'edit' command and '--title' flag.
+    - 'rem' uses 'update' command and '--name' flag.
+    """
     backend = _get_reminder_backend()
 
     if backend.name == "remindctl":
