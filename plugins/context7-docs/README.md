@@ -13,7 +13,7 @@ Quickly fetch reliable documentation with the **context7-docs** plugin.  Instead
 
 ## Features
 
-* **Library resolution** – Use `/context7-docs:docs <library> <query>` to find the right documentation.  The plugin first resolves the library name to a unique ID and then queries the docs database.
+* **Library resolution** – Use `/context7-docs:docs <library> <query>` to find the right documentation.  The plugin first resolves the library name to a unique ID and then queries the docs database. **Note:** A valid `projectIdentifier` must be resolved by Context7, otherwise the search will fail with a 404 error.
 * **Detailed answers with examples** – Claude summarises the retrieved documentation, extracts code examples and explains API usage.  If multiple versions exist, the latest stable version is used.
 * **Optional API key** – For most public libraries, no API key is required.  If you have a Context7 API key, set `CONTEXT7_API_KEY` to enable access to private or rate‑limited docs.
 

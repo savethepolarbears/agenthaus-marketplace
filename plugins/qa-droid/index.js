@@ -7,8 +7,15 @@ import { chromium } from 'playwright';
 // called, this tool navigates to a URL in a headless browser and
 // returns the page title.  It could easily be extended to capture
 // screenshots or assert page state.
+/**
+ * QA-Droid MCP Server.
+ * Provides testing and quality assurance tools via the Model Context Protocol.
+ */
 const server = new Server({ name: 'qa-droid', version: '1.0.0' }, { capabilities: { tools: {} } });
 
+/**
+ * Lists available tools for the QA-Droid server.
+ */
 server.setRequestHandler('tools/list', async () => ({
   tools: [
     {
@@ -19,6 +26,12 @@ server.setRequestHandler('tools/list', async () => ({
   ]
 }));
 
+/**
+ * Handles execution requests for QA-Droid tools.
+ *
+ * @param {import('@modelcontextprotocol/sdk/types').CallToolRequest} req - The incoming tool execution request.
+ * @returns {Promise<import('@modelcontextprotocol/sdk/types').CallToolResult>} The result of the tool execution.
+ */
 server.setRequestHandler('tools/call', async (req) => {
   if (req.params.name === 'visit_and_report') {
     const browser = await chromium.launch();

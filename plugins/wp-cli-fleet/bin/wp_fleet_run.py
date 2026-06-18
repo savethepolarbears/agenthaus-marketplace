@@ -25,7 +25,14 @@ from pathlib import Path
 
 
 def load_manifest(path: str) -> dict:
-    """Load and validate a fleet manifest JSON file."""
+    """Load and validate a fleet manifest JSON file.
+
+    Args:
+        path: File system path to the JSON manifest.
+
+    Returns:
+        The parsed manifest dictionary.
+    """
     manifest_path = Path(path)
     if not manifest_path.exists():
         print(f"Error: Manifest file not found: {path}", file=sys.stderr)
@@ -39,7 +46,16 @@ def load_manifest(path: str) -> dict:
 
 
 def filter_sites(sites: list, group: str = None, alias: str = None) -> list:
-    """Filter sites by group or alias."""
+    """Filter a list of sites down to those matching the specified group or alias.
+
+    Args:
+        sites: List of site dictionaries.
+        group: Optional group name to filter by.
+        alias: Optional exact site alias to filter by.
+
+    Returns:
+        A list of site dictionaries matching the filter criteria.
+    """
     if alias:
         return [s for s in sites if s.get("alias") == alias]
     if group:
@@ -48,7 +64,11 @@ def filter_sites(sites: list, group: str = None, alias: str = None) -> list:
 
 
 def list_fleet(manifest: dict) -> None:
-    """Print sites and groups from the manifest."""
+    """Print formatted information about all sites and groups found in the manifest.
+
+    Args:
+        manifest: The loaded fleet manifest dictionary.
+    """
     sites = manifest.get("sites", [])
     groups = set()
     for site in sites:
@@ -70,7 +90,18 @@ def list_fleet(manifest: dict) -> None:
 
 
 def build_wp_command(site: dict, wp_args: list) -> list:
-    """Build the full WP-CLI command for a site."""
+    """Build the full WP-CLI command array required to target a specific site.
+
+    Determines whether to use an SSH connection string, an alias, or run locally
+    based on the site configuration.
+
+    Args:
+        site: Dictionary containing site configuration.
+        wp_args: List of WP-CLI arguments to append to the base command.
+
+    Returns:
+        A list representing the complete shell command.
+    """
     ssh_target = site.get("ssh")
     path = site.get("path")
     alias = site.get("alias")
@@ -84,7 +115,15 @@ def build_wp_command(site: dict, wp_args: list) -> list:
 
 
 def run_on_site(site: dict, wp_args: list) -> dict:
-    """Run a WP-CLI command on a single site and return the result."""
+    """Execute a WP-CLI command against a single site and capture the output.
+
+    Args:
+        site: Dictionary containing site configuration.
+        wp_args: List of WP-CLI arguments to run.
+
+    Returns:
+        A dictionary containing execution results including stdout, stderr, and success state.
+    """
     cmd = build_wp_command(site, wp_args)
     result = {
         "alias": site.get("alias", "unknown"),
@@ -119,6 +158,7 @@ def run_on_site(site: dict, wp_args: list) -> dict:
 
 
 def main():
+    """Parse CLI arguments and orchestrate fleet command execution."""
     parser = argparse.ArgumentParser(
         description="Run WP-CLI commands across a WordPress fleet."
     )
