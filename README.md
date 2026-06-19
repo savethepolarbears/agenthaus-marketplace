@@ -160,9 +160,10 @@ Claude Desktop supports MCP servers configured in `claude_desktop_config.json`. 
 
 ### SEO & Optimization
 
-| Plugin          | Description                                         |
-| --------------- | --------------------------------------------------- |
-| **seo-geo-rag** | SEO + GEO + RAG optimization for AI-era search      |
+| Plugin                   | Description                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| **seo-geo-rag**          | SEO + GEO + RAG optimization for AI-era search                                                   |
+| **notfair-marketing**    | SEO, GEO, Google Ads, and Meta Ads skills with live data via Google Ads MCP, Meta Ads MCP, Google Search Console MCP, and Google Analytics (GA4) MCP |
 
 ### UX & Design
 

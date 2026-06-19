@@ -253,6 +253,27 @@
       "author": { "name": "AgentHaus Team" }
     },
     {
+      "name": "notfair-marketing",
+      "source": "./plugins/notfair-marketing",
+      "category": "seo",
+      "description": "Open-source Claude Code agent skills for SEO, GEO, Google Ads, and Meta Ads. Connects to live account data via Google Ads MCP, Meta Ads MCP, Google Search Console MCP, and Google Analytics (GA4) MCP.",
+      "keywords": [
+        "seo",
+        "geo",
+        "google-ads",
+        "meta-ads",
+        "facebook-ads",
+        "instagram-ads",
+        "google-search-console",
+        "google-analytics",
+        "ga4",
+        "marketing",
+        "mcp",
+        "skills"
+      ],
+      "author": { "name": "nowork-studio", "url": "https://github.com/nowork-studio/NotFair" }
+    },
+    {
       "name": "gog-workspace",
       "source": "./plugins/gog-workspace",
       "category": "productivity",

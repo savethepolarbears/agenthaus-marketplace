@@ -1,0 +1,63 @@
+{
+  "name": "notfair-marketing",
+  "version": "1.0.0",
+  "description": "Open-source Claude Code agent skills for SEO, GEO, Google Ads, and Meta Ads. Connects to live account data via Google Ads MCP, Meta Ads MCP, Google Search Console MCP, and Google Analytics (GA4) MCP.",
+  "author": {
+    "name": "nowork-studio",
+    "email": ""
+  },
+  "homepage": "https://github.com/nowork-studio/NotFair",
+  "repository": "https://github.com/nowork-studio/NotFair",
+  "license": "MIT",
+  "tags": [
+    "seo",
+    "geo",
+    "google-ads",
+    "meta-ads",
+    "marketing",
+    "mcp",
+    "claude-code",
+    "skills"
+  ],
+  "keywords": [
+    "seo",
+    "google-ads",
+    "meta-ads",
+    "facebook-ads",
+    "instagram-ads",
+    "google-search-console",
+    "google-analytics",
+    "ga4",
+    "keyword-research",
+    "schema-markup",
+    "wasted-spend",
+    "roas",
+    "creative-fatigue"
+  ],
+  "skills": [
+    "./skills/notfair-seo/SKILL.md",
+    "./skills/notfair-google-ads/SKILL.md",
+    "./skills/notfair-meta-ads/SKILL.md"
+  ],
+  "mcpServers": {
+    "google-ads": {
+      "command": "npx",
+      "args": ["-y", "@nowork-studio/google-ads-mcp"],
+      "env": {
+        "GOOGLE_ADS_DEVELOPER_TOKEN": "${GOOGLE_ADS_DEVELOPER_TOKEN}",
+        "GOOGLE_ADS_CLIENT_ID": "${GOOGLE_ADS_CLIENT_ID}",
+        "GOOGLE_ADS_CLIENT_SECRET": "${GOOGLE_ADS_CLIENT_SECRET}",
+        "GOOGLE_ADS_REFRESH_TOKEN": "${GOOGLE_ADS_REFRESH_TOKEN}",
+        "GOOGLE_ADS_LOGIN_CUSTOMER_ID": "${GOOGLE_ADS_LOGIN_CUSTOMER_ID}"
+      }
+    },
+    "meta-ads": {
+      "command": "npx",
+      "args": ["-y", "@nowork-studio/meta-ads-mcp"],
+      "env": {
+        "META_ACCESS_TOKEN": "${META_ACCESS_TOKEN}",
+        "META_AD_ACCOUNT_ID": "${META_AD_ACCOUNT_ID}"
+      }
+    }
+  }
+}
