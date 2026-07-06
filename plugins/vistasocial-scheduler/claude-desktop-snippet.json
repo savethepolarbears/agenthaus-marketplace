@@ -1,0 +1,12 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "vistasocial-scheduler",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "vistasocial": {
+      "name": "VistaSocial",
+      "type": "url",
+      "url": "https://vistasocial.com/api/integration/mcp?api_key=${VISTASOCIAL_API_KEY}"
+    }
+  }
+}

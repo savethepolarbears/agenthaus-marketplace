@@ -1,14 +1,25 @@
 # notfair-marketing
 
-Open-source Claude Code agent skills for SEO, GEO, Google Ads, and Meta Ads (~2.9k GitHub stars).
-Source: https://github.com/nowork-studio/NotFair
+Open-source Claude Code agent skills for SEO, GEO, Google Ads, and Meta Ads. Connects to live account data via Google Ads MCP, Meta Ads MCP, Google Search Console MCP, and Google Analytics (GA4) MCP.
 
-## Skills
+> **Codex CLI note:** This plugin requires MCP tools. Codex CLI does not implement MCP; configure the MCP server in your platform settings to enable full functionality.
 
-- **notfair-seo** — Site analysis, keyword research, meta tags, schema markup, GEO optimization for AI search engines. Requires Google Search Console MCP and Google Analytics (GA4) MCP.
-- **notfair-google-ads** — Account audits, wasted-spend detection, search-term cleanup, keyword and bid management. Requires Google Ads MCP.
-- **notfair-meta-ads** — Campaign audits, ROAS analysis, creative fatigue detection, audience overlap. Requires Meta Ads MCP.
+## Platform Support
 
-## Platform Limitations
+| Platform | MCP | Hooks | Commands/Agents | Skills |
+|----------|-----|-------|-----------------|--------|
+| Claude Code | full | n/a | full | full |
+| Codex CLI | none | n/a | partial | full |
+| Gemini CLI | via gemini-settings | n/a | partial | full |
+| Cursor | via .cursor/mcp.json | n/a | partial | full |
+| Windsurf | TBD | n/a | partial | full |
 
-MCP-dependent skills (notfair-google-ads, notfair-meta-ads, notfair-seo) require MCP runtime support. On Codex CLI and Windsurf, MCP tools are unavailable — skills will operate in a limited, read-only advisory mode without live account data.
+## Environment Variables
+
+- `GOOGLE_ADS_DEVELOPER_TOKEN`
+- `GOOGLE_ADS_CLIENT_ID`
+- `GOOGLE_ADS_CLIENT_SECRET`
+- `GOOGLE_ADS_REFRESH_TOKEN`
+- `GOOGLE_ADS_LOGIN_CUSTOMER_ID`
+- `META_ACCESS_TOKEN`
+- `META_AD_ACCOUNT_ID`

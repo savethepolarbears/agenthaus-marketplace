@@ -7,4 +7,3 @@ alwaysApply: true
 # agent-handoff
 
 State-based task handoff between agents using a shared blackboard protocol.
-> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.

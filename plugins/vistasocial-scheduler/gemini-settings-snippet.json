@@ -1,0 +1,10 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "vistasocial": {
+      "name": "VistaSocial",
+      "type": "url",
+      "url": "https://vistasocial.com/api/integration/mcp?api_key=${VISTASOCIAL_API_KEY}"
+    }
+  }
+}

@@ -7,4 +7,3 @@ alwaysApply: true
 # shadow-mode
 
 Agents draft outputs to a review queue instead of executing directly.
-> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.

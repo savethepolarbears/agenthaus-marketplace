@@ -5,4 +5,3 @@ Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slide
 ## Plugin Reference
 
 @plugins/gog-workspace/README.md
-> **Note:** Hook-based automation requires Claude Code. Hooks are not executed by Gemini CLI.
