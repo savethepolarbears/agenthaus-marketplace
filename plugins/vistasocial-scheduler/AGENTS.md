@@ -1,6 +1,6 @@
-# apple-workflows
+# vistasocial-scheduler
 
-Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP server on macOS.
+Social media scheduling and management plugin using VistaSocial MCP. Handles post scheduling, content creation, queue auditing, profile lookups, rate-limit-aware batch operations, and multi-brand social media operations.
 
 > **Codex CLI note:** This plugin requires MCP tools. Codex CLI does not implement MCP; configure the MCP server in your platform settings to enable full functionality.
 
@@ -13,7 +13,3 @@ Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP serv
 | Gemini CLI | via gemini-settings | n/a | partial | full |
 | Cursor | via .cursor/mcp.json | n/a | partial | full |
 | Windsurf | TBD | n/a | partial | full |
-
-## Environment Variables
-
-- `APPLE_REMINDERS_BACKEND`

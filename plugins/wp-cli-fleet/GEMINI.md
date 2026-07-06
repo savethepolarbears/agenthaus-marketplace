@@ -5,4 +5,3 @@ Agentic WP-CLI and WordPress fleet management for plugin inventory, updates, hea
 ## Plugin Reference
 
 @plugins/wp-cli-fleet/README.md
-> **Note:** Hook-based automation requires Claude Code. Hooks are not executed by Gemini CLI.
