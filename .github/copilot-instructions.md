@@ -4,7 +4,7 @@ For the complete project guide, see [AGENTS.md](../AGENTS.md).
 
 ## AgentHaus Marketplace
 
-A marketplace of 27 production-ready plugins for AI coding assistants. Plugins provide commands, agents, skills, hooks, and MCP server integrations.
+A marketplace of 37 production-ready plugins for AI coding assistants. Plugins provide commands, agents, skills, hooks, and MCP server integrations.
 
 ## Quick Reference
 

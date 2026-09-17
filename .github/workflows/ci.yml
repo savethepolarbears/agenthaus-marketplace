@@ -25,6 +25,9 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y jq
 
+      - name: Generate skills index
+        run: bash scripts/generate-skills-index.sh
+
       - name: Validate all marketplace plugins
         run: bash scripts/validate-plugins.sh
 

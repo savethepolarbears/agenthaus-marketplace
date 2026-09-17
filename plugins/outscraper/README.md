@@ -38,13 +38,13 @@ Get your API key at [outscraper.com](https://outscraper.com).
 
 ### Search for Businesses
 
-```
+```bash
 /outscraper:search "coffee shops in Austin TX" --limit 20
 ```
 
 ### Mine Customer Reviews
 
-```
+```bash
 /outscraper:reviews google "ChIJ2V-Mo8dQwokRfZy-E-zcKbs" --limit 100
 /outscraper:reviews trustpilot "example.com" --limit 50
 /outscraper:reviews amazon "B07ABCD1234" --limit 100
@@ -52,20 +52,20 @@ Get your API key at [outscraper.com](https://outscraper.com).
 
 ### Extract & Verify Emails
 
-```
+```bash
 /outscraper:enrich emails "example.com"
 /outscraper:enrich verify "user@example.com"
 ```
 
 ### Get Company Data
 
-```
+```bash
 /outscraper:enrich company "example.com"
 ```
 
 ### Geocode Addresses
 
-```
+```bash
 /outscraper:geocode "1600 Pennsylvania Ave, Washington DC"
 /outscraper:geocode reverse "38.8977,-77.0365"
 ```
@@ -85,7 +85,7 @@ Get your API key at [outscraper.com](https://outscraper.com).
 
 AI-powered research specialist for market intelligence, lead generation, and competitive analysis.
 
-```
+```text
 Use when: "Find competitors", "Analyze reviews", "Generate leads", "Market research"
 ```
 
@@ -250,7 +250,7 @@ Comprehensive guide covering:
 
 ### Find Top-Rated Plumbers in Austin
 
-```
+```bash
 /outscraper:search "plumbers in Austin TX" --limit 20
 /outscraper:reviews google [place_id] --limit 50 --sort highest_rating
 ```
@@ -259,7 +259,7 @@ Comprehensive guide covering:
 
 ### Generate B2B Lead List
 
-```
+```bash
 /outscraper:search "SaaS companies in San Francisco"
 /outscraper:enrich emails company1.com company2.com ...
 /outscraper:enrich verify --batch-file emails.csv
@@ -270,7 +270,7 @@ Comprehensive guide covering:
 
 ### Analyze Competitor Reviews
 
-```
+```bash
 /outscraper:reviews google [competitor_place_id] --limit 100
 /outscraper:reviews trustpilot "competitor.com" --limit 100
 /outscraper:reviews amazon [competitor_asin] --limit 100
@@ -280,7 +280,7 @@ Comprehensive guide covering:
 
 ### Map Service Providers
 
-```
+```bash
 /outscraper:search "restaurants in Austin TX" --limit 50
 /outscraper:geocode batch restaurants.csv --mode forward
 ```
@@ -290,7 +290,7 @@ Comprehensive guide covering:
 ## Environment Variables
 
 | Variable | Required | Description |
-|----------|----------|-------------|
+| :--- | :--- | :--- |
 | `OUTSCRAPER_API_KEY` | Yes | Your Outscraper API key |
 
 ## Troubleshooting

@@ -29,7 +29,7 @@ No environment variables or API keys required.
 
 Automated UI/UX audit and improvements for the current project.
 
-```
+```text
 > /improve-ui
 
 Auditing components for:
@@ -45,7 +45,7 @@ Auditing components for:
 
 Senior UI/UX designer agent for in-depth design analysis and implementation. Uses `sonnet` model.
 
-```
+```text
 > Ask the ui-expert to review the dashboard layout
 
 The agent will analyze layout structure, spacing, hierarchy,

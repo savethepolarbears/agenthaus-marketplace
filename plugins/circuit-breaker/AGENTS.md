@@ -5,7 +5,7 @@ Pre-built safety guardrails as reusable hooks for Claude Code workflows.
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands/Agents | Skills |
-|----------|-----|-------|-----------------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | Claude Code | n/a | n/a | full | full |
 | Codex CLI | n/a | n/a | partial | full |
 | Gemini CLI | n/a | n/a | partial | full |

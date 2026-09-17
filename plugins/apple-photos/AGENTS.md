@@ -7,7 +7,7 @@ Manage Apple Photos libraries using the osxphotos CLI — query, export, import,
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands/Agents | Skills |
-|----------|-----|-------|-----------------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | Claude Code | n/a | full | full | full |
 | Codex CLI | n/a | none | partial | full |
 | Gemini CLI | n/a | none | partial | full |

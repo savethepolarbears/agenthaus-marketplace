@@ -18,6 +18,7 @@ A systematic audit across Git commit history, configuration files, shell scripts
 ## 2. Git History & Secret Scanning Audit
 
 ### Methodology
+
 - Exhaustive regex and entropy search across the entire git commit log (`git log -p -S ...`) for credential patterns:
   - OpenAI / Anthropic / AI API keys (`sk-ant-`, `sk-`, `ghp_`, `gho_`, `github_pat_`)
   - Cloud provider credentials (`AKIA`, `ASIA`, `AIza`, AWS secret access keys)
@@ -27,6 +28,7 @@ A systematic audit across Git commit history, configuration files, shell scripts
 - Inspected `.claude-plugin/plugin.json` and `.mcp.json` across all 37 plugins to ensure strict usage of `${ENV_VAR}` interpolation.
 
 ### Findings
+
 - **Result:** **0 secrets detected in Git history or tracked files.**
 - **Finding remediated:** The repository contained an obsolete maintenance script `scrub_history.sh` which executed `git filter-repo` and `git push origin --force --all`. Leaving destructive history-rewriting scripts in a public repository posed an severe operational hazard.
   - **Fix:** Removed `scrub_history.sh` from tracking and added `scrub_*.sh` to `.gitignore`.
@@ -36,9 +38,11 @@ A systematic audit across Git commit history, configuration files, shell scripts
 ## 3. Repository Boundary & Leak Prevention (.gitignore)
 
 ### Audit & Hardening
+
 The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`, leaving `.env.production` or arbitrary environment variants unprotected. Additionally, private keys, certificates, and runtime agent artifacts were unignored.
 
 ### Changes Applied
+
 1. **Environment & Secrets:**
    - `.env` and `.env.*` (strictly preserving `!.env.example`)
    - Cryptographic keys and certificates: `*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.cer`, `*.crt`, `id_rsa`, `id_dsa`, `id_ecdsa`, `id_ed25519`, `*.keystore`
@@ -53,24 +57,28 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 ## 4. Hook Scripts & Shell Execution Security
 
 ### Audit Areas
+
 - Analyzed all hook shell scripts (`plugins/*/hooks/scripts/*.sh`) and utility scripts (`scripts/*.sh`):
   - Insecure temporary files (CWE-377)
   - Unquoted variable expansion and command injection (CWE-78)
   - Path traversal and arbitrary file read/write (CWE-22)
 
 ### Remediations Applied
+
 1. **`plugins/circuit-breaker/hooks/scripts/budget-guard.sh`**:
    - *Issue:* Static file path `/tmp/circuit-breaker-counter` in a shared environment exposed the agent to multi-user collisions and symlink hijacking.
    - *Remediation:* Replaced with user-isolated path `COUNTER_FILE="${TMPDIR:-/tmp}/circuit-breaker-counter-${USER_ID}"` where `USER_ID="${UID:-$(id -u 2>/dev/null || echo 0)}"`.
 2. **`scripts/install-plugins.sh`**:
    - *Issue:* `uninstall_from()` accepted a target path and executed `rm -rf "$dst"` without verifying that `$target_dir` was neither empty nor root `/`.
    - *Remediation:* Added explicit defensive guard:
+
      ```bash
      if [[ -z "$target_dir" || "$target_dir" == "/" ]]; then
        error "Refusing to uninstall from root or empty directory"
        return 1
      fi
      ```
+
 3. **`scripts/validate-plugins.sh`**:
    - Excluded `*/node_modules/*` from shell script scanning and skills indexing, preventing false alarms and ensuring determinism.
 
@@ -79,6 +87,7 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 ## 5. Dependency & Supply Chain Security
 
 ### Scan Results
+
 - Checked `plugins/qa-droid`:
   - `fast-uri`: Upgraded to `3.1.8` (fixes high-severity authority delimiter confusion).
   - `hono`: Upgraded to `4.13.8` (fixes CSS injection, JWT validation, cache leakage, IP restriction bypass).
@@ -105,6 +114,7 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 ## 7. CI/CD Automated Security Pipeline
 
 Added `.github/workflows/ci.yml` providing automated verification on every PR and push to `main`:
+
 - **Plugin & Hook Validation:** Runs `bash scripts/validate-plugins.sh` across all 37 plugins.
 - **Unit Tests:** Runs `node --test tests/*.test.js`.
 - **Generator Drift Guard:** Verifies `node scripts/generate-cross-platform.js` produces zero git diff.
