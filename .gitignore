@@ -27,6 +27,9 @@ id_ed25519
 *token*.json
 service-account*.json
 auth.json
+!*schema*.json
+!*fixture*.json
+!*mock*.json
 
 # IDE and editors
 .idea/

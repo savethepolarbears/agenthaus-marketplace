@@ -3,7 +3,7 @@
 **Date:** 2026-09-17  
 **Repository:** `savethepolarbears/agenthaus-marketplace` (Public Distribution)  
 **Auditor:** Agency Security Engineer  
-**Status:** PASS / HARDENED  
+**Status:** PASS / HARDENED (Point-in-time assessment as of commit `716dc11` and follow-up patches on 2026-09-17)
 
 ---
 
@@ -11,7 +11,7 @@
 
 As a completely public open-source repository containing 37 developer plugins, MCP servers, and hooks for agentic AI platforms (Claude Code, Codex CLI, Gemini CLI, Cursor, Windsurf), this repository requires rigorous defense-in-depth against secret leakage, command injection, supply chain vulnerabilities, and operational hazards.
 
-A systematic audit across Git commit history, configuration files, shell scripts, Python utilities, PHP plugins, and npm dependencies was conducted. All identified security issues, hardening gaps, and potential attack vectors have been remediated.
+A systematic audit across Git commit history, configuration files, shell scripts, Python utilities, PHP plugins, and npm dependencies was conducted. All identified security issues, hardening gaps, and potential attack vectors have been remediated and verified.
 
 ---
 
@@ -30,12 +30,12 @@ A systematic audit across Git commit history, configuration files, shell scripts
 ### Findings
 
 - **Result:** **0 secrets detected in Git history or tracked files.**
-- **Finding remediated:** The repository contained an obsolete maintenance script `scrub_history.sh` which executed `git filter-repo` and `git push origin --force --all`. Leaving destructive history-rewriting scripts in a public repository posed an severe operational hazard.
-  - **Fix:** Removed `scrub_history.sh` from tracking and added `scrub_*.sh` to `.gitignore`.
+- **Finding Remediated:** The repository contained an obsolete maintenance script `scrub_history.sh` which executed `git filter-repo` and `git push origin --force --all`. Leaving destructive history-rewriting scripts in a public repository posed a severe operational hazard.
+  - **Fix:** Removed `scrub_history.sh` from tracking, added `scrub_*.sh` to `.gitignore`, and added an automated CI check rejecting destructive `git push --force` scripts.
 
 ---
 
-## 3. Repository Boundary & Leak Prevention (.gitignore)
+## 3. Repository Boundary & Leak Prevention (.gitignore & .env.example)
 
 ### Audit & Hardening
 
@@ -44,13 +44,16 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 ### Changes Applied
 
 1. **Environment & Secrets:**
-   - `.env` and `.env.*` (strictly preserving `!.env.example`)
+   - Broadened rules: `.env` and `.env.*` (strictly preserving `!.env.example`)
    - Cryptographic keys and certificates: `*.pem`, `*.key`, `*.pfx`, `*.p12`, `*.cer`, `*.crt`, `id_rsa`, `id_dsa`, `id_ecdsa`, `id_ed25519`, `*.keystore`
    - Token & credential dumps: `*credentials*.json`, `*token*.json`, `service-account*.json`, `auth.json`
+   - Preserved schemas, mocks, and fixtures from accidental exclusion: `!*schema*.json`, `!*fixture*.json`, `!*mock*.json`
 2. **Agent Runtime Artifacts:**
    - `review_queue/`: Shadow-mode command queue directory (prevents accidental commits of intercepted tool invocations)
    - `.shadow-mode-enabled`: Shadow-mode activation flag
    - `.circuit-breaker-config.json`: Local breaker threshold overrides
+3. **Environment Template (`.env.example`):**
+   - Added documentation for 5 newly integrated plugins requiring external API credentials (`ENCHARGE_API_KEY`, `MARKUPGO_API_KEY`, `NEURONWRITER_API_KEY`, `OUTSCRAPER_API_KEY`, `TEXTFOCUS_API_KEY`). The 6th added plugin, `activepieces`, utilizes local/self-hosted connection configurations and does not require a root API token.
 
 ---
 
@@ -65,22 +68,15 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 
 ### Remediations Applied
 
-1. **`plugins/circuit-breaker/hooks/scripts/budget-guard.sh`**:
-   - *Issue:* Static file path `/tmp/circuit-breaker-counter` in a shared environment exposed the agent to multi-user collisions and symlink hijacking.
-   - *Remediation:* Replaced with user-isolated path `COUNTER_FILE="${TMPDIR:-/tmp}/circuit-breaker-counter-${USER_ID}"` where `USER_ID="${UID:-$(id -u 2>/dev/null || echo 0)}"`.
+1. **`plugins/circuit-breaker/hooks/scripts/budget-guard.sh` (CWE-377 Remediated)**:
+   - *Issue:* Static `/tmp/circuit-breaker-counter` in a shared environment exposed the agent to multi-user collisions and pre-created symlink hijacking.
+   - *Remediation:* Created a dedicated private state directory with mode `0700` (`mkdir -p -m 700 "$STATE_DIR"`) keyed to the active UID (`${TMPDIR:-/tmp}/circuit-breaker-${UID}`). Added explicit symlink verification guards (`[[ -L "$STATE_DIR" ]] && exit 0` and `[[ -L "$COUNTER_FILE" ]] && exit 0`) before writing, eliminating both collision and symlink traversal attack vectors.
 2. **`scripts/install-plugins.sh`**:
-   - *Issue:* `uninstall_from()` accepted a target path and executed `rm -rf "$dst"` without verifying that `$target_dir` was neither empty nor root `/`.
-   - *Remediation:* Added explicit defensive guard:
-
-     ```bash
-     if [[ -z "$target_dir" || "$target_dir" == "/" ]]; then
-       error "Refusing to uninstall from root or empty directory"
-       return 1
-     fi
-     ```
-
-3. **`scripts/validate-plugins.sh`**:
-   - Excluded `*/node_modules/*` from shell script scanning and skills indexing, preventing false alarms and ensuring determinism.
+   - *Issue:* `uninstall_from()` accepted a target path and executed `rm -rf "$dst"` without normalizing the path or checking for root, home, or shallow directory structures.
+   - *Remediation:* Applied strict path canonicalization (`target_dir="$(cd "$raw_target" 2>/dev/null && pwd -P)"`) and added safety guards rejecting empty targets, root `/`, `$HOME`, or paths with fewer than two path segments.
+3. **`scripts/validate-plugins.sh` & Vendored Script Tradeoff**:
+   - *Tradeoff Analysis:* Directly scanning `node_modules` for Claude Code hook conventions produces false positive failures against legitimate third-party tooling (e.g. Playwright browser download scripts). Conversely, completely ignoring `node_modules` eliminates visibility into vendored shell risk.
+   - *Resolution:* Plugin-owned hook scripts are validated strictly for hook semantics (`$TOOL_INPUT`, `exit 1`, `eval`, schema properties). Vendored scripts under `node_modules` are scanned at **warn-only** severity specifically for unsafe command execution patterns (`eval`), preserving supply-chain visibility without blocking validation runs.
 
 ---
 
@@ -90,11 +86,12 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 
 - Checked `plugins/qa-droid`:
   - `fast-uri`: Upgraded to `3.1.8` (fixes high-severity authority delimiter confusion).
-  - `hono`: Upgraded to `4.13.8` (fixes CSS injection, JWT validation, cache leakage, IP restriction bypass).
-  - `@hono/node-server`: Upgraded to `1.19.17`.
-  - `ip-address`: Upgraded to `10.7.2` (fixes XSS in Address6 methods).
-  - `qs`: Upgraded to `6.16.0` (fixes DoS in `qs.stringify`).
-- **Post-Fix Status:** `npm audit` reports **0 vulnerabilities** (0 low, 0 moderate, 0 high, 0 critical).
+  - `hono`: Upgraded `4.12.16 -> 4.13.8` (Minor bump; fixes CSS injection, JWT validation, cache leakage, IP restriction bypass).
+  - `@hono/node-server`: Upgraded `1.19.14 -> 1.19.17` (Upstream adapter update).
+  - `ip-address`: Upgraded `10.1.0 -> 10.7.2` (Minor bump; fixes XSS in Address6 methods).
+  - `qs`: Upgraded `6.15.1 -> 6.16.0` (Patch bump; fixes DoS in `qs.stringify`).
+- **Regression Prevention:** Transitive dependency fixes were committed to `plugins/qa-droid/package-lock.json` and permanently pinned in `plugins/qa-droid/package.json` under `overrides` to prevent regression upon future `npm install` or `npm ci` invocations.
+- **Point-in-Time Status:** `npm audit` reports **0 vulnerabilities** as of 2026-09-17.
 
 ---
 
@@ -113,12 +110,17 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 
 ## 7. CI/CD Automated Security Pipeline
 
-Added `.github/workflows/ci.yml` providing automated verification on every PR and push to `main`:
+Added `.github/workflows/ci.yml` and `.github/dependabot.yml` providing automated verification on every PR and push to `main`:
 
-- **Plugin & Hook Validation:** Runs `bash scripts/validate-plugins.sh` across all 37 plugins.
+- **Pin by Commit SHA:** All GitHub Actions (`actions/checkout`, `actions/setup-node`, `gitleaks/gitleaks-action`) are pinned to immutable commit SHAs with semantic version comments.
+- **Concurrency & Scheduling:** Implemented workflow concurrency cancellation (`cancel-in-progress: true`) and a scheduled nightly audit (`0 4 * * *`).
+- **Plugin & Hook Validation:** Runs `bash scripts/generate-skills-index.sh` followed by `bash scripts/validate-plugins.sh` across all 37 plugins.
 - **Unit Tests:** Runs `node --test tests/*.test.js`.
-- **Generator Drift Guard:** Verifies `node scripts/generate-cross-platform.js` produces zero git diff.
-- **Dependency Audit:** Runs `npm audit --audit-level=high` on `plugins/qa-droid`.
+- **Drift & Untracked Guard:** Verifies `node scripts/generate-cross-platform.js` produces zero git diff and zero untracked artifacts (`git status --porcelain --untracked-files=all`).
+- **Destructive Command Guard:** Scans tracked files for dangerous `git push --force` or `-f` flags.
+- **Dependency Audit:** Runs `npm audit --audit-level=high` on `plugins/qa-droid` with npm cache support.
+- **Automated Secret Scanning:** Automated Gitleaks analysis across all commits on every pull request.
+- **Dependabot Integration:** Configured `.github/dependabot.yml` for automated weekly updates across npm dependencies and GitHub Actions.
 
 ---
 
@@ -127,11 +129,12 @@ Added `.github/workflows/ci.yml` providing automated verification on every PR an
 | Check Category | Tool / Method | Target | Result |
 | :--- | :--- | :--- | :--- |
 | Secret Scanning | Git log pattern & entropy scan | Full repo history | PASS (0 secrets found) |
-| Gitignore Boundaries | Path matching & rule audit | `.gitignore` | PASS (Hardened) |
-| Destructive Script Audit | Static file review | `scrub_history.sh` | PASS (Removed) |
-| Temp File Security | CWE-377 inspection | `budget-guard.sh` | PASS (Isolated by UID) |
-| Script Path Traversal | Defensive guard audit | `install-plugins.sh` | PASS (Root guard added) |
-| Dependency Vulnerabilities | `npm audit` | `plugins/qa-droid` | PASS (0 vulnerabilities) |
-| Marketplace Validation | `scripts/validate-plugins.sh` | 37 Plugins | PASS (37/37 passed) |
+| Gitignore Boundaries | Path matching & rule audit | `.gitignore` | PASS (Hardened with schema negations) |
+| Destructive Script Audit | Static file review & CI guard | Repo scripts & history | PASS (Removed `scrub_history.sh`, CI guard added) |
+| Temp File Security | Private 0700 dir + symlink check | `budget-guard.sh` | PASS (CWE-377 closed) |
+| Script Path Traversal | Canonical `pwd -P` + segment check | `install-plugins.sh` | PASS (Protected against root/home/shallow dirs) |
+| Vendored Shell Scan | Hook validator warn-only check | `node_modules` | PASS (Monitored for `eval`) |
+| Dependency Vulnerabilities | `npm audit` + `overrides` | `plugins/qa-droid` | PASS (0 vulnerabilities as of 2026-09-17) |
+| Marketplace Validation | `scripts/validate-plugins.sh` | 37 Plugins | PASS (37/37 passed, 0 failures, 0 warnings) |
 | Cross-Platform Consistency | `scripts/generate-cross-platform.js` | Cross-platform configs | PASS (Zero drift, AGENTS.md <= 6KiB) |
-| CI Pipeline | GitHub Actions | `.github/workflows/ci.yml` | PASS (Configured) |
+| CI Pipeline & Hardening | GitHub Actions & Dependabot | `.github/workflows/ci.yml` | PASS (SHA pinned, Gitleaks, concurrency) |

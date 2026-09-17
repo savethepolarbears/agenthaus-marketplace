@@ -294,6 +294,19 @@ validate_hook_security() {
 
   done < <(find "$dir" -name "*.sh" -type f ! -path "*/node_modules/*" 2>/dev/null)
 
+  # Scan vendored shell scripts under node_modules at warn-only severity
+  while IFS= read -r vendored_sh; do
+    local rel_path="${vendored_sh#$dir/}"
+    local content
+    content="$(sed 's/[[:space:]]*#.*$//' "$vendored_sh" 2>/dev/null)" || continue
+
+    if echo "$content" | grep -qE '(^|[^a-zA-Z_])eval[[:space:]]'; then
+      log_warn "[security] ${name}/${rel_path}: vendored script uses 'eval' — review for supply chain risk"
+      warn_count=$((warn_count + 1))
+      found_issues=1
+    fi
+  done < <(find "$dir" -path "*/node_modules/*" -name "*.sh" -type f 2>/dev/null)
+
   # Hook configuration files: keys Claude Code does not define are dropped at load
   # time, so a guard expressed through one is inert.
   while IFS= read -r hook_json; do
