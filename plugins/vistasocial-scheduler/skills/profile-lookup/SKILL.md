@@ -1,58 +1,49 @@
 ---
 name: profile-lookup
-description: Complete VistaSocial profile ID map for resolving brand names to numeric profile IDs without unnecessary MCP calls. Use when looking up profile IDs, group IDs, network codes, or brand-to-profile mappings.
+description: Profile ID map template for resolving brand names to numeric VistaSocial profile IDs without unnecessary MCP calls. Use when looking up profile IDs, group IDs, network codes, or brand-to-profile mappings.
 ---
 
 # Profile Lookup — VistaSocial ID Map
 
 ## Purpose
 
-This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `listProfiles` or `listProfileGroups` every time you need a profile ID, look it up here first. Only call the MCP API if the profile is not listed or you suspect the data has changed.
+This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `listProfiles` or `listProfileGroups` every time you need a profile ID, look it up in your local configuration table first. Only call the MCP API if the profile is not listed or you suspect the data has changed.
 
-## Profile Groups (12 total)
+> **Setup Note:** Populate the tables below with your organization's brand profile IDs and group UUIDs retrieved from your VistaSocial account.
 
-| Group Name | Group UUID | Decision |
-|------------|-----------|----------|
-| ViaTravelers | `b63a8810-2327-11ee-ac85-c1a50b1fe7e1` | Retain |
-| Greece | `eb160100-1c4e-11f0-9913-9fe464d8ed3e` | Expand |
-| Germany | `bd25be30-4a3a-11ee-8b68-3334ada7ed51` | Expand |
-| Amsterdam Local Gems | `97cb4150-8576-11ef-ba91-85c6d5b61252` | Retain |
-| Kyle Kroeger Personal Brand | `0e55c4e0-f061-11ee-b979-cf1c7b7dfed9` | Retain |
-| The Impact Investor | `ed677170-f00b-11ee-b979-cf1c7b7dfed9` | Retain |
-| Travel | `455921b0-2327-11ee-ac85-c1a50b1fe7e1` | Pause |
-| Finance & Business | `9888cdf0-abca-11ee-b7c4-57d959be487f` | Pause |
-| Environment | `e4ef1880-ee90-11ee-88fe-e1108d67b844` | Pause |
-| Black Bear Media LLC | `e3c8eb10-2308-11ee-a436-dd8de3849711` | Pause |
-| Paris Top Ten | `d9e1b0a0-f256-11ee-823e-0b3dfb3faac9` | Pause |
-| Parker Villas | `eee43310-f0df-11ee-8b54-dd039960efa6` | Sunset |
+## Profile Groups (Example Structure)
+
+| Group Name | Group UUID | Status |
+| ------------ | ----------- | -------- |
+| Primary Brand Cluster | `11111111-2222-3333-4444-555555555551` | Active |
+| Regional Media Group | `11111111-2222-3333-4444-555555555552` | Active |
+| Product & Commerce | `11111111-2222-3333-4444-555555555553` | Active |
+| Secondary Brands | `11111111-2222-3333-4444-555555555554` | Paused |
 
 ## Quick Lookup: Active Brand Profile IDs
 
-### Greece Cluster
+### Brand Cluster A
 
 | Brand | Facebook | Instagram | Threads | LinkedIn | Pinterest |
-|-------|----------|-----------|---------|----------|-----------|
-| Santorini Secrets | 531204 | 531201 | 531212 | 573888 | 622839 |
-| Crete Secrets | 531203 | 531208 | 543951 | — | — |
-| Mykonos Secrets | 531210 | 531209 | 531247 | — | — |
-| Athens Secrets | 538195 | 538196 | 543952 | — | — |
+| ------- | ---------- | ----------- | --------- | ---------- | ----------- |
+| Brand Alpha | 10001 | 10002 | 10003 | 10004 | 10005 |
+| Brand Beta | 10006 | 10007 | 10008 | — | — |
+| Brand Gamma | 10009 | 10010 | 10011 | — | — |
+| Brand Delta | 10012 | 10013 | 10014 | — | — |
 
-### Flagship & Supporting Brands
+### Brand Cluster B
 
 | Brand | Facebook | Instagram | Threads | LinkedIn | Pinterest | TikTok | YouTube | GBP | Vista Page | Reddit |
-|-------|----------|-----------|---------|----------|-----------|--------|---------|-----|------------|--------|
-| ViaTravelers | 95149 | 95156 | 399612 | 95732 | 95386 | 95159 | 95162 | 345239 | 437300 | 308254 |
-| Everything About Germany | 95153 | 95157 | — | — | — | — | — | — | — | — |
-| Amsterdam Local Gems | 432707 | 437303 | — | — | 622845 | — | — | 622842 | — | — |
-| The Impact Investor | 95143 | — | — | 95731 | — | — | 308283 | — | — | — |
-| Kyle Kroeger | — | — | — | 95730 | — | — | — | — | — | — |
-| worldphotogoat | 95141 | 95154 | — | — | — | — | — | — | — | — |
-| Traveleering | 95151 | — | — | — | — | — | — | — | — | — |
+| ------- | ---------- | ----------- | --------- | ---------- | ----------- | -------- | --------- | ----- | ------------ | -------- |
+| Flagship Brand | 20001 | 20002 | 20003 | 20004 | 20005 | 20006 | 20007 | 20008 | 20009 | 20010 |
+| Regional Portal | 20011 | 20012 | — | — | — | — | — | — | — | — |
+| City Guide | 20013 | 20014 | — | — | 20015 | — | — | 20016 | — | — |
+| Editorial Brand | 20017 | — | — | 20018 | — | — | 20019 | — | — | — |
 
 ## Network Code Reference
 
 | VistaSocial Network Code | Display Name |
-|--------------------------|-------------|
+| -------------------------- | ------------- |
 | `facebook` | Facebook Page |
 | `instagram` | Instagram Profile |
 | `threads` | Threads Profile |
@@ -72,8 +63,7 @@ This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `li
 - `searchPosts` → `profile_ids` takes an array of numeric string IDs
 - `schedulePost` → `profile_id` takes a single numeric string ID
 
-## Known Data Quality Issues
+## Best Practices
 
-- **Travel group** and **Black Bear Media LLC group** contain duplicate cross-listings of active profiles — ignore these groups for operational work
-- **World Photo GOAT Instagram** (95154) has no dedicated group — listed under Black Bear Media LLC only
-- **Paused/Sunset brands** may still appear in group listings — never schedule to them
+- Cache profile IDs locally in this skill to minimize API calls and avoid rate limits.
+- If a brand is paused or sunset, flag it in the table and skip scheduling.

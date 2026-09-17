@@ -1,108 +1,115 @@
 ---
 name: greece-cluster
-description: Brand-specific posting rules, monetization context, profile IDs, seasonal content strategy, and promotional package details for Greece travel brands. Use when working with Greece cluster brands or planning Mediterranean travel content.
+description: Brand-specific posting rules, monetization context, profile IDs, seasonal content strategy, and promotional package details for regional travel brand clusters. Use when working with regional cluster brands or planning Mediterranean travel content.
 ---
 
-# Greece Cluster — Brand Operations Reference
+# Regional Cluster — Brand Operations Reference
 
-## Brand Profiles Quick Reference
+## Brand Profiles Quick Reference (Example Regional Cluster)
 
-### Santorini Secrets
+### Destination Alpha
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
-| Facebook | 531204 | 14:18 CET/CEST | Daily |
-| Instagram | 531201 | 18:00 CET/CEST | Mon/Wed/Fri/Sun |
-| Threads | 531212 | 17:19 CET/CEST | Daily |
-| LinkedIn | 573888 | TBD | As needed |
-| Pinterest | 622839 | TBD | As needed |
+| --------- | ----------- | -------------- | ------ |
+| Facebook | 10001 | 14:18 CET/CEST | Daily |
+| Instagram | 10002 | 18:00 CET/CEST | Mon/Wed/Fri/Sun |
+| Threads | 10003 | 17:19 CET/CEST | Daily |
+| LinkedIn | 10004 | TBD | As needed |
+| Pinterest | 10005 | TBD | As needed |
 
-**First-comment domain**: santorinisecrets.com
+**First-comment domain**: destination-alpha.example.com
 
-### Crete Secrets
+### Destination Beta
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
-| Facebook | 531203 | 12:46 CET/CEST | Daily |
-| Instagram | 531208 | 17:00 CET/CEST | Tue/Thu/Sat/Sun |
-| Threads | 543951 | 19:03 CET/CEST | Daily |
+| --------- | ----------- | -------------- | ------ |
+| Facebook | 10006 | 12:46 CET/CEST | Daily |
+| Instagram | 10007 | 17:00 CET/CEST | Tue/Thu/Sat/Sun |
+| Threads | 10008 | 19:03 CET/CEST | Daily |
 
-**First-comment domain**: cretesecrets.com
+**First-comment domain**: destination-beta.example.com
 
-### Mykonos Secrets
+### Destination Gamma
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
-| Facebook | 531210 | 19:12 CET/CEST | Daily |
-| Instagram | 531209 | 18:01 CET/CEST | Tue/Thu/Fri/Sun |
-| Threads | 531247 | 13:13 CET/CEST | Daily |
+| --------- | ----------- | -------------- | ------ |
+| Facebook | 10009 | 19:12 CET/CEST | Daily |
+| Instagram | 10010 | 18:01 CET/CEST | Tue/Thu/Fri/Sun |
+| Threads | 10011 | 13:13 CET/CEST | Daily |
 
-**First-comment domain**: mykonossecrets.com
+**First-comment domain**: destination-gamma.example.com
 
-### Athens Secrets
+### Destination Delta
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
-| Facebook | 538195 | TBD | TBD |
-| Instagram | 538196 | TBD | TBD |
-| Threads | 543952 | 17:03 CET/CEST | Daily |
+| --------- | ----------- | -------------- | ------ |
+| Facebook | 10012 | TBD | TBD |
+| Instagram | 10013 | TBD | TBD |
+| Threads | 10014 | 17:03 CET/CEST | Daily |
 
-**First-comment domain**: athenssecrets.com
+**First-comment domain**: destination-delta.example.com
 
-## Operator
+## Operational Roles
 
-All Greece brands are operated by **Lexi Voy**. Kyle Kroeger is the accountable owner and final approver.
+All regional cluster brands are managed by dedicated social media operators, with review and final approval coordinated by the account lead.
 
 ## Content Workflow
 
-1. Lexi proposes content in Slack **#social-media** channel (ID: `C025C64Q988`)
-2. Kyle approves
-3. Lexi (or Claude via MCP) schedules in VistaSocial
+1. Operator drafts content in the team staging channel
+2. Account lead reviews and approves
+3. Operator (or AI agent via MCP) schedules in VistaSocial
 
-## Monetization: Facebook Group Promotional Packages
+## Monetization: Community Promotional Packages
 
-Greece Facebook groups are monetized via promotional post packages. Lexi manages partner inquiries. This is separate from the brand pages' organic content strategy.
+Regional community groups and pages may be monetized via promotional post packages. Partner inquiries are coordinated through standard sponsorship channels, separate from organic editorial strategy.
 
-## Greece Group in VistaSocial
+## Cluster Group in VistaSocial
 
-**Group ID**: `eb160100-1c4e-11f0-9913-9fe464d8ed3e`
+**Group ID**: `11111111-2222-3333-4444-555555555551`
 
-This group contains all 14 Greece brand profiles across Facebook, Instagram, Threads, LinkedIn, and Pinterest.
+This group contains all cluster brand profiles across Facebook, Instagram, Threads, LinkedIn, and Pinterest.
 
 ## Seasonal Strategy
 
 ### Spring (March–May)
-- Greek Orthodox Easter content (dates shift yearly — always verify)
+
+- Regional spring holiday content
 - Shoulder season: "fewer crowds, same beauty" angle
 - Ferry schedule updates, airport transfer tips
-- Wildflower season in Crete (April)
-- Santorini: caldera hikes without the heat
+- Wildflower and nature season
+- Moderate-temperature hiking guides
 
 ### Summer (June–August)
+
 - Peak season survival guides
 - Crowd avoidance: best early-morning and sunset times
 - Beach rankings by vibe (family, party, secluded)
 - Water sports and boat tour recommendations
-- Dining: late-night taverna culture, avoid tourist traps
-- Mykonos: party vs. peace content split
+- Dining: local taverna culture, avoiding tourist traps
 
 ### Autumn (September–November)
+
 - Sweet spot messaging: warm water, thin crowds
-- Harvest festivals, wine season (Santorini Vinsanto)
-- Hiking content (Samaria Gorge, Imbros Gorge)
-- Crete: olive harvest season
+- Harvest festivals, local wine season
+- Trail and hiking content
+- Olive and crop harvest season
 - Off-season preparation tips
 
 ### Winter (December–February)
+
 - Off-season travel: local life, authentic experiences
-- Christmas and New Year traditions
+- Christmas and holiday traditions
 - Budget travel angles
-- Athens: year-round city content
+- Year-round city destination content
 - Museum and cultural deep-dives
 
 ## Content Topics That Perform Well
 
-- Tourist trap warnings ("X things catching tourists out")
+- Tourist trap warnings ("X things catching visitors out")
 - Local secrets and hidden spots
 - Overpriced vs. worth-it comparisons
-- Timed entry and booking requirements (Acropolis, etc.)
-- Transport tips (FreeNow app, ferry booking hacks)
+- Timed entry and booking requirements
+- Transport tips and booking hacks
 - Sunday/holiday schedule differences
 - Sunset spot rankings
 - Beach accessibility and amenity details

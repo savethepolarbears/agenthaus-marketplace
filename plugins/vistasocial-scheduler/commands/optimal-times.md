@@ -14,16 +14,18 @@ Query VistaSocial for a profile's best posting times based on audience engagemen
 
 1. Resolve the profile ID from the `profile-lookup` skill
 2. Call `getOptimalPublishTimes` with:
-   ```
+
+   ```yaml
    targets: [{ profile_id: "<id>", timezone: "<brand_timezone>" }]
    ```
+
 3. Compare results against the brand's standard cadence from `scheduling-sop`
 4. Report findings with any recommended adjustments
 
 ## Output Format
 
-```
-Optimal Times: Santorini Secrets — Threads (531212)
+```text
+Optimal Times: Brand Alpha — Threads (10001)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 VistaSocial recommended: [times from API]
 Current standard:        17:19 CET/CEST daily
@@ -36,5 +38,5 @@ Recommendation: [keep current / consider adjusting to X]
 
 - Optimal times are based on historical engagement data from VistaSocial
 - This costs only 1 MCP call per profile — very rate-limit-friendly
-- Do NOT change established posting times without Kyle's explicit approval
-- The Greece cluster posting times (17:00-hour range) are standardized across brands for operational consistency — individual optimization may conflict with cluster-wide coordination
+- Do NOT change established posting times without explicit owner approval
+- Cluster posting times are often standardized across brands for operational consistency — individual optimization may conflict with cluster-wide coordination

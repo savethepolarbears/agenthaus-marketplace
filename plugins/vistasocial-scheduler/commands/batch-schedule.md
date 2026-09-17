@@ -13,6 +13,7 @@ Schedule multiple posts with rate-limit-safe pacing. This command enforces all s
 ## Step 1: Define the Batch
 
 Collect from the user:
+
 - **Brand name(s)** — single brand or multiple (e.g., "all Greece Threads")
 - **Date range** — start and end dates (e.g., "March 30 – April 5")
 - **Network(s)** — which platforms to schedule for
@@ -21,20 +22,23 @@ Collect from the user:
 ## Step 2: Calculate MCP Budget
 
 Count the total posts to schedule, then estimate MCP calls:
+
 - Per post: ~3 calls (conflict check + schedule + verify)
 - Total budget = posts × 3
 
 **Safety rules**:
+
 | Total Posts | Batching Strategy |
-|-------------|-------------------|
+| ------------- | ------------------- |
 | 1–7 | Single batch, 2-second delays between posts |
 | 8–14 | Single batch, 3-second delays, pause 10s after every 5 posts |
 | 15–20 | Split into 2 batches with 60-second pause between them |
 | 21+ | Split into 3+ batches, 60-second pause between each |
 
 Report the plan to the user before executing:
-```
-Batch plan: 7 posts for Santorini Secrets Threads (Mar 30 – Apr 5)
+
+```text
+Batch plan: 7 posts for Brand Alpha Threads (Mar 30 – Apr 5)
 Estimated MCP calls: ~21
 Pacing: 2-second delays, single batch
 Proceed? (y/n)
@@ -43,7 +47,8 @@ Proceed? (y/n)
 ## Step 3: Pre-Flight Conflict Scan
 
 Run ONE `searchPosts` call covering the entire date range:
-```
+
+```yaml
 profile_ids: ["<target_profile_id>"]
 dateFrom: "<start_date>"
 dateTo: "<end_date>"
@@ -64,7 +69,8 @@ For each post in the batch:
 5. **Pace** — wait the required delay before next post
 
 Progress reporting format:
-```
+
+```text
 [1/7] ✓ Mar 30 17:19 CEST — "The Acropolis now requires timed entry..."
       Rate limit remaining: 52 | Next post in 2s...
 [2/7] ✓ Mar 31 17:19 CEST — "Skip the Plaka tourist traps..."
@@ -74,6 +80,7 @@ Progress reporting format:
 ## Step 5: Emergency Protocols
 
 During batch execution:
+
 - **Rate limit remaining < 10**: Increase delay to 5 seconds between posts
 - **Rate limit remaining < 5**: STOP batch, wait 60 seconds, then resume
 - **429 error**: STOP batch, wait 60 seconds, report which posts completed
@@ -83,13 +90,14 @@ During batch execution:
 ## Step 6: Batch Summary
 
 After completion, report:
-```
-Batch Complete: Santorini Secrets Threads (Mar 30 – Apr 5)
+
+```text
+Batch Complete: Brand Alpha Threads (Mar 30 – Apr 5)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ Scheduled: 7/7
 ✗ Failed: 0
 ⚡ MCP calls used: 19
-🏷️ Labels: santorini-secrets,threads,week-of-mar30
+🏷️ Labels: brand-alpha,threads,week-of-mar30
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 

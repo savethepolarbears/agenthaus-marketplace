@@ -23,6 +23,7 @@ Pre-built safety hooks that prevent risky agent actions: deployment gates, test 
 Prevents deployments outside business hours (Monday-Friday, 9 AM - 5 PM local time).
 
 **How it works:**
+
 - Intercepts deployment tool calls via PreToolUse hooks
 - Checks the current day and time against the allowed window
 - Blocks the deployment with a clear message if outside hours
@@ -33,6 +34,7 @@ Prevents deployments outside business hours (Monday-Friday, 9 AM - 5 PM local ti
 Ensures test files are included in staged changes before allowing commits.
 
 **How it works:**
+
 - Intercepts git commit operations via PreToolUse hooks
 - Scans staged files for test patterns (`*.test.*`, `*.spec.*`)
 - Blocks the commit if no test files are staged alongside code changes
@@ -43,8 +45,9 @@ Ensures test files are included in staged changes before allowing commits.
 Warns when agent tool usage exceeds a configurable threshold.
 
 **How it works:**
+
 - Tracks the number of tool calls made in the current session
-- Stored in `/tmp/circuit-breaker-counter`
+- Stored in user-isolated directory: `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`
 - Issues a warning when the threshold is reached (default: 100 calls)
 - Helps prevent runaway agent sessions that consume excessive resources
 
@@ -57,7 +60,7 @@ To configure guardrails:
 1. **Check current status**: Read `.circuit-breaker-config.json` if it exists
 2. **Enable/disable breakers**: Toggle individual guardrails on or off
 3. **Set thresholds**: Adjust the budget-guard threshold (default: 100)
-4. **Reset counters**: Clear the tool usage counter at `/tmp/circuit-breaker-counter`
+4. **Reset counters**: Clear the tool usage counter via `${CLAUDE_PLUGIN_ROOT}/hooks/scripts/reset-counter.sh` or by removing `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`
 
 ### Configuration File Format
 
@@ -75,7 +78,7 @@ To configure guardrails:
 ### Available Operations
 
 | Operation | Description |
-|-----------|-------------|
+| ----------- | ------------- |
 | `enable <name>` | Enable a specific guardrail |
 | `disable <name>` | Disable a specific guardrail |
 | `enable all` | Enable all guardrails |

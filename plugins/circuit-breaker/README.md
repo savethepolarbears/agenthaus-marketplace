@@ -5,7 +5,7 @@ Pre-built safety guardrails as reusable hooks for Claude Code workflows. Prevent
 ## Platform Support
 
 | Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
-|---------|-------------|-----------|------------|--------|----------|----------------|
+| --------- | ------------- | ----------- | ------------ | -------- | ---------- | ---------------- |
 | Commands | full | partial | partial | partial | partial | n/a |
 | Skills | full | full | full | full | full | n/a |
 | MCP | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -27,13 +27,13 @@ After installation, all three breakers are enabled by default.
 
 ### View Configuration
 
-```
+```bash
 /configure status
 ```
 
 ### Enable/Disable Breakers
 
-```
+```bash
 /configure disable block-prod-deploy
 /configure enable require-tests
 /configure disable all
@@ -42,13 +42,13 @@ After installation, all three breakers are enabled by default.
 
 ### Set Budget Threshold
 
-```
+```bash
 /configure threshold 200
 ```
 
 ### Reset Counters
 
-```
+```bash
 /configure reset
 ```
 
@@ -77,19 +77,21 @@ Tracks total tool usage per session and warns when the count exceeds a threshold
 - **Default threshold**: 100 tool calls
 - **Behavior**: Warning only (never blocks)
 - **Repeats**: Warns again every 25 calls after threshold
-- **Counter location**: `/tmp/circuit-breaker-counter`
+- **Counter location**: `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`
+- **Reset**: Run `hooks/scripts/reset-counter.sh` or remove `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`
 
 ## Architecture
 
 Circuit breakers are implemented as PreToolUse hooks that run shell scripts before tool execution:
 
-```
+```text
 hooks/
   hooks.json                    # Hook definitions with matchers
   scripts/
     block-prod-deploy.sh       # Time-of-day and day-of-week check
     require-tests.sh           # Staged file pattern matching
     budget-guard.sh            # Counter-based usage tracking
+    reset-counter.sh           # Counter cleanup and reset
 ```
 
 Each script reads `.circuit-breaker-config.json` to check if it is enabled before executing its logic. Scripts exit 0 to allow the action or exit 1 to block it.

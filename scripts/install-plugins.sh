@@ -491,17 +491,41 @@ install_custom() {
 # =============================================================================
 
 uninstall_from() {
-  local target_dir="$1"
+  local raw_target="$1"
   local agent_name="$2"
 
-  if [[ -z "$target_dir" || "$target_dir" == "/" ]]; then
-    error "Refusing to uninstall from root or empty directory"
+  if [[ -z "$raw_target" ]]; then
+    error "Refusing to uninstall from empty directory"
     return 1
   fi
 
-  if [[ ! -d "$target_dir" ]]; then
-    warn "Directory $target_dir does not exist"
+  # Expand ~ if present
+  raw_target="${raw_target/#\~/$HOME}"
+
+  if [[ ! -d "$raw_target" ]]; then
+    warn "Directory $raw_target does not exist"
     return 0
+  fi
+
+  # Normalize path
+  local target_dir
+  target_dir="$(cd "$raw_target" 2>/dev/null && pwd -P)" || {
+    error "Failed to resolve directory: $raw_target"
+    return 1
+  }
+
+  # Guard against root, home, or shallow directory structures
+  local trimmed="${target_dir#/}"
+  local seg_count=0
+  IFS='/' read -ra segs <<< "$trimmed"
+  seg_count="${#segs[@]}"
+
+  local canonical_home
+  canonical_home="$(cd "${HOME:-/}" 2>/dev/null && pwd -P || echo "${HOME:-/}")"
+
+  if [[ -z "$target_dir" || "$target_dir" == "/" || "$target_dir" == "$canonical_home" || "$target_dir" == "$HOME" || "$seg_count" -lt 2 ]] || [ "$target_dir" -ef "$canonical_home" ] || ([ -n "${HOME:-}" ] && [ "$target_dir" -ef "$HOME" ]); then
+    error "Refusing to uninstall from root, home, or shallow directory: $target_dir"
+    return 1
   fi
 
   local removed=0
@@ -776,4 +800,6 @@ main() {
   esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

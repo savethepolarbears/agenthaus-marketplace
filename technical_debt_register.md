@@ -1,47 +1,55 @@
 # Technical Debt Register
 
-## 1. Snapshot Baseline Metrics
+**Date:** 2026-09-17  
+**Scope:** Consolidated Technical Debt Register for `savethepolarbears/agenthaus-marketplace`  
 
-- **LOC:** ~20,000 total lines of code. Primarily Markdown (~12k) and JSON (~4.6k), indicating a documentation/configuration-heavy repository. Shell scripts make up the bulk of logic code (~1.2k).
-- **Dependencies:** 2 runtime dependencies found (`@modelcontextprotocol/sdk` and `playwright`) isolated in `plugins/qa-droid/package.json`. No repo-wide dependency management (no root `package.json`).
-- **Build/Test Time:** The repo primarily relies on scripts (`run_checks.sh`, `validate-plugins.sh`). Build performance metrics are not applicable in standard web terms as there is no single app compile step.
-- **Bundle Size:** N/A for this plugin/scripts repo structure.
+---
+
+## 1. Baseline Metrics Summary
+
+- **Total Lines of Code (LOC):** 42,815 across 625 files.
+- **Languages:** Markdown (349), JSON (174), Cursor MDC (37), Codex TOML (24), Bash Shell (11), JavaScript (5), Python (4), TypeScript (4), PHP (1), YAML (2).
+- **Active Production Plugins:** 37 verified production plugins in `plugins/`.
+- **Runtime Dependencies:** Pinned in `plugins/qa-droid/package.json` (`@modelcontextprotocol/sdk`, `playwright`, overrides locked).
+- **Test / Validation Time:** ~260 ms for Node 24 native tests (`tests/*.test.js`), ~4.5 s for `validate-plugins.sh`.
+
+---
 
 ## 2. Debt Signals
 
-- **TODOs/FIXMEs:** Very clean! Only trace found is a package-lock hash (`XXX`) and placeholders in a sample git hook (`sendemail-validate.sample`), plus a mention in an agent workflow markdown. No true TODO debt found in the codebase.
-- **Lint Suppressions:** None found (`eslint-disable`, `noqa`, `@ts-ignore`).
-- **Deprecated APIs:** The term `deprecated` appears only in documentation/guides (e.g., teaching an agent to delete deprecated APIs, or in SEO guidelines). No actual deprecated code was found.
+- **TODOs / FIXMEs:** 0 active markers in production code.
+- **Lint Suppressions:** 0 suppressions (`eslint-disable`, `@ts-ignore`, `noqa`).
+- **Deprecated APIs:** 0 active deprecated runtime calls. Documentation references only.
 
-## 3. Hotspots
+---
 
-- **Big Files (Top 5):**
-  1. `plugins/qa-droid/package-lock.json` (44 KB)
-  2. `plugins/wp-cli-fleet/wordpress-plugin/agentic-wp-cli.php` (28 KB)
-  3. `plugins/apple-workflows/mcp/src/apple_productivity_mcp/server.py` (28 KB)
-  4. `scripts/install-plugins.sh` (24 KB)
-  5. `scripts/validate-plugins.sh` (20 KB)
-- **Directories with Most Churn:**
-  - `plugins/wp-cli-fleet`
-  - `plugins/apple-workflows`
-  - `.agents/skills`
-  - `plugins/gog-workspace`
-  - `plugins/apple-photos`
+## 3. Code Hotspots
 
-## 4 & 5. Technical Debt Register (Classified)
+1. `plugins/apple-workflows/mcp/src/apple_productivity_mcp/server.py` (873 lines, 28 KB)
+2. `scripts/install-plugins.sh` (800 lines, 24 KB)
+3. `plugins/wp-cli-fleet/wordpress-plugin/agentic-wp-cli.php` (750 lines, 28 KB)
+4. `scripts/generate-cross-platform.js` (629 lines, 24 KB)
+5. `scripts/validate-plugins.sh` (513 lines, 19 KB)
 
-| Item | Location(s) | Type | Evidence | Impact | Risk | Effort | Confidence | Recommended Fix |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Fragmented Dependency Management** | `plugins/qa-droid/package.json` vs Repo | Architecture / Tooling | No root `package.json`, isolated lockfiles. | Dev Speed | Low | L | High | Adopt a monorepo tooling structure (e.g., pnpm workspaces) to manage plugin dependencies collectively. |
-| **Monolithic Scripts** | `scripts/install-plugins.sh`, `scripts/validate-plugins.sh` | Complexity | 20KB+ shell scripts which can be hard to test/maintain. | Dev Speed, Reliability | Medium | M | Med | Break down large shell scripts into modular pieces or migrate complex logic to a more robust scripting language like Node/Python. |
-| **Missing Test Suite Structure** | Global | Test Debt | The repository relies on `run_checks.sh` which currently fails locally if `agenthaus-web` is missing. | Reliability, Dev Speed | High | L | High | Introduce formal testing frameworks for the `.py`, `.php`, and `.sh` files, decoupled from the excluded web folder. |
-| **Large Single-File Backend** | `plugins/apple-workflows/mcp/src/apple_productivity_mcp/server.py` | Complexity | 28KB Python file containing an entire server implementation. | Dev Speed | Low | M | High | Refactor the MCP server into smaller, domain-specific modules. |
-| **WordPress Plugin Architecture** | `plugins/wp-cli-fleet/wordpress-plugin/agentic-wp-cli.php` | Complexity | Large monolithic PHP file handling WP-CLI integration. | Reliability | Medium | M | High | Split the WordPress plugin into smaller classes/files following standard WP MVC or domain-driven patterns. |
+---
 
-### Top 5 "High ROI" Items
+## 4. Classified Register
 
-1. **Fix `run_checks.sh` local failure:** Currently fails because it looks for `agenthaus-web` which is ignored. Fixing this (by making the web check conditional) immediately unblocks local automated checks for contributors.
-2. **Monorepo Dependency Setup:** Before more plugins add arbitrary `package.json` files (like `qa-droid`), standardize using `pnpm workspaces`. This prevents dependency hell later.
-3. **Refactor `scripts/install-plugins.sh`:** As the largest script running complex setup logic, modularizing it or adding robust error handling will prevent silent deployment failures.
-4. **Refactor `apple_productivity_mcp/server.py`:** Python MCP servers are likely to grow. Establishing a modular pattern now prevents this 28KB file from becoming a 100KB unmaintainable monolith.
-5. **Formalize Shell Script Testing:** Since shell scripts form the backbone of the repo's logic (1.2k lines), adding `bats` (Bash Automated Testing System) for `validate-plugins.sh` will catch regressions early.
+| ID | Item | Location | Type | Impact | Risk | Effort | Recommended Fix |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **TD-01** | Monolithic Apple MCP Server | `plugins/apple-workflows/.../server.py` | Architecture | Dev Speed | Low | M | Decompose into `notes.py`, `reminders.py`, `contacts.py`. |
+| **TD-02** | Monolithic Installer | `scripts/install-plugins.sh` | Complexity | Maintainability | Med | M | Modularize into platform sub-scripts. |
+| **TD-03** | Monolithic WP Plugin | `plugins/wp-cli-fleet/.../agentic-wp-cli.php` | Architecture | Reliability | Med | M | Split into PSR-4 classes (`Auth`, `Routes`, `Executor`). |
+| **TD-04** | Node Dependency Isolation | `plugins/qa-droid/package.json` | Tooling | Dev Speed | Low | S | Adopt pnpm workspaces if multi-package footprint grows. |
+| **TD-05** | Cross-Platform Generator Output | `scripts/generate-cross-platform.js` | Maintainability | Drift | Low | S | Enforced via CI porcelain untracked check and tests. |
+| **TD-06** | Shell Hook Regression Testing | `plugins/*/hooks/scripts/*.sh` | Test Debt | Reliability | Low | M | Expand `node:test` fixtures across remaining hooks. |
+
+---
+
+## 5. Top 5 High-ROI Focus Items
+
+1. **Expand `node:test` Fixtures across all PreToolUse Hooks (TD-06)**: Protect all hooks using native zero-dependency fixtures.
+2. **Decompose `apple_productivity_mcp/server.py` (TD-01)**: Isolate AppleScript calls by domain.
+3. **Modularize `scripts/install-plugins.sh` (TD-02)**: Improve platform maintenance velocity.
+4. **Refactor `agentic-wp-cli.php` (TD-03)**: Class-based modularity for WordPress fleet integration.
+5. **Continuous Generator Drift CI Verification (TD-05)**: Closed in PR #135 with porcelain untracked drift guard.

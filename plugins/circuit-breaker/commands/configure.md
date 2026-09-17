@@ -3,6 +3,8 @@ name: configure
 description: Enable or disable specific circuit breaker guardrails
 ---
 
+# Configure Circuit Breakers
+
 You are configuring circuit breaker safety guardrails.
 
 Follow these steps:
@@ -19,11 +21,12 @@ Follow these steps:
    - `disable <breaker-name>` -- Disable the specified breaker
    - `enable all` -- Enable all breakers
    - `disable all` -- Disable all breakers
-   - `reset` -- Delete the counter file at `/tmp/circuit-breaker-counter` and reset config to defaults
+   - `reset` -- Run `${CLAUDE_PLUGIN_ROOT}/hooks/scripts/reset-counter.sh` (or remove `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`) and reset config to defaults
    - `threshold <number>` -- Set the budget-guard threshold
    - `status` or no args -- Show current configuration
 
 4. **Write config**: Save the updated configuration to `.circuit-breaker-config.json`:
+
 ```json
 {
   "breakers": {
@@ -35,4 +38,4 @@ Follow these steps:
 }
 ```
 
-5. **Confirm**: Display which breakers are now active and their settings.
+1. **Confirm**: Display which breakers are now active and their settings.
