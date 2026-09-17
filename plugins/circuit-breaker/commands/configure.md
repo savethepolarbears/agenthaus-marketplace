@@ -38,4 +38,4 @@ Follow these steps:
 }
 ```
 
-5. **Confirm**: Display which breakers are now active and their settings.
+1. **Confirm**: Display which breakers are now active and their settings.
