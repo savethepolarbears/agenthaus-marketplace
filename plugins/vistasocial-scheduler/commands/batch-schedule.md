@@ -34,7 +34,7 @@ Count the total posts to schedule, then estimate MCP calls:
 
 Report the plan to the user before executing:
 ```
-Batch plan: 7 posts for Santorini Secrets Threads (Mar 30 – Apr 5)
+Batch plan: 7 posts for Brand Alpha Threads (Mar 30 – Apr 5)
 Estimated MCP calls: ~21
 Pacing: 2-second delays, single batch
 Proceed? (y/n)
@@ -84,12 +84,12 @@ During batch execution:
 
 After completion, report:
 ```
-Batch Complete: Santorini Secrets Threads (Mar 30 – Apr 5)
+Batch Complete: Brand Alpha Threads (Mar 30 – Apr 5)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ Scheduled: 7/7
 ✗ Failed: 0
 ⚡ MCP calls used: 19
-🏷️ Labels: santorini-secrets,threads,week-of-mar30
+🏷️ Labels: brand-alpha,threads,week-of-mar30
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 

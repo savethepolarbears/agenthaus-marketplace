@@ -23,7 +23,7 @@ Query VistaSocial for a profile's best posting times based on audience engagemen
 ## Output Format
 
 ```
-Optimal Times: Santorini Secrets — Threads (531212)
+Optimal Times: Brand Alpha — Threads (10001)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 VistaSocial recommended: [times from API]
 Current standard:        17:19 CET/CEST daily
@@ -36,5 +36,5 @@ Recommendation: [keep current / consider adjusting to X]
 
 - Optimal times are based on historical engagement data from VistaSocial
 - This costs only 1 MCP call per profile — very rate-limit-friendly
-- Do NOT change established posting times without Kyle's explicit approval
-- The Greece cluster posting times (17:00-hour range) are standardized across brands for operational consistency — individual optimization may conflict with cluster-wide coordination
+- Do NOT change established posting times without explicit owner approval
+- Cluster posting times are often standardized across brands for operational consistency — individual optimization may conflict with cluster-wide coordination

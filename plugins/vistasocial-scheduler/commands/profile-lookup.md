@@ -13,7 +13,7 @@ Quickly resolve brand names to VistaSocial profile IDs.
 
 ## Workflow
 
-1. **Check the `profile-lookup` skill reference table first** — this covers all 47 profiles
+1. **Check the `profile-lookup` skill reference table first** — check local cache before querying API
 2. If the profile is found, return it immediately with no MCP calls
 3. If not found (new profile or suspected change), call `listProfiles` with `q: "<brand name>"`
 4. Report the profile ID, network code, group membership, and operator
@@ -21,20 +21,20 @@ Quickly resolve brand names to VistaSocial profile IDs.
 ## Output Format
 
 ```
-Profile: Santorini Secrets — Threads
+Profile: Brand Alpha — Threads
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Profile ID:    531212
+Profile ID:    10003
 Network Code:  threads
-Group:         Greece (eb160100-1c4e-11f0-9913-9fe464d8ed3e)
-Operator:      Lexi Voy
+Group:         Brand Cluster A (11111111-2222-3333-4444-555555555551)
+Operator:      Content Specialist
 Timezone:      Europe/Amsterdam
 Post Time:     17:19 CET/CEST daily
-First Comment: → santorinisecrets.com
+First Comment: → destination-alpha.example.com
 ```
 
 ## Bulk Lookup
 
-If the user asks for "all Santorini profiles" or "all Greece profiles", return the full table from the skill reference. Do not make multiple MCP calls.
+If the user asks for "all cluster profiles", return the full table from the skill reference. Do not make multiple MCP calls.
 
 ## When to Use Live API
 

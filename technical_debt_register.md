@@ -2,7 +2,6 @@
 
 **Date:** 2026-09-17  
 **Scope:** Consolidated Technical Debt Register for `savethepolarbears/agenthaus-marketplace`  
-**Detailed Report:** See [reports/TECHNICAL_DEBT_INVENTORY.md](reports/TECHNICAL_DEBT_INVENTORY.md)
 
 ---
 

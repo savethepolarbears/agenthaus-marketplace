@@ -98,3 +98,15 @@ review_queue/
 .shadow-mode-enabled
 .circuit-breaker-config.json
 scrub_*.sh
+
+# Internal audit reports and generated project metrics (local only)
+reports/
+*.report.md
+
+# Company-specific profiles, overrides, and internal configs
+*.company.*
+*.internal.*
+.company/
+company/
+.private/
+private/

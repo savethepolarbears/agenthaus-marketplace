@@ -29,7 +29,7 @@ status: ["APPROVED", "NEEDS_APPROVAL"]
 timezone: "<brand_timezone>"
 ```
 
-**Rate limit note**: For a full Greece cluster audit (4 brands × 3 networks = 12 profiles), this could be up to 12 MCP calls. Batch profiles from the same group where possible, or run sequentially with 1-second delays.
+**Rate limit note**: For a multi-profile cluster audit (e.g., 4 brands × 3 networks = 12 profiles), this could be up to 12 MCP calls. Batch profiles from the same group where possible, or run sequentially with 1-second delays.
 
 ## Step 3: Analyze Against Cadence Standards
 
@@ -38,8 +38,8 @@ Compare the retrieved posts against the brand's expected cadence from the `sched
 Check for:
 
 ### Gaps
-- Missing days where a daily post is expected (e.g., Santorini Threads should post every day)
-- Missing scheduled days for non-daily cadences (e.g., Crete Instagram on Tue/Thu/Sat/Sun)
+- Missing days where a daily post is expected (e.g., daily profile should post every day)
+- Missing scheduled days for non-daily cadences (e.g., specific weekday cadences)
 
 ### Duplicates
 - Two posts scheduled for the same profile at the same time or within 30 minutes
@@ -49,8 +49,8 @@ Check for:
 - Posts with incorrect timezone offsets (e.g., +01:00 when it should be +02:00 for CEST)
 
 ### Content Issues
-- Posts without first-comment links (for Greece brands)
-- Posts with links embedded in the message body (should be comment-only for Greece)
+- Posts without first-comment links (when first-comment protocol is required)
+- Posts with external links embedded in the message body (when comment-only is required)
 - Threads posts exceeding 500 characters
 
 ### Label Issues
@@ -62,7 +62,7 @@ Check for:
 Present findings in a clear table:
 
 ```
-Queue Audit: Santorini Secrets Threads (Mar 30 – Apr 5)
+Queue Audit: Brand Alpha Threads (Mar 30 – Apr 5)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Expected posts: 7 (daily)
 Found posts:    5
