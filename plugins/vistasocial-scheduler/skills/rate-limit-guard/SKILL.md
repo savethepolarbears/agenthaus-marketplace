@@ -8,7 +8,7 @@ description: Enforces the hard 60-requests-per-minute VistaSocial rate limit, im
 ## HARD LIMITS (NON-NEGOTIABLE)
 
 | Rule | Value | Consequence of Violation |
-|------|-------|--------------------------|
+| ------ | ------- | -------------------------- |
 | **Max requests per minute** | 60 | API returns 429 errors; all calls fail for remainder of minute |
 | **Response header to monitor** | `x-vs-rate-limit-remaining` | Shows remaining calls in current minute window |
 | **Abort threshold** | remaining < 5 | STOP all MCP calls immediately, wait 60 seconds |
@@ -22,6 +22,7 @@ When scheduling multiple posts in sequence (e.g., a week of daily posts):
 ### Per-Post MCP Call Budget
 
 Each post typically requires 2–3 MCP calls:
+
 1. `searchPosts` — conflict check (~1 call)
 2. `schedulePost` — create the post (~1 call)
 3. Optional: verify via `searchPosts` (~1 call)
@@ -38,6 +39,7 @@ A 7-post weekly batch = ~14–21 MCP calls. Safe within limits if paced.
 ### Emergency Stop Protocol
 
 If at any point during batch scheduling:
+
 - An MCP call returns a 429 status → STOP immediately, wait 60 seconds, then resume
 - `x-vs-rate-limit-remaining` is not present in response → assume 30 remaining and proceed cautiously
 - A transient auth/server error occurs → retry ONCE after 5 seconds, then skip the post and continue
@@ -45,7 +47,7 @@ If at any point during batch scheduling:
 ## MCP Call Counting Reference
 
 | Operation | Typical MCP Calls | Notes |
-|-----------|-------------------|-------|
+| ----------- | ------------------- | ------- |
 | Look up one profile | 1 | `listProfiles` with query |
 | List all profiles in a group | 1 | `listProfilesInGroup` |
 | List all profile groups | 1 | `listProfileGroups` |
@@ -68,13 +70,15 @@ If at any point during batch scheduling:
 ## Logging Guidance
 
 When performing batch operations, report to the user:
+
 - How many MCP calls have been made so far
 - Current `x-vs-rate-limit-remaining` value (if available)
 - Estimated remaining calls needed to complete the batch
 - Any pauses being taken and why
 
 Example output during batch scheduling:
-```
+
+```text
 Scheduling post 3/7 for Brand Alpha Threads...
 ✓ Conflict check passed (MCP calls: 7/21, rate limit remaining: 48)
 ✓ Post scheduled for 2026-04-01T17:19:00+02:00

@@ -14,7 +14,7 @@ This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `li
 ## Profile Groups (Example Structure)
 
 | Group Name | Group UUID | Status |
-|------------|-----------|--------|
+| ------------ | ----------- | -------- |
 | Primary Brand Cluster | `11111111-2222-3333-4444-555555555551` | Active |
 | Regional Media Group | `11111111-2222-3333-4444-555555555552` | Active |
 | Product & Commerce | `11111111-2222-3333-4444-555555555553` | Active |
@@ -25,7 +25,7 @@ This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `li
 ### Brand Cluster A
 
 | Brand | Facebook | Instagram | Threads | LinkedIn | Pinterest |
-|-------|----------|-----------|---------|----------|-----------|
+| ------- | ---------- | ----------- | --------- | ---------- | ----------- |
 | Brand Alpha | 10001 | 10002 | 10003 | 10004 | 10005 |
 | Brand Beta | 10006 | 10007 | 10008 | — | — |
 | Brand Gamma | 10009 | 10010 | 10011 | — | — |
@@ -34,7 +34,7 @@ This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `li
 ### Brand Cluster B
 
 | Brand | Facebook | Instagram | Threads | LinkedIn | Pinterest | TikTok | YouTube | GBP | Vista Page | Reddit |
-|-------|----------|-----------|---------|----------|-----------|--------|---------|-----|------------|--------|
+| ------- | ---------- | ----------- | --------- | ---------- | ----------- | -------- | --------- | ----- | ------------ | -------- |
 | Flagship Brand | 20001 | 20002 | 20003 | 20004 | 20005 | 20006 | 20007 | 20008 | 20009 | 20010 |
 | Regional Portal | 20011 | 20012 | — | — | — | — | — | — | — | — |
 | City Guide | 20013 | 20014 | — | — | 20015 | — | — | 20016 | — | — |
@@ -43,7 +43,7 @@ This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `li
 ## Network Code Reference
 
 | VistaSocial Network Code | Display Name |
-|--------------------------|-------------|
+| -------------------------- | ------------- |
 | `facebook` | Facebook Page |
 | `instagram` | Instagram Profile |
 | `threads` | Threads Profile |

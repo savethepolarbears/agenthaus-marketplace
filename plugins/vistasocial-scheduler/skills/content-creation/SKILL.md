@@ -8,6 +8,7 @@ description: Brand voice, format library, Threads-specific writing rules, captio
 ## Brand Voice Principles
 
 All brand content follows these principles:
+
 - **Conversation-first**: Write like you're telling a friend, not broadcasting
 - **Authentic local knowledge**: Position as insider tips, not tourist guide regurgitation
 - **Opinion-driven hooks**: Take a stance — "Skip this, do this instead"
@@ -18,14 +19,14 @@ All brand content follows these principles:
 ### Static Image Formats
 
 | Format | Description | Target Archetypes | Monthly Target |
-|--------|-------------|-------------------|---------------|
+| -------- | ------------- | ------------------- | --------------- |
 | **Iconic scenic still** | Beauty-led reach and identity builder | Regional & Destination Brands | 6 per brand |
 | **Hidden corner still** | Local differentiation — lesser-known spots | Regional & City Guides | 4 per brand |
 
 ### Carousel Formats
 
 | Format | Description | Target Archetypes | Monthly Target |
-|--------|-------------|-------------------|---------------|
+| -------- | ------------- | ------------------- | --------------- |
 | **24-hour itinerary** | Save-driven planning utility | Destination & Travel Portals | 4 per brand |
 | **3 reasons / 3 stops** | Easy utility with strong save behavior | Regional Guides, Travel Portals | 6 per brand |
 | **Best time to visit** | Planning intent + click-through | Seasonal & Destination Brands | 3 per brand |
@@ -34,7 +35,7 @@ All brand content follows these principles:
 ### Reel/Video Formats
 
 | Format | Description | Target Archetypes | Monthly Target |
-|--------|-------------|-------------------|---------------|
+| -------- | ------------- | ------------------- | --------------- |
 | **Feature reveal** | Discovery and reach | Regional & Travel Portals | 4 per brand |
 | **Comparison reel** | Comments and top-of-funnel reach | Travel & Lifestyle Portals | 4 per brand |
 | **Gear / creator utility** | Affiliate or product-intent | Creator & Niche Portals | 2 per brand |
@@ -49,12 +50,14 @@ All brand content follows these principles:
 ## Caption SOP by Format
 
 ### Scenic Still
+
 - One vivid descriptive line
 - One useful/practical line
 - One simple CTA (save, comment, or send — pick ONE)
 
 Example:
-```
+
+```text
 Golden hour paints the caldera like nothing else on earth.
 
 Best viewed from the castle ruins — arrive 45 minutes before sunset to grab a spot.
@@ -63,12 +66,14 @@ Save this for your trip planning.
 ```
 
 ### Utility Carousel
+
 - Lead with the promise/benefit in the first line
 - Keep every frame task-oriented
 - End with a clear save CTA
 
 Example:
-```
+
+```text
 3 beaches that locals keep to themselves.
 
 Most visitors only hit the main crowded strips. These three are just as beautiful — without the crowds.
@@ -77,10 +82,12 @@ Save this before your trip.
 ```
 
 ### Comparison Reel
+
 - Open with the contrast in the first second
 - End with a vote CTA
 
 ### Gear/Creator Reel
+
 - Lead with the user problem, NOT the product name
 
 ## Threads-Specific Writing Rules
@@ -96,7 +103,8 @@ Threads content is NOT copy-pasted from Facebook. It follows its own rules:
 7. **Strong hooks**: Start with a bold statement, question, or hot take
 
 Example Threads post:
-```
+
+```text
 The central museum now requires timed entry tickets.
 
 Most tourists don't know this until they're standing in line being turned away.
@@ -107,7 +115,7 @@ Book at least 2 days ahead on the official site — the early morning slot (8am)
 ## Channel-Specific Adaptations
 
 | Channel | Job | Key Rule |
-|---------|-----|----------|
+| --------- | ----- | ---------- |
 | **Facebook** | Core distribution + traffic bridge | Strong first lines, clean first-comment article links |
 | **Instagram** | Brand equity + saves + discovery | Push utility carousels; scenic-only posting is insufficient |
 | **Threads** | Companion awareness | Rewrite copy; never paste Facebook captions |

@@ -8,8 +8,9 @@ description: Brand-specific posting rules, monetization context, profile IDs, se
 ## Brand Profiles Quick Reference (Example Regional Cluster)
 
 ### Destination Alpha
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
+| --------- | ----------- | -------------- | ------ |
 | Facebook | 10001 | 14:18 CET/CEST | Daily |
 | Instagram | 10002 | 18:00 CET/CEST | Mon/Wed/Fri/Sun |
 | Threads | 10003 | 17:19 CET/CEST | Daily |
@@ -19,8 +20,9 @@ description: Brand-specific posting rules, monetization context, profile IDs, se
 **First-comment domain**: destination-alpha.example.com
 
 ### Destination Beta
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
+| --------- | ----------- | -------------- | ------ |
 | Facebook | 10006 | 12:46 CET/CEST | Daily |
 | Instagram | 10007 | 17:00 CET/CEST | Tue/Thu/Sat/Sun |
 | Threads | 10008 | 19:03 CET/CEST | Daily |
@@ -28,8 +30,9 @@ description: Brand-specific posting rules, monetization context, profile IDs, se
 **First-comment domain**: destination-beta.example.com
 
 ### Destination Gamma
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
+| --------- | ----------- | -------------- | ------ |
 | Facebook | 10009 | 19:12 CET/CEST | Daily |
 | Instagram | 10010 | 18:01 CET/CEST | Tue/Thu/Fri/Sun |
 | Threads | 10011 | 13:13 CET/CEST | Daily |
@@ -37,8 +40,9 @@ description: Brand-specific posting rules, monetization context, profile IDs, se
 **First-comment domain**: destination-gamma.example.com
 
 ### Destination Delta
+
 | Network | Profile ID | Posting Time | Days |
-|---------|-----------|--------------|------|
+| --------- | ----------- | -------------- | ------ |
 | Facebook | 10012 | TBD | TBD |
 | Instagram | 10013 | TBD | TBD |
 | Threads | 10014 | 17:03 CET/CEST | Daily |
@@ -68,6 +72,7 @@ This group contains all cluster brand profiles across Facebook, Instagram, Threa
 ## Seasonal Strategy
 
 ### Spring (March–May)
+
 - Regional spring holiday content
 - Shoulder season: "fewer crowds, same beauty" angle
 - Ferry schedule updates, airport transfer tips
@@ -75,6 +80,7 @@ This group contains all cluster brand profiles across Facebook, Instagram, Threa
 - Moderate-temperature hiking guides
 
 ### Summer (June–August)
+
 - Peak season survival guides
 - Crowd avoidance: best early-morning and sunset times
 - Beach rankings by vibe (family, party, secluded)
@@ -82,6 +88,7 @@ This group contains all cluster brand profiles across Facebook, Instagram, Threa
 - Dining: local taverna culture, avoiding tourist traps
 
 ### Autumn (September–November)
+
 - Sweet spot messaging: warm water, thin crowds
 - Harvest festivals, local wine season
 - Trail and hiking content
@@ -89,6 +96,7 @@ This group contains all cluster brand profiles across Facebook, Instagram, Threa
 - Off-season preparation tips
 
 ### Winter (December–February)
+
 - Off-season travel: local life, authentic experiences
 - Christmas and holiday traditions
 - Budget travel angles

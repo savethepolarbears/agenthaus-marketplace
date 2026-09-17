@@ -14,15 +14,17 @@ Query VistaSocial for a profile's best posting times based on audience engagemen
 
 1. Resolve the profile ID from the `profile-lookup` skill
 2. Call `getOptimalPublishTimes` with:
-   ```
+
+   ```yaml
    targets: [{ profile_id: "<id>", timezone: "<brand_timezone>" }]
    ```
+
 3. Compare results against the brand's standard cadence from `scheduling-sop`
 4. Report findings with any recommended adjustments
 
 ## Output Format
 
-```
+```text
 Optimal Times: Brand Alpha — Threads (10001)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 VistaSocial recommended: [times from API]

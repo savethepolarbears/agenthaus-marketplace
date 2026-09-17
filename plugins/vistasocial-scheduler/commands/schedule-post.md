@@ -13,6 +13,7 @@ Follow this exact workflow for every post. Do not skip steps.
 ## Step 1: Gather Required Information
 
 Collect from the user (or infer from context):
+
 - **Brand name** (e.g., "Brand Alpha")
 - **Network** (e.g., "threads", "facebook", "instagram")
 - **Post content** (the caption/message text)
@@ -36,7 +37,8 @@ Example: Brand Alpha Threads on April 1, 2026 → `2026-04-01T17:19:00+02:00` (C
 ## Step 4: Run Conflict Check
 
 Call `searchPosts` with:
-```
+
+```yaml
 profile_ids: ["<target_profile_id>"]
 dateFrom: "<publish_date>"
 dateTo: "<publish_date>"
@@ -49,7 +51,8 @@ If a post already exists at the target time, **STOP and alert the user**. Do not
 ## Step 5: Prepare First-Comment Link (If Applicable)
 
 For cluster brand posts or any post using first-comment protocol:
-```
+
+```yaml
 comments: ["→ Explore more: https://<brand-domain>.example.com"]
 ```
 
@@ -64,7 +67,8 @@ Example: `brand-alpha,threads,week-of-mar30`
 ## Step 7: Schedule the Post
 
 Call `schedulePost` with all parameters:
-```
+
+```yaml
 profile_id: "<numeric_id>"
 network_code: "<network>"
 message: "<post_content>"
@@ -76,6 +80,7 @@ comments: ["<first_comment>"]  (if applicable)
 ## Step 8: Confirm Success
 
 Report to the user:
+
 - ✓ Brand and network
 - ✓ Scheduled date/time with timezone
 - ✓ First-comment link (if added)

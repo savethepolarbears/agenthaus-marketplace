@@ -20,7 +20,7 @@ Quickly resolve brand names to VistaSocial profile IDs.
 
 ## Output Format
 
-```
+```text
 Profile: Brand Alpha — Threads
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Profile ID:    10003
@@ -39,6 +39,7 @@ If the user asks for "all cluster profiles", return the full table from the skil
 ## When to Use Live API
 
 Only call VistaSocial MCP for profile lookups when:
+
 - The user asks about a brand not in the reference table
 - The user suspects a profile was recently added or removed
 - You need to verify a profile still exists before a critical operation

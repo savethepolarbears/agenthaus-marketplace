@@ -14,6 +14,7 @@ Generate a complete week of content for a brand, ready for scheduling.
 ## Step 1: Define the Week
 
 Collect from the user:
+
 - **Brand name** (e.g., "Brand Alpha")
 - **Network** (e.g., "threads" — or "all" for multi-network)
 - **Week start date** (Monday of the target week)
@@ -29,6 +30,7 @@ Collect from the user:
 ## Step 3: Determine Post Count and Cadence
 
 Look up the brand's cadence from the `scheduling-sop` skill:
+
 - Daily brand (e.g., Brand Alpha Threads) = 7 posts
 - Mon/Wed/Fri brand (e.g., Brand Beta Threads) = 3 posts
 - Mixed schedule (e.g., Brand Gamma Instagram Tue/Thu/Sat/Sun) = 4 posts
@@ -38,6 +40,7 @@ Look up the brand's cadence from the `scheduling-sop` skill:
 For a 7-post week, enforce the content-creation skill's mix rules:
 
 **Minimum distribution for a 7-post week**:
+
 - 2–3 utility posts (tips, warnings, how-tos, itineraries)
 - 2 local storytelling / hidden gem posts
 - 1 debate prompt or opinion post
@@ -48,15 +51,16 @@ For a 7-post week, enforce the content-creation skill's mix rules:
 ## Step 5: Generate Content
 
 For each post, create:
+
 1. **Topic headline** (internal reference, not published)
 2. **Post message** (following caption SOP for the network)
 3. **First-comment link** (if using first-comment protocol)
 4. **Publish time** (from cadence standard, with correct UTC offset)
-5. **Label** (brand-name,network,week-of-<date>)
+5. **Label** (`brand-name,network,week-of-[date]`)
 
 ### Threads Content Template
 
-```
+```text
 Post [N]/[total] — [topic headline]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [Post message — under 500 characters, conversational tone, strong hook]
@@ -71,7 +75,7 @@ Format: [utility/scenic/storytelling/debate]
 
 Show the full week as a table for user review:
 
-```
+```text
 Content Week: Brand Alpha Threads (Mar 30 – Apr 5)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Day  | Format      | Topic                              | Chars
@@ -90,6 +94,7 @@ Mix: 3 utility, 2 storytelling, 1 debate, 1 scenic ✓
 ## Step 7: User Approval
 
 Ask the user to:
+
 1. Approve all posts as-is
 2. Request edits to specific posts
 3. Replace any topics
@@ -99,9 +104,11 @@ Do NOT proceed to scheduling until explicit approval.
 ## Step 8: Schedule (Optional)
 
 If the user approves and wants to schedule:
+
 - Hand off to the `/batch-schedule` workflow
 - Apply all rate-limit pacing rules
 - Report batch completion summary
 
 If the user wants to review further or schedule manually:
+
 - Output the content plan in a format that can be shared for team review

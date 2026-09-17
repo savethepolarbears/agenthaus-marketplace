@@ -9,6 +9,7 @@ description: Enforces timezone rules, first-comment link protocol, labeling conv
 
 Every VistaSocial MCP call counts against a **60 requests/minute** hard cap.
 Before ANY scheduling operation:
+
 1. Check `x-vs-rate-limit-remaining` from the most recent MCP response header
 2. If remaining < 10, slow down — insert 3-second delays between calls
 3. If remaining < 5, STOP all MCP calls for 60 seconds
@@ -27,7 +28,7 @@ Before scheduling ANY post, always run these steps in order:
 ## Timezone Standards
 
 | Timezone | Example Brands | UTC Offset (Standard) | UTC Offset (DST) |
-|----------|----------------|-----------------------|-------------------|
+| ---------- | ---------------- | ----------------------- | ------------------- |
 | `Europe/Amsterdam` | European Cluster Brands, Regional Portals | `+01:00` (CET) | `+02:00` (CEST, late Mar–late Oct) |
 | `America/Chicago` | Central US Brands, Travel & Lifestyle Portals | `-06:00` (CST) | `-05:00` (CDT, mid Mar–early Nov) |
 | `America/New_York` | Eastern US Brands, Editorial & Finance | `-05:00` (EST) | `-04:00` (EDT) |
@@ -41,7 +42,7 @@ Before scheduling ANY post, always run these steps in order:
 ### Regional Cluster (Europe/Amsterdam)
 
 | Brand | Facebook | Threads | Instagram |
-|-------|----------|---------|-----------|
+| ------- | ---------- | --------- | ----------- |
 | **Brand Beta** | Daily 12:46 | Daily 19:03 | Tue/Thu/Sat/Sun 17:00 |
 | **Brand Alpha** | Daily 14:18 | Daily 17:19 | Mon/Wed/Fri/Sun 18:00 |
 | **Brand Gamma** | Daily 19:12 | Daily 13:13 | Tue/Thu/Fri/Sun 18:01 |
@@ -50,7 +51,7 @@ Before scheduling ANY post, always run these steps in order:
 ### Flagship & Global Brands (America/Chicago unless noted)
 
 | Brand | Schedule |
-|-------|----------|
+| ------- | ---------- |
 | **Flagship Brand** | LinkedIn Tue/Thu 09:00 CT · Instagram Mon/Wed/Fri 11:00 CT · Facebook Tue/Sat 10:00 CT · Threads Mon/Wed/Fri 15:00 CT |
 | **Regional Portal** | Facebook Mon/Wed/Fri 13:00 CET · Instagram Tue/Thu 18:30 CET |
 | **City Guide** | GBP Tue/Fri 09:00 CET · Facebook Tue/Sat 12:15 CET · Instagram Thu/Sat 18:15 CET · Pinterest Mon/Thu 20:00 CET |
@@ -60,13 +61,15 @@ Before scheduling ANY post, always run these steps in order:
 **Rule**: For engagement algorithms that penalize outbound links in captions, place traffic-driving URLs in the first comment.
 
 **Comment format for `schedulePost`**:
-```
+
+```yaml
 comments: ['→ Explore more: https://example.com']
 ```
 
 **Brand domain mapping (Example)**:
+
 | Brand | Domain |
-|-------|--------|
+| ------- | -------- |
 | Brand Alpha | destination-alpha.example.com |
 | Brand Beta | destination-beta.example.com |
 | Brand Gamma | destination-gamma.example.com |
@@ -80,14 +83,15 @@ comments: ['→ Explore more: https://example.com']
 Format: `brand-name,network,week-of-[MMMDD]`
 
 Examples:
+
 - `brand-alpha,threads,week-of-mar16`
 - `brand-beta,facebook,week-of-mar23`
 - `flagship,instagram,week-of-apr06`
 
 ## `schedulePost` Parameter Reference (Non-Premium)
 
-```
-profile_id       — numeric string, e.g., "10001"
+```yaml
+profile_id:       numeric string, e.g., "10001"
 network_code     — "facebook", "instagram", "threads", "linkedin", "pinterest", "tiktok", "youtube", "googlebusiness", "reddit", "vistapage"
 message          — post body text (no external links if using first-comment protocol)
 publish_at       — ISO 8601 with explicit UTC offset, e.g., "2026-04-01T17:03:00+02:00"
@@ -97,8 +101,8 @@ comments         — array of strings for first-comment, e.g., ["→ Explore mor
 
 ## `searchPosts` Parameter Reference
 
-```
-profile_ids      — array of numeric strings, e.g., ["10001"]
+```yaml
+profile_ids:      array of numeric strings, e.g., ["10001"]
 dateFrom         — string "YYYY-MM-DD"
 dateTo           — string "YYYY-MM-DD"
 status           — array, e.g., ["APPROVED", "NEEDS_APPROVAL"]
