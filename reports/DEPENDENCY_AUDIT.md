@@ -1,6 +1,7 @@
 # Dependency Audit Report
 
 ## Summary
+
 A repository-wide dependency analysis was conducted, identifying and addressing security vulnerabilities within the `plugins/qa-droid` package. The updates were performed using `npm audit fix` and prioritized the smallest safe stable compatible fixes. No other dependencies were broadly upgraded per the user directives, and existing package managers and lockfile formats were preserved.
 
 ## Dependency Upgrades
@@ -15,4 +16,5 @@ A repository-wide dependency analysis was conducted, identifying and addressing 
 *Note: Some transitive dependencies were also safely bumped to resolve the vulnerabilities.*
 
 ## Validation and Next Steps
+
 The changes were strictly isolated to `plugins/qa-droid/package-lock.json` and resolved all known security vulnerabilities (0 vulnerabilities found after the fix). No regressions or breaking changes are expected as the updates remained within compatible minor/patch bounds.

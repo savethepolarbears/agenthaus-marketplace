@@ -1,0 +1,7 @@
+# Add to your Codex config.toml
+
+[mcp.servers.apple-productivity]
+command = "uv"
+args = ["run", "--project", "${CLAUDE_PLUGIN_ROOT}/mcp", "apple-productivity-mcp"]
+[mcp.servers.apple-productivity.env]
+APPLE_REMINDERS_BACKEND = "${APPLE_REMINDERS_BACKEND}"

@@ -11,6 +11,7 @@ wp plugin install pods --activate
 ```
 
 Verify installation:
+
 ```bash
 wp plugin list --format=json | python3 -c "
 import sys, json
@@ -180,7 +181,7 @@ wp pods-api add-pod --name=product_category --type=taxonomy --label="Product Cat
 ## Field Type Reference
 
 | Type | WP-CLI Value | Use Case |
-|------|-------------|----------|
+| ------ | ------------- | ---------- |
 | Plain text | `text` | Short strings (titles, codes) |
 | Paragraph | `paragraph` | Multi-line plain text |
 | Rich editor | `wysiwyg` | Formatted content |

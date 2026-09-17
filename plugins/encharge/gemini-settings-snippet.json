@@ -1,0 +1,18 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "encharge": {
+      "args": [
+        "tsx",
+        "${CLAUDE_PLUGIN_ROOT}/node_modules/encharge-cli/src/mcp/index.ts"
+      ],
+      "command": "npx",
+      "env": {
+        "ENCHARGE_ACCOUNTS": "${ENCHARGE_ACCOUNTS}",
+        "ENCHARGE_API_KEY": "${ENCHARGE_API_KEY}",
+        "ENCHARGE_DEFAULT_ACCOUNT": "${ENCHARGE_DEFAULT_ACCOUNT}",
+        "ENCHARGE_WORKSPACE_CONFIG": "${ENCHARGE_WORKSPACE_CONFIG}"
+      }
+    }
+  }
+}

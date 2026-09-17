@@ -1,0 +1,5 @@
+# Add to your Codex config.toml
+
+[mcp.servers.playwright]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-playwright"]

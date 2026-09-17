@@ -1,0 +1,7 @@
+# Add to your Codex config.toml
+
+[mcp.servers.notion]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-notion"]
+[mcp.servers.notion.env]
+NOTION_API_KEY = "${NOTION_API_KEY}"

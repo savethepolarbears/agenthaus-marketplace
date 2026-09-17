@@ -2,7 +2,7 @@
 
 > A comprehensive marketplace of **30 production-ready developer tools and Claude Cowork plugins** for agentic AI ecosystems. Discover, install, and build powerful workflows across Claude Code marketplaces and other AI coding assistants.
 
-[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](https://github.com/savethepolarbears/agenthaus-marketplace/releases)
+[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](./CHANGELOG.md)
 [![Plugins](https://img.shields.io/badge/plugins-30-green.svg)](#available-plugins)
 [![Platforms](https://img.shields.io/badge/platforms-6-blue.svg)](#installation)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
@@ -60,6 +60,8 @@ Gemini CLI reads GEMINI.md context files and supports MCP servers via `~/.gemini
 
 ### Cursor
 
+> **Manual Config Target:** The universal installer does not currently auto-configure Cursor. You must follow these steps manually.
+
 Cursor reads `.cursor/rules/*.mdc` files and supports MCP servers via `.cursor/mcp.json`.
 
 1. Copy the plugin's Cursor rules to your project:
@@ -79,6 +81,8 @@ Cursor reads `.cursor/rules/*.mdc` files and supports MCP servers via `.cursor/m
 3. Cursor uses `${env:VAR}` syntax for environment variable references in MCP configs.
 
 ### Windsurf
+
+> **Manual Config Target:** The universal installer does not currently auto-configure Windsurf. You must follow these steps manually.
 
 Windsurf reads `.windsurfrules` context files from the project root.
 

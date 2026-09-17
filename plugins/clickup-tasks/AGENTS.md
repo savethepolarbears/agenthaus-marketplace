@@ -9,11 +9,7 @@ Manage ClickUp tasks, lists and time tracking.
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 |----------|-----|-------|-----------------|--------|
 | Claude Code | full | n/a | full | full |
-| Codex CLI | none | n/a | partial | full |
+| Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |
 | Cursor | via .cursor/mcp.json | n/a | partial | full |
-| Windsurf | TBD | n/a | partial | full |
-
-## Environment Variables
-
-- `CLICKUP_API_KEY`
+| Windsurf | via mcp_config.json | n/a | partial | full |

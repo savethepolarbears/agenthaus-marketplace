@@ -1,0 +1,14 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "outscraper": {
+      "args": [
+        "node_modules/@outscraper/mcp-server/dist/index.js"
+      ],
+      "command": "node",
+      "env": {
+        "OUTSCRAPER_API_KEY": "${OUTSCRAPER_API_KEY}"
+      }
+    }
+  }
+}

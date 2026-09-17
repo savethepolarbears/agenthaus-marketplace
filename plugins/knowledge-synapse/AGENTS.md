@@ -9,13 +9,7 @@ RAG Agent combining Context7 docs, Notion memory and Google Drive search.
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 |----------|-----|-------|-----------------|--------|
 | Claude Code | full | n/a | full | full |
-| Codex CLI | none | n/a | partial | full |
+| Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |
 | Cursor | via .cursor/mcp.json | n/a | partial | full |
-| Windsurf | TBD | n/a | partial | full |
-
-## Environment Variables
-
-- `CONTEXT7_API_KEY`
-- `NOTION_API_KEY`
-- `GOOGLE_DRIVE_TOKEN`
+| Windsurf | via mcp_config.json | n/a | partial | full |

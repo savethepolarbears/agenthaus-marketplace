@@ -1,0 +1,22 @@
+{
+  "name": "outscraper",
+  "version": "1.0.0",
+  "description": "Web scraping and data enrichment with Outscraper — Google Maps, reviews from 17 platforms, search engines, email/phone enrichment via 28 MCP tools.",
+  "author": { "name": "AgentHaus Team" },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["scraping", "data", "google-maps", "reviews", "enrichment", "research", "leads"],
+  "commands": [
+    "./commands/search.md",
+    "./commands/reviews.md",
+    "./commands/enrich.md",
+    "./commands/geocode.md"
+  ],
+  "agents": [
+    "./agents/data-researcher.md"
+  ],
+  "skills": [
+    "./skills/data-scraping/SKILL.md"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "_comment": "Add mcpServers entries to your Gemini CLI settings",
+  "mcpServers": {
+    "markupgo": {
+      "args": [
+        "markupgo-mcp-server"
+      ],
+      "command": "npx",
+      "env": {
+        "MARKUPGO_API_KEY": "${MARKUPGO_API_KEY}"
+      }
+    }
+  }
+}

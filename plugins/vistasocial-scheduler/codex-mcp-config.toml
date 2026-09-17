@@ -1,0 +1,4 @@
+# Add to your Codex config.toml
+
+[mcp.servers.vistasocial]
+command = "undefined"

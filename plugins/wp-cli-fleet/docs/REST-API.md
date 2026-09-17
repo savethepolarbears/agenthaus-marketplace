@@ -22,6 +22,7 @@ curl -u "username:application-password" \
 Returns site health information.
 
 **Response:**
+
 ```json
 {
   "plugin_version": "1.0.0",
@@ -40,6 +41,7 @@ Returns site health information.
 Returns plugin and theme inventory with update availability.
 
 **Response:**
+
 ```json
 {
   "plugins": [
@@ -68,6 +70,7 @@ Returns plugin and theme inventory with update availability.
 Returns site metadata for fleet discovery.
 
 **Response:**
+
 ```json
 {
   "site_label": "My Site",
@@ -86,6 +89,7 @@ Returns site metadata for fleet discovery.
 Execute a scoped operation. Mutating operations require read-only mode to be disabled and the operation to be in the allowed mutations list.
 
 **Request:**
+
 ```json
 {
   "operation": "plugin_update",
@@ -97,8 +101,9 @@ Execute a scoped operation. Mutating operations require read-only mode to be dis
 ```
 
 **Available operations:**
+
 | Operation | Mutating | Description |
-|-----------|----------|-------------|
+| ----------- | ---------- | ------------- |
 | `health` | No | Site health check |
 | `inventory` | No | Plugin/theme inventory |
 | `manifest` | No | Site manifest |
@@ -108,6 +113,7 @@ Execute a scoped operation. Mutating operations require read-only mode to be dis
 | `rewrite_flush` | Yes | Flush rewrite rules |
 
 **Dry-run response (plugin_update):**
+
 ```json
 {
   "success": true,
@@ -126,7 +132,7 @@ Execute a scoped operation. Mutating operations require read-only mode to be dis
 ## Error Responses
 
 | Status | Meaning |
-|--------|---------|
+| -------- | --------- |
 | 400 | Unknown operation |
 | 401 | Missing or invalid authentication |
 | 403 | Read-only mode or operation not allowed |

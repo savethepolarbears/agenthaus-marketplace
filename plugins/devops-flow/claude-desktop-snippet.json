@@ -1,7 +1,7 @@
 {
   "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
   "_plugin": "devops-flow",
-  "_version": "2.0.0",
+  "_version": "2.0.1",
   "mcpServers": {
     "cloudflare": {
       "args": [

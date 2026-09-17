@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "encharge": {
+      "args": [
+        "tsx",
+        "${workspaceFolder}/plugins/encharge/node_modules/encharge-cli/src/mcp/index.ts"
+      ],
+      "command": "npx",
+      "env": {
+        "ENCHARGE_ACCOUNTS": "${env:ENCHARGE_ACCOUNTS}",
+        "ENCHARGE_API_KEY": "${env:ENCHARGE_API_KEY}",
+        "ENCHARGE_DEFAULT_ACCOUNT": "${env:ENCHARGE_DEFAULT_ACCOUNT}",
+        "ENCHARGE_WORKSPACE_CONFIG": "${env:ENCHARGE_WORKSPACE_CONFIG}"
+      }
+    }
+  }
+}

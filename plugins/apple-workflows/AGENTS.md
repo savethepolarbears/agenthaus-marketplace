@@ -9,11 +9,7 @@ Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP serv
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 |----------|-----|-------|-----------------|--------|
 | Claude Code | full | n/a | full | full |
-| Codex CLI | none | n/a | partial | full |
+| Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |
 | Cursor | via .cursor/mcp.json | n/a | partial | full |
-| Windsurf | TBD | n/a | partial | full |
-
-## Environment Variables
-
-- `APPLE_REMINDERS_BACKEND`
+| Windsurf | via mcp_config.json | n/a | partial | full |

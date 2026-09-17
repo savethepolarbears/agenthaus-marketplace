@@ -1,0 +1,22 @@
+{
+  "name": "neuronwriter",
+  "version": "1.0.0",
+  "description": "SEO content analysis and optimization with NeuronWriter — keyword research, content scoring, AI generation, and WordPress publishing via 7 MCP tools.",
+  "author": { "name": "AgentHaus Team" },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["seo", "content", "keywords", "neuronwriter", "wordpress", "writing", "optimization"],
+  "commands": [
+    "./commands/analyze.md",
+    "./commands/projects.md",
+    "./commands/content.md",
+    "./commands/publish.md"
+  ],
+  "agents": [
+    "./agents/seo-writer.md"
+  ],
+  "skills": [
+    "./skills/seo-content/SKILL.md"
+  ]
+}

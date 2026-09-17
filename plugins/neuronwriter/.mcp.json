@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "neuronwriter": {
+      "command": "python",
+      "args": ["-m", "neuronwriter_mcp"],
+      "env": {
+        "NEURONWRITER_API_KEY": "${NEURONWRITER_API_KEY}"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "textfocus": {
+      "args": [
+        "-m",
+        "textfocus_server"
+      ],
+      "command": "python",
+      "env": {
+        "TEXTFOCUS_API_KEY": "${env:TEXTFOCUS_API_KEY}"
+      }
+    }
+  }
+}

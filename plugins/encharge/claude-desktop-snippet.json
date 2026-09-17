@@ -1,0 +1,20 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "encharge",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "encharge": {
+      "args": [
+        "tsx",
+        "${CLAUDE_PLUGIN_ROOT}/node_modules/encharge-cli/src/mcp/index.ts"
+      ],
+      "command": "npx",
+      "env": {
+        "ENCHARGE_ACCOUNTS": "${ENCHARGE_ACCOUNTS}",
+        "ENCHARGE_API_KEY": "${ENCHARGE_API_KEY}",
+        "ENCHARGE_DEFAULT_ACCOUNT": "${ENCHARGE_DEFAULT_ACCOUNT}",
+        "ENCHARGE_WORKSPACE_CONFIG": "${ENCHARGE_WORKSPACE_CONFIG}"
+      }
+    }
+  }
+}

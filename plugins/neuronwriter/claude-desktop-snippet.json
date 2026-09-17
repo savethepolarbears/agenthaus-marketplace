@@ -1,0 +1,17 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "neuronwriter",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "neuronwriter": {
+      "args": [
+        "-m",
+        "neuronwriter_mcp"
+      ],
+      "command": "python",
+      "env": {
+        "NEURONWRITER_API_KEY": "${NEURONWRITER_API_KEY}"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "textfocus",
+  "version": "1.0.0",
+  "description": "SEO keyword analysis and semantic optimization with TextFocus — keyword metrics, related terms, SEO scoring, and semantic vocabulary analysis via MCP tools.",
+  "author": {
+    "name": "AgentHaus Team"
+  },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": ["seo", "keywords", "semantic", "textfocus", "analysis", "content"],
+  "commands": [
+    "./commands/keyword.md",
+    "./commands/related.md",
+    "./commands/seo.md",
+    "./commands/semantic.md"
+  ],
+  "agents": [
+    "./agents/seo-analyst.md"
+  ],
+  "skills": [
+    "./skills/seo-analysis/SKILL.md"
+  ]
+}

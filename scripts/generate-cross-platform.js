@@ -92,17 +92,29 @@ function discoverPlugins() {
 // Renderers
 // ---------------------------------------------------------------------------
 
-/**
- * Transform ${VAR} env var syntax for the target platform format.
- * 'claude'  → no change (${VAR} is native)
- * 'cursor'  → ${env:VAR} (Phase 3 fills this in)
- * 'gemini'  → no change (Phase 3 fills this in)
- */
-function transformEnvVars(obj, format) {
+function transformEnvVars(pluginOrObj, format) {
+  const isPlugin = pluginOrObj && typeof pluginOrObj === 'object' && ('mcpServers' in pluginOrObj) && ('name' in pluginOrObj);
+  const obj = isPlugin ? pluginOrObj.mcpServers : pluginOrObj;
+  const pluginName = isPlugin ? pluginOrObj.name : 'plugin';
+
+  if (!obj) return obj;
   if (format === 'claude' || format === 'claude-desktop') return obj;
   if (format === 'cursor') {
     const str = JSON.stringify(obj);
-    const transformed = str.replace(/\$\{([^}]+)\}/g, '$${env:$1}');
+    const transformed = str.replace(/\$\{([^}]+)\}/g, (match, v) => {
+      if (v === 'CLAUDE_PLUGIN_ROOT') return `\${workspaceFolder}/plugins/${pluginName}`;
+      if (v.startsWith('user_config.')) return `\${env:${v.replace('user_config.', '')}}`;
+      return `\${env:${v}}`;
+    });
+    return JSON.parse(transformed);
+  }
+  if (format === 'windsurf') {
+    const str = JSON.stringify(obj);
+    const transformed = str.replace(/\$\{([^}]+)\}/g, (match, v) => {
+      if (v === 'CLAUDE_PLUGIN_ROOT') return `./plugins/${pluginName}`;
+      if (v.startsWith('user_config.')) return `\${env:${v.replace('user_config.', '')}}`;
+      return `\${env:${v}}`;
+    });
     return JSON.parse(transformed);
   }
   // Other formats: passthrough until Phase 3
@@ -153,16 +165,26 @@ function renderAgentsMd(plugin) {
   content += '| Platform | MCP | Hooks | Commands/Agents | Skills |\n';
   content += '|----------|-----|-------|-----------------|--------|\n';
   content += `| Claude Code | ${mcpCell('full')} | ${hooksCell('full')} | full | full |\n`;
-  content += `| Codex CLI | ${mcpCell('none')} | ${hooksCell('none')} | partial | full |\n`;
+  content += `| Codex CLI | ${mcpCell('full')} | ${hooksCell('none')} | partial | full |\n`;
   content += `| Gemini CLI | ${mcpCell('via gemini-settings')} | ${hooksCell('none')} | partial | full |\n`;
   content += `| Cursor | ${mcpCell('via .cursor/mcp.json')} | ${hooksCell('none')} | partial | full |\n`;
-  content += `| Windsurf | ${mcpCell('TBD')} | ${hooksCell('none')} | partial | full |`;
+  content += `| Windsurf | ${mcpCell('via mcp_config.json')} | ${hooksCell('none')} | partial | full |`;
 
   // Env vars section
   if (plugin.hasMcp) {
-    const envVars = [...new Set(
-      Object.values(plugin.mcpServers).flatMap(s => Object.keys(s.env || {}))
-    )];
+    let envVars = [];
+    if (plugin.manifest.required_credentials && plugin.manifest.required_credentials.length > 0) {
+      envVars = plugin.manifest.required_credentials.map(c => c.name);
+    } else {
+      envVars = [...new Set(
+        Object.values(plugin.mcpServers).flatMap(s => {
+          return Object.values(s.env || {}).flatMap(val => {
+            const matches = [...val.matchAll(/\\$\\{([^}]+)\\}/g)];
+            return matches.map(m => m[1]);
+          });
+        })
+      )].filter(v => v !== 'CLAUDE_PLUGIN_ROOT');
+    }
     if (envVars.length > 0) {
       content += '\n\n## Environment Variables\n\n';
       content += envVars.map(v => `- \`${v}\``).join('\n');
@@ -230,7 +252,7 @@ function renderCursorMdc(plugin) {
  */
 function renderCursorMcp(plugin) {
   if (!plugin.hasMcp) return null;
-  const transformed = transformEnvVars(plugin.mcpServers, 'cursor');
+  const transformed = transformEnvVars(plugin, 'cursor');
   return stableStringify({ mcpServers: transformed });
 }
 
@@ -240,7 +262,7 @@ function renderCursorMcp(plugin) {
  */
 function renderGeminiSettingsSnippet(plugin) {
   if (!plugin.hasMcp) return null;
-  const transformed = transformEnvVars(plugin.mcpServers, 'gemini');
+  const transformed = transformEnvVars(plugin, 'gemini');
   return stableStringify({
     _comment: 'Add mcpServers entries to your Gemini CLI settings',
     mcpServers: transformed
@@ -248,31 +270,142 @@ function renderGeminiSettingsSnippet(plugin) {
 }
 
 /**
+ * Generate windsurf-mcp-snippet.json content.
+ */
+function renderWindsurfMcp(plugin) {
+  if (!plugin.hasMcp) return null;
+  const transformed = transformEnvVars(plugin, 'windsurf');
+  return stableStringify({
+    _comment: 'Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json',
+    mcpServers: transformed
+  });
+}
+
+/**
+ * Generate codex-mcp-config.toml snippet.
+ */
+function renderCodexToml(plugin) {
+  if (!plugin.hasMcp) return null;
+  let toml = `# Add to your Codex config.toml\n`;
+  for (const [key, server] of Object.entries(plugin.mcpServers)) {
+    toml += `\n[mcp.servers.${key}]\n`;
+    toml += `command = "${server.command}"\n`;
+    if (server.args && server.args.length > 0) {
+      const argsStr = server.args.map(a => `"${a}"`).join(", ");
+      toml += `args = [${argsStr}]\n`;
+    }
+    if (server.env) {
+      toml += `[mcp.servers.${key}.env]\n`;
+      for (const [eKey, eVal] of Object.entries(server.env)) {
+        toml += `${eKey} = "${eVal}"\n`;
+      }
+    }
+  }
+  return toml;
+}
+
+/**
  * Generate repo-level AGENTS.md from manifest data only (not from CLAUDE.md).
  * Enforces a 6 KiB byte budget.
  */
 function renderRepoAgentsMd(plugins, errors) {
-  let content = '# AgentHaus Marketplace\n\n27 production-ready plugins for Claude Code with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.\n\n## Plugins\n\n';
-  content += '| Plugin | Description | MCP | Hooks |\n';
-  content += '|--------|-------------|-----|-------|\n';
+  const header = `# AgentHaus Marketplace
 
-  for (const plugin of plugins) {
-    const rawDesc = plugin.manifest.description || '';
-    const desc = rawDesc.length > 60 ? rawDesc.slice(0, 57) + '...' : rawDesc;
-    const mcp = plugin.hasMcp ? 'yes' : 'no';
-    const hooks = plugin.hasHooks ? 'yes' : 'no';
-    content += `| ${plugin.manifest.name || plugin.name} | ${desc} | ${mcp} | ${hooks} |\n`;
+A discoverable marketplace of ${plugins.length} developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
+
+## Repository Map & Architecture
+
+\`\`\`text
+agenthaus-marketplace/
+├── plugins/        # ${plugins.length} production plugins
+├── schemas/        # JSON schemas for validation
+├── scripts/        # Validation and utility scripts
+├── reports/        # ALL project reports and documentation go here
+├── .env.example    # Required environment variables
+└── README.md       # Project overview
+\`\`\`
+
+## Build & Core Commands
+
+\`\`\`bash
+bash scripts/validate-plugins.sh         # Validate all plugins and marketplace
+bash scripts/generate-skills-index.sh    # Re-generate skills index
+bash scripts/install-plugins.sh          # Interactively install plugins
+bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
+\`\`\`
+
+## Tech Stack & Conventions
+
+- **Validation:** Zod 4.3.6
+- **Package Manager:** npm (v11+) / pnpm (v10+). No root \`package.json\`.
+- **Manifest:** JSON in \`.claude-plugin/plugin.json\` (name, version, description). Explicit paths only.
+- **Commands & Agents:** Markdown with YAML frontmatter (\`description\` required).
+- **Skills:** Markdown in \`skills/<name>/SKILL.md\` with YAML frontmatter.
+- **Hooks:** JSON with \`{ "hooks": { "PreToolUse": [...], "PostToolUse": [...] } }\` format.
+- **MCP Configs:** JSON in \`.mcp.json\`.
+- **Naming:** kebab-case for plugin directories and file names.
+
+## Agent Boundaries & Guidelines
+
+- **Never commit** API keys, tokens, or credentials. Use \`.env\` and \`.env.local\`.
+- **Environment variables:** Use \`\${ENV_VAR}\` in MCP configs; never inline credentials.
+- **Path references:** Use \`\${CLAUDE_PLUGIN_ROOT}\` for plugin-local scripts in hooks/MCP configs.
+- **Security:** Plugin hooks run shell commands — audit for injection risks. Only trusted MCP servers.
+- **Files:** Temp files in \`temp/\` or \`tmp/\`. ALL output reports go to \`reports/\`.
+- **PRs:** All plugins must pass \`bash scripts/validate-plugins.sh\`. Do not edit global \`.json\` unless instructed.
+- **Development:** Modular solutions. Fix root cause, not tests.
+`;
+
+  const footer = `
+## Platform Support
+
+| Platform | MCP | Hooks | Commands | Skills |
+|----------|-----|-------|----------|--------|
+| Claude Code | full | full | full | full |
+| Codex CLI | none | none | partial | full |
+| Gemini CLI | via gemini-settings | none | partial | full |
+| Cursor | via .cursor/mcp.json | none | partial | full |
+| Windsurf | global config | none | partial | full |
+
+> Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.
+
+## Gemini Context Caching
+
+Use context caching to retain plugin catalog and \`marketplace.json\` across turns. Use \`@plugins/<name>/.claude-plugin/plugin.json\` to pull in manifests.
+
+## Antigravity IDE Integration (Memory Bank)
+
+Read \`.agent/memory-bank/\` for persistent context before large tasks:
+- \`architecture.md\` — Repo structure, plugin anatomy
+- \`api-contracts.md\` — Schema specs for manifests
+- \`decision-log.md\` — Architectural decisions (ADRs)
+
+Update these docs when making significant changes. For non-trivial tasks, plan before executing and get user approval.
+
+## Agent Delegation & Parallel Execution
+
+Send all independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when output is chained.
+
+## Required Environment Variables
+
+Check \`.env.example\`: \`CLOUDFLARE_API_TOKEN\`, \`GITHUB_TOKEN\`, \`NOTION_API_KEY\`, \`DATABASE_URL\`, \`NEON_API_KEY\`.
+`;
+
+  let content = '';
+  for (let maxDesc = 25; maxDesc >= 10; maxDesc -= 5) {
+    let table = '## Plugins\n\n| Plugin | Description | MCP | Hooks |\n|--------|-------------|-----|-------|\n';
+    for (const plugin of plugins) {
+      const rawDesc = plugin.manifest.description || '';
+      const desc = rawDesc.length > maxDesc ? rawDesc.slice(0, maxDesc - 3) + '...' : rawDesc;
+      const mcp = plugin.hasMcp ? 'yes' : 'no';
+      const hooks = plugin.hasHooks ? 'yes' : 'no';
+      table += `| ${plugin.manifest.name || plugin.name} | ${desc} | ${mcp} | ${hooks} |\n`;
+    }
+    content = header + '\n' + table + footer;
+    if (Buffer.byteLength(content, 'utf8') <= 6144) {
+      break;
+    }
   }
-
-  content += '\n## Platform Support\n\n';
-  content += '| Platform | MCP | Hooks | Commands | Skills |\n';
-  content += '|----------|-----|-------|----------|--------|\n';
-  content += '| Claude Code | full | full | full | full |\n';
-  content += '| Codex CLI | none | none | partial | full |\n';
-  content += '| Gemini CLI | via gemini-settings | none | partial | full |\n';
-  content += '| Cursor | via .cursor/mcp.json | none | partial | full |\n';
-  content += '| Windsurf | global config | none | partial | full |\n\n';
-  content += '> Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.\n';
 
   const bytes = Buffer.byteLength(content, 'utf8');
   if (bytes > 6144) {
@@ -282,7 +415,7 @@ function renderRepoAgentsMd(plugins, errors) {
 
   const outPath = path.resolve(PLUGINS_DIR, '..', 'AGENTS.md');
   const changed = writeIfChanged(outPath, content);
-  console.log(`[repo] AGENTS.md ${changed ? 'written' : 'unchanged'}`);
+  console.log(`[repo] AGENTS.md ${changed ? 'written' : 'unchanged'} (${bytes} bytes)`);
 }
 
 /**
@@ -395,6 +528,36 @@ function generateAll(plugins, errors) {
         if (changed) written++; else skipped++;
       } else {
         console.log(`[${plugin.name}] gemini-settings-snippet.json skipped (no MCP servers)`);
+      }
+    } catch (err) {
+      errors.push({ plugin: plugin.name, error: err.message });
+    }
+
+    try {
+      // --- windsurf-mcp-snippet.json (MCP plugins only) ---
+      const windsurfSnippetContent = renderWindsurfMcp(plugin);
+      if (windsurfSnippetContent !== null) {
+        const windsurfSnippetPath = path.join(plugin.dir, 'windsurf-mcp-snippet.json');
+        const changed = writeIfChanged(windsurfSnippetPath, windsurfSnippetContent);
+        console.log(`[${plugin.name}] windsurf-mcp-snippet.json ${changed ? 'written' : 'unchanged'}`);
+        if (changed) written++; else skipped++;
+      } else {
+        console.log(`[${plugin.name}] windsurf-mcp-snippet.json skipped`);
+      }
+    } catch (err) {
+      errors.push({ plugin: plugin.name, error: err.message });
+    }
+
+    try {
+      // --- codex-mcp-config.toml (MCP plugins only) ---
+      const codexTomlContent = renderCodexToml(plugin);
+      if (codexTomlContent !== null) {
+        const codexTomlPath = path.join(plugin.dir, 'codex-mcp-config.toml');
+        const changed = writeIfChanged(codexTomlPath, codexTomlContent);
+        console.log(`[${plugin.name}] codex-mcp-config.toml ${changed ? 'written' : 'unchanged'}`);
+        if (changed) written++; else skipped++;
+      } else {
+        console.log(`[${plugin.name}] codex-mcp-config.toml skipped`);
       }
     } catch (err) {
       errors.push({ plugin: plugin.name, error: err.message });

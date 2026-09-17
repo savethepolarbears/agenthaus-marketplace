@@ -107,7 +107,7 @@ Prefer these approaches in order:
 Use `examples/fleet.example.json` as the template. Each site entry includes:
 
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| ------- | ------ | ---------- | ------------- |
 | `alias` | string | yes | WP-CLI alias (e.g., `@brand-prod`) |
 | `label` | string | yes | Human-readable label |
 | `environment` | string | yes | `production`, `staging`, `development`, or `local` |
@@ -236,6 +236,7 @@ wp search-replace 'old_pattern' 'new_value' \
 ```
 
 Available PCRE flags:
+
 - `i` — Case-insensitive matching
 - `m` — Multiline mode (`^` and `$` match line boundaries)
 - `s` — Dotall mode (`.` matches newlines)
@@ -364,7 +365,7 @@ wp site list --field=url | xargs -I % wp plugin list --url=% --format=json
 For every task, return:
 
 | Field | Description |
-|-------|-------------|
+| ------- | ------------- |
 | **target** | Site alias, URL, or group |
 | **command** | WP-CLI command or REST operation executed |
 | **mode** | `read-only`, `dry-run`, or `mutating` |
@@ -410,7 +411,7 @@ python3 bin/render_wp_cli_aliases.py <manifest.json> --output <wp-cli.yml>
 ## Error Reference
 
 | Exit Code | Meaning | Action |
-|-----------|---------|--------|
+| ----------- | --------- | -------- |
 | 0 | Success | Continue |
 | 1 | General error | Check stderr for details |
 | 2 | Missing dependency | Install required WP-CLI package |

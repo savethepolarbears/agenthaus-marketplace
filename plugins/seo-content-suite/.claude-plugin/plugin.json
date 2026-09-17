@@ -1,0 +1,22 @@
+{
+  "name": "seo-content-suite",
+  "version": "1.0.0",
+  "description": "Unified SEO content pipeline combining NeuronWriter (content analysis), TextFocus (keyword research), MarkupGo (visual assets), and Outscraper (market research) into end-to-end workflows for keyword research → content creation → visual assets → publishing.",
+  "author": { "name": "AgentHaus Team" },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "seo",
+    "content",
+    "keywords",
+    "images",
+    "research",
+    "publishing",
+    "suite",
+    "pipeline"
+  ],
+  "skills": [
+    "./skills/seo-content-pipeline/SKILL.md"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "textfocus",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "textfocus": {
+      "args": [
+        "-m",
+        "textfocus_server"
+      ],
+      "command": "python",
+      "env": {
+        "TEXTFOCUS_API_KEY": "${TEXTFOCUS_API_KEY}"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
+  "_plugin": "seo-content-suite",
+  "_version": "1.0.0",
+  "mcpServers": {
+    "markupgo": {
+      "args": [
+        "markupgo-mcp-server"
+      ],
+      "command": "npx",
+      "env": {
+        "MARKUPGO_API_KEY": "${MARKUPGO_API_KEY}"
+      }
+    },
+    "neuronwriter": {
+      "args": [
+        "-m",
+        "neuronwriter_mcp"
+      ],
+      "command": "python",
+      "env": {
+        "NEURONWRITER_API_KEY": "${NEURONWRITER_API_KEY}"
+      }
+    },
+    "outscraper": {
+      "args": [
+        "node_modules/@outscraper/mcp-server/dist/index.js"
+      ],
+      "command": "node",
+      "env": {
+        "OUTSCRAPER_API_KEY": "${OUTSCRAPER_API_KEY}"
+      }
+    },
+    "textfocus": {
+      "args": [
+        "-m",
+        "textfocus_server"
+      ],
+      "command": "python",
+      "env": {
+        "TEXTFOCUS_API_KEY": "${TEXTFOCUS_API_KEY}"
+      }
+    }
+  }
+}

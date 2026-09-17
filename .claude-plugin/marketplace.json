@@ -5,7 +5,7 @@
     "email": "support@agenthaus.dev"
   },
   "metadata": {
-    "description": "A comprehensive marketplace of 25 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
+    "description": "A comprehensive marketplace of 37 production-ready plugins with universal agentic skills for Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, OpenCode, Cursor, and 35+ AI coding agents. Features specialized plugins for development, productivity, content creation, cloud management, multi-agent orchestration, safety, media management, and SEO/GEO/RAG optimization. Compatible with npx skills for cross-platform discovery and installation.",
     "version": "1.0.0",
     "pluginRoot": "./plugins"
   },
@@ -362,6 +362,100 @@
         "scheduling",
         "content",
         "marketing"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "encharge",
+      "source": "./plugins/encharge",
+      "category": "marketing",
+      "description": "Encharge.io marketing automation — manage contacts, tags, emails, segments, custom objects, and multi-account workflows via 55 MCP tools.",
+      "keywords": [
+        "marketing",
+        "email",
+        "automation",
+        "encharge",
+        "crm",
+        "contacts",
+        "tags"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "markupgo",
+      "source": "./plugins/markupgo",
+      "category": "media",
+      "description": "Generate images, PDFs, and social media asset packs from HTML, URLs, Markdown, and reusable templates via 16 MCP tools.",
+      "keywords": [
+        "media",
+        "images",
+        "pdf",
+        "social-media",
+        "templates",
+        "design",
+        "screenshots"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "neuronwriter",
+      "source": "./plugins/neuronwriter",
+      "category": "seo",
+      "description": "SEO content analysis and optimization with NeuronWriter — keyword research, content scoring, AI generation, and WordPress publishing.",
+      "keywords": [
+        "seo",
+        "content",
+        "keywords",
+        "neuronwriter",
+        "wordpress",
+        "writing"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "outscraper",
+      "source": "./plugins/outscraper",
+      "category": "data",
+      "description": "Web scraping and data enrichment with Outscraper — Google Maps, reviews from 17 platforms, search engines, and email/phone enrichment via 28 MCP tools.",
+      "keywords": [
+        "scraping",
+        "data",
+        "google-maps",
+        "reviews",
+        "enrichment",
+        "research",
+        "leads"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "textfocus",
+      "source": "./plugins/textfocus",
+      "category": "seo",
+      "description": "SEO keyword analysis and semantic optimization with TextFocus — keyword metrics, related terms, SEO scoring, and semantic vocabulary analysis.",
+      "keywords": [
+        "seo",
+        "keywords",
+        "semantic",
+        "textfocus",
+        "analysis",
+        "content"
+      ],
+      "author": { "name": "AgentHaus Team" }
+    },
+    {
+      "name": "seo-content-suite",
+      "source": "./plugins/seo-content-suite",
+      "category": "seo",
+      "description": "Unified SEO content pipeline combining NeuronWriter, TextFocus, MarkupGo, and Outscraper into end-to-end workflows for keyword research, content creation, visual assets, and publishing.",
+      "keywords": [
+        "seo",
+        "content",
+        "pipeline",
+        "suite",
+        "keywords",
+        "images",
+        "publishing"
       ],
       "author": { "name": "AgentHaus Team" }
     }

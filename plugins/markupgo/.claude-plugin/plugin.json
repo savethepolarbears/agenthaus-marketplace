@@ -1,0 +1,33 @@
+{
+  "name": "markupgo",
+  "version": "1.0.0",
+  "description": "Generate images, PDFs, and social media asset packs from HTML, URLs, Markdown, and reusable templates via MarkupGo's 16 MCP tools.",
+  "author": {
+    "name": "AgentHaus Team"
+  },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "media",
+    "images",
+    "pdf",
+    "social-media",
+    "templates",
+    "design",
+    "screenshots"
+  ],
+  "commands": [
+    "./commands/image.md",
+    "./commands/pdf.md",
+    "./commands/social-pack.md",
+    "./commands/template.md",
+    "./commands/transform.md"
+  ],
+  "agents": [
+    "./agents/asset-designer.md"
+  ],
+  "skills": [
+    "./skills/asset-generation/SKILL.md"
+  ]
+}

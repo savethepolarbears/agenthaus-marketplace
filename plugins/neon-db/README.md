@@ -5,7 +5,7 @@ Connect to Neon’s serverless Postgres with the **neon-db** plugin.  The plugin
 ## Platform Support
 
 | Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
-|---------|-------------|-----------|------------|--------|----------|----------------|
+| --------- | ------------- | ----------- | ------------ | -------- | ---------- | ---------------- |
 | Commands | full | partial | partial | partial | partial | n/a |
 | Skills | full | full | full | full | full | n/a |
 | MCP | full | none | full | full | partial | full |

@@ -7,7 +7,7 @@ Source: [nowork-studio/NotFair](https://github.com/nowork-studio/NotFair) — MI
 ## Platform Support
 
 | Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
-|---------|-------------|-----------|------------|--------|----------|----------------|
+| --------- | ------------- | ----------- | ------------ | -------- | ---------- | ---------------- |
 | Skills | full | full | full | full | full | n/a |
 | MCP | full | n/a | full | full | n/a | full |
 | Commands | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -30,7 +30,7 @@ Meta Ads (Facebook + Instagram) skills. Campaign audits, ROAS analysis, creative
 ## Prerequisites
 
 | Skill | Required MCPs | Environment Variables |
-|-------|--------------|----------------------|
+| ------- | -------------- | ---------------------- |
 | notfair-seo | Google Search Console MCP, Google Analytics (GA4) MCP | See NotFair repo for setup |
 | notfair-google-ads | Google Ads MCP | `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_REFRESH_TOKEN`, `GOOGLE_ADS_LOGIN_CUSTOMER_ID` |
 | notfair-meta-ads | Meta Ads MCP | `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_ID` |

@@ -1,0 +1,13 @@
+---
+description: "Generate images, PDFs, and social media asset packs from HTML, URLs, Markdown, and reusable templates via MarkupGo's 16 MCP tools."
+globs: "**/*"
+alwaysApply: true
+---
+
+# markupgo
+
+Generate images, PDFs, and social media asset packs from HTML, URLs, Markdown, and reusable templates via MarkupGo's 16 MCP tools.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

@@ -4,7 +4,7 @@
       "args": [
         "run",
         "--project",
-        "${env:CLAUDE_PLUGIN_ROOT}/mcp",
+        "${workspaceFolder}/plugins/apple-workflows/mcp",
         "apple-productivity-mcp"
       ],
       "command": "uv",

@@ -1,0 +1,47 @@
+{
+  "name": "encharge",
+  "version": "1.0.0",
+  "description": "Encharge.io marketing automation — manage people, tags, emails, segments, custom objects, and multi-account workflows via 55 MCP tools and CLI commands.",
+  "author": {
+    "name": "AgentHaus Team"
+  },
+  "homepage": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "repository": "https://github.com/savethepolarbears/agenthaus-marketplace",
+  "license": "MIT",
+  "tags": [
+    "marketing",
+    "email",
+    "automation",
+    "encharge",
+    "crm",
+    "contacts",
+    "tags",
+    "segments",
+    "marketing-automation"
+  ],
+  "capabilities": [
+    "MCP integration with 55 tools",
+    "Multi-account support",
+    "CLI commands",
+    "Contact management",
+    "Email templates",
+    "Tag management",
+    "Segment operations",
+    "Custom objects",
+    "Webhooks",
+    "Cross-account workflows"
+  ],
+  "commands": [
+    "./commands/people.md",
+    "./commands/tags.md",
+    "./commands/emails.md",
+    "./commands/status.md",
+    "./commands/segments.md"
+  ],
+  "agents": [
+    "./agents/marketing-ops.md"
+  ],
+  "skills": [
+    "./skills/marketing-automation/SKILL.md"
+  ]
+}

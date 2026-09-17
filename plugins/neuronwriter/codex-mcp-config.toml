@@ -1,0 +1,7 @@
+# Add to your Codex config.toml
+
+[mcp.servers.neuronwriter]
+command = "python"
+args = ["-m", "neuronwriter_mcp"]
+[mcp.servers.neuronwriter.env]
+NEURONWRITER_API_KEY = "${NEURONWRITER_API_KEY}"

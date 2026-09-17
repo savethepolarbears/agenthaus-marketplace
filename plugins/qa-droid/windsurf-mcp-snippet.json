@@ -1,0 +1,32 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "gmail": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-gmail"
+      ],
+      "command": "npx",
+      "env": {
+        "GMAIL_CREDENTIALS": "${env:GMAIL_CREDENTIALS}"
+      }
+    },
+    "playwright-local": {
+      "args": [
+        "./plugins/qa-droid/index.js"
+      ],
+      "command": "node"
+    },
+    "slack": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-slack"
+      ],
+      "command": "npx",
+      "env": {
+        "SLACK_BOT_TOKEN": "${env:SLACK_BOT_TOKEN}",
+        "SLACK_DEFAULT_CHANNEL": "${env:SLACK_CHANNEL}"
+      }
+    }
+  }
+}

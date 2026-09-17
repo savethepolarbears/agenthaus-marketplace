@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "markupgo": {
+      "command": "npx",
+      "args": [
+        "markupgo-mcp-server"
+      ],
+      "env": {
+        "MARKUPGO_API_KEY": "${MARKUPGO_API_KEY}"
+      }
+    }
+  }
+}
