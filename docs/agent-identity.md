@@ -4,7 +4,7 @@
 
 AgentHaus plugins use static environment variables for credential management:
 
-```
+```bash
 GITHUB_TOKEN=ghp_xxx...
 CLOUDFLARE_API_TOKEN=xxx...
 NOTION_API_KEY=ntn_xxx...
@@ -60,7 +60,7 @@ For enterprise multi-tenant deployments, the roadmap includes:
 
 ### Agent Identity Flow
 
-```
+```text
 Human → agenthaus-web dashboard → OAuth 2.1 login
   → Select plugin + scopes
   → Issue short-lived JWT with DPoP

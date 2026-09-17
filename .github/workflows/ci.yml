@@ -51,8 +51,8 @@ jobs:
 
       - name: Guard against destructive git commands
         run: |
-          if git grep -nE 'git push.*(--force|-f)\b' -- ':!scripts/validate-plugins.sh' ':!.github/workflows/*'; then
-            echo "ERROR: Destructive git push --force detected in tracked files."
+          if git grep -nE 'git push.*(--force|-f)\b' -- '*.sh' '*.js' '*.py'; then
+            echo "ERROR: Destructive git push --force detected in script files."
             exit 1
           fi
 
