@@ -1,6 +1,6 @@
 {
   "name": "circuit-breaker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pre-built safety guardrails as reusable hooks for Claude Code workflows.",
   "author": {
     "name": "AgentHaus Team"

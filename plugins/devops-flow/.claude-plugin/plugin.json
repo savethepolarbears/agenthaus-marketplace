@@ -1,6 +1,6 @@
 {
   "name": "devops-flow",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.",
   "author": {
     "name": "AgentHaus Team"
