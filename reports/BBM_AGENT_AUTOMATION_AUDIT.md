@@ -68,8 +68,9 @@ The audit verified:
 
 - **Rule:** Agent tool budgets, test requirements before commit, and production deployment windows must be protected by circuit breakers.
 - **Status:** **PASS / 100% Compliant**.
-  - `budget-guard.sh` is hardened with CWE-377 private directory isolation (`mode 0700`, owner verification `[ -O ]`, symlink rejection, graceful exit 0).
-  - Canonical `reset-counter.sh` entry point provided and tested.
+  - `budget-guard.sh` is hardened with CWE-377 private directory isolation (`mode 0700`, owner verification `[ -O ]`, symlink rejection, non-mutating permission checks, atomic temporary writes, and graceful exit 0).
+  - Canonical `reset-counter.sh` entry point provided, tested against parent symlink deletion attacks, and validated.
+  - Filesystem safety in `install-plugins.sh` hardened with `-ef` directory-identity comparisons preventing symlinked `$HOME` bypass.
 
 ---
 
@@ -91,7 +92,8 @@ Every skill file was audited for clear trigger descriptions (`name`, `descriptio
 
 | Finding | Severity | Category | Status | Action / Resolution |
 | :--- | :--- | :--- | :--- | :--- |
-| **CWE-377 Temporary File Collision** | P2 | Security | **Resolved** | Counter storage isolated in user-owned private directory mode 0700 with symlink rejection. |
+| **CWE-377 Temporary File Collision** | P2 | Security | **Resolved** | Counter storage isolated in user-owned private directory mode 0700 with atomic writes, parent symlink validation, and non-mutating permissions. |
+| **Filesystem Safety & Home Protection** | P2 | Security | **Resolved** | Sourced installer safely validates target against canonical `$HOME` using POSIX `-ef` identity comparison, preventing symlink bypass. |
 | **Counter Reset Mismatch** | P2 | Reliability | **Resolved** | Provided canonical `reset-counter.sh` and updated all command documentation. |
 | **Generator Drift Untracked False Negative** | P2 | CI/CD | **Resolved** | Hardened `.github/workflows/ci.yml` with `--untracked-files=all` and added regression test. |
 | **CI Node Runtime Version** | P3 | Maintenance | **Resolved** | Upgraded CI workflow jobs to Node 24 LTS. |
