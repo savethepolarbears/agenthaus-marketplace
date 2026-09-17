@@ -30,7 +30,7 @@ Turns Claude into a social media operations specialist. Handles post scheduling,
 ## Agents
 
 | Agent | Purpose |
-|-------|---------|
+| :--- | :--- |
 | `scheduling-agent` | Autonomous post scheduling with pre-flight validation |
 | `content-planner` | Weekly content calendar generation |
 
@@ -79,5 +79,5 @@ The `skills/` directory contains templates with example brand data. To customize
 ## Environment Variables
 
 | Variable | Required | Description |
-|----------|----------|-------------|
+| :--- | :--- | :--- |
 | `VISTASOCIAL_API_KEY` | Yes | VistaSocial MCP API key from your account settings |

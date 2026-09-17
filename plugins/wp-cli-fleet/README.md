@@ -53,7 +53,7 @@ For the WordPress companion plugin, copy `wordpress-plugin/agentic-wp-cli.php` t
 ## Agents
 
 | Agent | Model | Purpose |
-|-------|-------|---------|
+| :--- | :--- | :--- |
 | `wp-fleet-operator` | sonnet | Fleet-wide operations across multiple sites |
 | `wp-site-inspector` | haiku | Quick single-site diagnostics |
 
@@ -82,7 +82,7 @@ python3 bin/render_wp_cli_aliases.py examples/fleet.example.json --output wp-cli
 The companion WordPress plugin uses these environment variables for REST bridge access:
 
 | Variable | Description |
-|----------|-------------|
+| :--- | :--- |
 | `WP_APP_PASSWORD` | WordPress Application Password for REST auth |
 | `AGENTIC_SECRET` | Shared secret for X-Agentic-WP-Secret header |
 
@@ -98,7 +98,7 @@ Fleet manifest entries reference per-site environment variables. See `examples/f
 
 ## Architecture
 
-```
+```text
 wp-cli-fleet/
 ├── commands/           # 6 slash commands for common operations
 ├── agents/             # Fleet operator and site inspector agents

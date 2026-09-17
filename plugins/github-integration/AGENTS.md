@@ -7,7 +7,7 @@ Full GitHub management: create/search issues and pull requests using GitHub's MC
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands/Agents | Skills |
-|----------|-----|-------|-----------------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | n/a | full | full |
 | Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |

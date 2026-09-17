@@ -9,7 +9,7 @@ Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands/Agents | Skills |
-|----------|-----|-------|-----------------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | full | full | full |
 | Codex CLI | full | none | partial | full |
 | Gemini CLI | via gemini-settings | none | partial | full |

@@ -51,7 +51,7 @@ Or install directly from the source repo:
 
 After installation, Claude automatically applies the relevant skill based on what you ask:
 
-```
+```text
 > Audit my Google Ads account for wasted spend
 > Research keywords for our product landing page
 > Analyze ROAS across my Meta ad campaigns

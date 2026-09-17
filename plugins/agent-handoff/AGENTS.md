@@ -5,7 +5,7 @@ State-based task handoff between agents using a shared blackboard protocol.
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands/Agents | Skills |
-|----------|-----|-------|-----------------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | Claude Code | n/a | n/a | full | full |
 | Codex CLI | n/a | n/a | partial | full |
 | Gemini CLI | n/a | n/a | partial | full |

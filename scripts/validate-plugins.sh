@@ -292,7 +292,7 @@ validate_hook_security() {
       found_issues=1
     fi
 
-  done < <(find "$dir" -name "*.sh" -type f 2>/dev/null)
+  done < <(find "$dir" -name "*.sh" -type f ! -path "*/node_modules/*" 2>/dev/null)
 
   # Hook configuration files: keys Claude Code does not define are dropped at load
   # time, so a guard expressed through one is inert.
@@ -316,12 +316,12 @@ validate_hook_security() {
       warn_count=$((warn_count + 1))
       found_issues=1
     fi
-  done < <(find "$dir" -path "*/hooks/*" -name "*.json" -type f 2>/dev/null)
+  done < <(find "$dir" -path "*/hooks/*" -name "*.json" -type f ! -path "*/node_modules/*" 2>/dev/null)
 
   if [[ "$found_issues" -eq 0 ]]; then
     # Only log if there were .sh files to check
     local sh_count
-    sh_count="$(find "$dir" -name "*.sh" -type f 2>/dev/null | wc -l | tr -d ' ')"
+    sh_count="$(find "$dir" -name "*.sh" -type f ! -path "*/node_modules/*" 2>/dev/null | wc -l | tr -d ' ')"
     if [[ "$sh_count" -gt 0 ]]; then
       log_pass "Hook security: ${sh_count} shell script(s) scanned, no issues"
     fi
@@ -435,9 +435,9 @@ validate_skills_index() {
   fi
   log_pass "skills_index.json is valid JSON"
 
-  # Count actual files vs index entries
+  # Count actual files vs index entries (excluding dependencies)
   local actual_count
-  actual_count="$(find "$PLUGINS_DIR" \( -path "*/agents/*.md" -o -path "*/skills/*/SKILL.md" -o -path "*/commands/*.md" \) | wc -l | tr -d ' ')"
+  actual_count="$(find "$PLUGINS_DIR" ! -path "*/node_modules/*" \( -path "*/agents/*.md" -o -path "*/skills/*/SKILL.md" -o -path "*/commands/*.md" \) | wc -l | tr -d ' ')"
 
   local index_count
   index_count="$(jq -r '.entries | length' "$index_file" 2>/dev/null)" || index_count=0

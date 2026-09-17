@@ -494,6 +494,11 @@ uninstall_from() {
   local target_dir="$1"
   local agent_name="$2"
 
+  if [[ -z "$target_dir" || "$target_dir" == "/" ]]; then
+    error "Refusing to uninstall from root or empty directory"
+    return 1
+  fi
+
   if [[ ! -d "$target_dir" ]]; then
     warn "Directory $target_dir does not exist"
     return 0

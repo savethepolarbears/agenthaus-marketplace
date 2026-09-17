@@ -1,5 +1,9 @@
 # AgentHaus Marketplace
 
+This file provides guidance to AI coding assistants working in this repository.
+
+**Note:** `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.clinerules`, and `.windsurfrules` are symlinks to `AGENTS.md` in this project.
+
 A discoverable marketplace of 37 developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
 
 ## Repository Map & Architecture
@@ -47,7 +51,7 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 ## Plugins
 
 | Plugin | Description | MCP | Hooks |
-|--------|-------------|-----|-------|
+| :--- | :--- | :--- | :--- |
 | activepieces | Agent plugin pack for ... | no | no |
 | agent-handoff | State-based task hando... | no | no |
 | agent-memory | Shared persistent memo... | yes | no |
@@ -89,7 +93,7 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands | Skills |
-|----------|-----|-------|----------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | full | full | full |
 | Codex CLI | none | none | partial | full |
 | Gemini CLI | via gemini-settings | none | partial | full |
@@ -105,6 +109,7 @@ Use context caching to retain plugin catalog and `marketplace.json` across turns
 ## Antigravity IDE Integration (Memory Bank)
 
 Read `.agent/memory-bank/` for persistent context before large tasks:
+
 - `architecture.md` — Repo structure, plugin anatomy
 - `api-contracts.md` — Schema specs for manifests
 - `decision-log.md` — Architectural decisions (ADRs)

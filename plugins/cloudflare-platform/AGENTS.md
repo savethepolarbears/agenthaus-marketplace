@@ -7,7 +7,7 @@ Manage Cloudflare Workers, KV storage and AI Gateway resources.
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands/Agents | Skills |
-|----------|-----|-------|-----------------|--------|
+| :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | n/a | full | full |
 | Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |
