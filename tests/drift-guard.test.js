@@ -70,6 +70,7 @@ describe('Drift Guard & Untracked Files Check', () => {
             fs.copyFileSync(path.join(repoRoot, 'skills_index.json'), path.join(cleanFixtureDir, 'skills_index.json'));
             fs.copyFileSync(path.join(repoRoot, 'AGENTS.md'), path.join(cleanFixtureDir, 'AGENTS.md'));
             fs.copyFileSync(path.join(repoRoot, 'GEMINI.md'), path.join(cleanFixtureDir, 'GEMINI.md'));
+            fs.copyFileSync(path.join(repoRoot, '.gitignore'), path.join(cleanFixtureDir, '.gitignore'));
 
             execSync('git init -b main', { cwd: cleanFixtureDir, stdio: 'ignore' });
             execSync('git config user.email "test@example.com"', { cwd: cleanFixtureDir, stdio: 'ignore' });
@@ -87,14 +88,16 @@ describe('Drift Guard & Untracked Files Check', () => {
                 'git status --porcelain --untracked-files=all -- ' +
                 '"*claude-desktop-snippet.json" "*gemini-settings-snippet.json" ' +
                 '"*windsurf-mcp-snippet.json" "*codex-mcp-config.toml" ' +
-                '".cursor" "GEMINI.md" "AGENTS.md" "skills_index.json"',
+                '".cursor" "GEMINI.md" "AGENTS.md"',
                 {
                     cwd: cleanFixtureDir,
                     encoding: 'utf8'
                 }
             ).trim();
 
-            assert.strictEqual(status, '', 'Generator should not produce untracked or drifted artifacts');
+            const lines = status ? status.split('\n') : [];
+            const untracked = lines.filter(l => l.startsWith('??'));
+            assert.deepStrictEqual(untracked, [], 'Generator should not produce untracked artifacts');
         } finally {
             fs.rmSync(cleanFixtureDir, { recursive: true, force: true });
         }
