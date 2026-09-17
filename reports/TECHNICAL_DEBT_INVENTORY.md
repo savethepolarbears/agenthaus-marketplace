@@ -46,6 +46,7 @@
 | 10 | `plugins/circuit-breaker/hooks/scripts/budget-guard.sh` | 85 | 3 KB | Bash | CWE-377 hardened tool usage budget tracking hook |
 
 ### High-Churn Areas (Trailing 30 Commits)
+
 - **New Plugin Integrations:** `plugins/encharge`, `plugins/markupgo`, `plugins/neuronwriter`, `plugins/notfair-marketing`, `plugins/outscraper`, `plugins/textfocus`.
 - **Security & Hardening:** `.github/workflows/ci.yml`, `plugins/circuit-breaker`, `scripts/validate-plugins.sh`, `scripts/install-plugins.sh`.
 - **Cross-Platform Synchronization:** Generated `.cursor/`, `GEMINI.md`, `AGENTS.md`, and `codex-mcp-config.toml` outputs.

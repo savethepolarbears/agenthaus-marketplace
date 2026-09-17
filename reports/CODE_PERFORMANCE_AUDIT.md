@@ -12,6 +12,7 @@
 In an agentic developer tooling ecosystem, script performance and hook latency directly impact agent response times. Because `PreToolUse` and `PostToolUse` hooks execute synchronously in the critical path of every tool invocation, latency regressions in hooks translate directly into user-perceived lag during agent pair programming.
 
 This audit analyzed:
+
 1. **Critical Path Hook Latency:** PreToolUse hook execution benchmarks (`budget-guard.sh`, `require-tests.sh`, `export-guard.sh`).
 2. **Build and Generator Throughput:** `generate-cross-platform.js` and `generate-skills-index.sh`.
 3. **Validation Suite Performance:** `validate-plugins.sh` and CI runner efficiency.
@@ -36,6 +37,7 @@ This audit analyzed:
 ## 3. High-Impact Performance Optimizations Identified & Verified
 
 ### A. Delta File I/O in `generate-cross-platform.js` (`writeIfChanged`)
+
 - **Mechanism:** Instead of blindly re-writing all 240+ target configuration files on each run, `generate-cross-platform.js` reads the target file and performs a byte-level equality check (`existingContent === content`).
 - **Performance Impact:**
   - File system writes reduced by **99%** on steady-state runs (226 unchanged, 0 rewritten).
@@ -43,12 +45,14 @@ This audit analyzed:
   - Overall generator execution completes in under **90 milliseconds**.
 
 ### B. Fast-Path Optimization in `budget-guard.sh`
+
 - **Mechanism:** The hook checks `[ -f "$CONFIG_FILE" ]` before spawning `jq`. In projects without custom overrides, zero `jq` subshells are invoked.
 - **Performance Impact:**
   - Execution overhead dropped from ~35ms to **< 5ms** per tool invocation.
   - Storage directory caching with `chmod 700` and mode check prevents redundant directory recreation.
 
 ### C. Node 24 Native Test Runner (`node:test`)
+
 - **Mechanism:** Replaces external heavyweight test frameworks (Jest/Vitest/Mocha) with Node.js built-in `node:test` and `node:assert`.
 - **Performance Impact:**
   - Zero `node_modules` installation overhead for tests in root.
@@ -56,6 +60,7 @@ This audit analyzed:
   - Total process RSS memory remains below **35 MB**.
 
 ### D. CI Pipeline Optimization
+
 - **Actions Setup-Node Caching:** Configured `cache: 'npm'` with `cache-dependency-path: 'plugins/qa-droid/package-lock.json'` in `.github/workflows/ci.yml`.
 - **Concurrency Cancellation:** `cancel-in-progress: true` immediately terminates stale CI builds when new commits are pushed, conserving CI minutes.
 

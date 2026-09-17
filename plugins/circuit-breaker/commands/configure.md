@@ -3,6 +3,8 @@ name: configure
 description: Enable or disable specific circuit breaker guardrails
 ---
 
+# Configure Circuit Breakers
+
 You are configuring circuit breaker safety guardrails.
 
 Follow these steps:
@@ -24,6 +26,7 @@ Follow these steps:
    - `status` or no args -- Show current configuration
 
 4. **Write config**: Save the updated configuration to `.circuit-breaker-config.json`:
+
 ```json
 {
   "breakers": {

@@ -5,7 +5,7 @@ Pre-built safety guardrails as reusable hooks for Claude Code workflows. Prevent
 ## Platform Support
 
 | Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
-|---------|-------------|-----------|------------|--------|----------|----------------|
+| --------- | ------------- | ----------- | ------------ | -------- | ---------- | ---------------- |
 | Commands | full | partial | partial | partial | partial | n/a |
 | Skills | full | full | full | full | full | n/a |
 | MCP | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -27,13 +27,13 @@ After installation, all three breakers are enabled by default.
 
 ### View Configuration
 
-```
+```bash
 /configure status
 ```
 
 ### Enable/Disable Breakers
 
-```
+```bash
 /configure disable block-prod-deploy
 /configure enable require-tests
 /configure disable all
@@ -42,13 +42,13 @@ After installation, all three breakers are enabled by default.
 
 ### Set Budget Threshold
 
-```
+```bash
 /configure threshold 200
 ```
 
 ### Reset Counters
 
-```
+```bash
 /configure reset
 ```
 
@@ -84,7 +84,7 @@ Tracks total tool usage per session and warns when the count exceeds a threshold
 
 Circuit breakers are implemented as PreToolUse hooks that run shell scripts before tool execution:
 
-```
+```text
 hooks/
   hooks.json                    # Hook definitions with matchers
   scripts/

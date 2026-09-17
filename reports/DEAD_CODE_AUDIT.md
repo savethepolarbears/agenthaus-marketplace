@@ -32,17 +32,20 @@
 ## 3. Heuristic & Static Graph Analysis
 
 ### A. Skills Index Reconciliation
+
 - Total `SKILL.md` files located on disk: **177**
 - Total skills registered in `skills_index.json`: **177**
 - Orphan or unindexed skills: **0** (100% matched)
 
 ### B. Plugin Registry Reconciliation
+
 - Plugin directories located under `plugins/`: **37**
 - Plugins registered in `.claude-plugin/marketplace.json`: **37**
 - Orphan plugin directories: **0**
 - Phantom marketplace entries: **0**
 
 ### C. Hook and Script References
+
 - Hook shell scripts scanned in `plugins/*/hooks/scripts/`: **6**
 - All 6 scripts are referenced in their respective `hooks.json` manifests or command instructions:
   - `plugins/circuit-breaker/hooks/scripts/budget-guard.sh` (referenced in `hooks.json`)
