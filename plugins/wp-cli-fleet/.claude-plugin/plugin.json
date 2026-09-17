@@ -1,6 +1,6 @@
 {
   "name": "wp-cli-fleet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Agentic WP-CLI and WordPress fleet management for plugin inventory, updates, health checks, search-replace, Pods CPT management, and fleet-wide operations.",
   "author": {
     "name": "AgentHaus Team"
