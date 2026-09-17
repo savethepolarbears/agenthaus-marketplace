@@ -4,11 +4,43 @@
 
 set -euo pipefail
 
-STATE_DIR="${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u 2>/dev/null || echo 0)}"
-mkdir -p -m 700 "$STATE_DIR" || exit 0
-[[ -L "$STATE_DIR" ]] && exit 0
+# CWE-377 mitigation: Isolate counter inside a verified, owner-only directory.
+# Reject symlinks and alien-owned directories or files, exiting 0 gracefully on storage failure.
+USER_ID="${UID:-$(id -u 2>/dev/null || echo 0)}"
+BASE_TMP="${TMPDIR:-/tmp}"
+STATE_DIR="${BASE_TMP%/}/circuit-breaker-${USER_ID}"
+
+# Verify or create the state directory
+if [ -L "$STATE_DIR" ]; then
+    exit 0
+fi
+
+if [ -e "$STATE_DIR" ]; then
+    # Must be a directory owned by current user
+    if [ ! -d "$STATE_DIR" ] || [ ! -O "$STATE_DIR" ]; then
+        exit 0
+    fi
+    chmod 700 "$STATE_DIR" 2>/dev/null || exit 0
+else
+    mkdir -p -m 700 "$STATE_DIR" 2>/dev/null || exit 0
+    if [ -L "$STATE_DIR" ] || [ ! -d "$STATE_DIR" ] || [ ! -O "$STATE_DIR" ]; then
+        exit 0
+    fi
+fi
+
 COUNTER_FILE="$STATE_DIR/counter"
-[[ -L "$COUNTER_FILE" ]] && exit 0
+
+# Verify counter file integrity if present
+if [ -L "$COUNTER_FILE" ]; then
+    exit 0
+fi
+
+if [ -e "$COUNTER_FILE" ]; then
+    if [ ! -f "$COUNTER_FILE" ] || [ ! -O "$COUNTER_FILE" ]; then
+        exit 0
+    fi
+fi
+
 THRESHOLD=100
 
 # Check if this breaker is disabled
@@ -39,7 +71,7 @@ fi
 
 # Increment
 COUNT=$((COUNT + 1))
-echo "$COUNT" > "$COUNTER_FILE"
+echo "$COUNT" > "$COUNTER_FILE" 2>/dev/null || exit 0
 
 # Warn at threshold
 if [ "$COUNT" -eq "$THRESHOLD" ]; then

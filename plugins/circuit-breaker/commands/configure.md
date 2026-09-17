@@ -19,7 +19,7 @@ Follow these steps:
    - `disable <breaker-name>` -- Disable the specified breaker
    - `enable all` -- Enable all breakers
    - `disable all` -- Disable all breakers
-   - `reset` -- Delete the counter file at `/tmp/circuit-breaker-counter` and reset config to defaults
+   - `reset` -- Run `${CLAUDE_PLUGIN_ROOT}/hooks/scripts/reset-counter.sh` (or remove `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`) and reset config to defaults
    - `threshold <number>` -- Set the budget-guard threshold
    - `status` or no args -- Show current configuration
 

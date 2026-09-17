@@ -68,9 +68,9 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 
 ### Remediations Applied
 
-1. **`plugins/circuit-breaker/hooks/scripts/budget-guard.sh` (CWE-377 Remediated)**:
-   - *Issue:* Static `/tmp/circuit-breaker-counter` in a shared environment exposed the agent to multi-user collisions and pre-created symlink hijacking.
-   - *Remediation:* Created a dedicated private state directory with mode `0700` (`mkdir -p -m 700 "$STATE_DIR"`) keyed to the active UID (`${TMPDIR:-/tmp}/circuit-breaker-${UID}`). Added explicit symlink verification guards (`[[ -L "$STATE_DIR" ]] && exit 0` and `[[ -L "$COUNTER_FILE" ]] && exit 0`) before writing, eliminating both collision and symlink traversal attack vectors.
+1. **`plugins/circuit-breaker/hooks/scripts/budget-guard.sh` & `reset-counter.sh` (CWE-377 Closed & Reset Aligned)**:
+   - *Issue:* Static `/tmp/circuit-breaker-counter` or unvalidated UID files in a shared `/tmp` environment exposed the agent to multi-user collisions, symlink hijacking, and write failure crashes under `set -e`. Additionally, `configure.md` previously referenced the legacy path during reset.
+   - *Remediation:* Counter storage is strictly isolated inside a private directory with mode `0700` (`STATE_DIR="${TMPDIR:-/tmp}/circuit-breaker-${USER_ID}"`). Both directory and counter file are verified for current-user ownership (`[ -O ]`), verified not to be symlinks (`[ -L ]`), and protected by `chmod 700`. Any storage failure (e.g. alien-owned path, permission denied) causes the hook to gracefully exit 0 (warning-only, never blocks). A canonical `reset-counter.sh` script was created and documented across `configure.md`, `SKILL.md`, and `README.md` to safely clear the counter and reset the session budget to 1.
 2. **`scripts/install-plugins.sh`**:
    - *Issue:* `uninstall_from()` accepted a target path and executed `rm -rf "$dst"` without normalizing the path or checking for root, home, or shallow directory structures.
    - *Remediation:* Applied strict path canonicalization (`target_dir="$(cd "$raw_target" 2>/dev/null && pwd -P)"`) and added safety guards rejecting empty targets, root `/`, `$HOME`, or paths with fewer than two path segments.
@@ -113,9 +113,10 @@ The previous `.gitignore` only blocked `.env`, `.env.local`, and `.env.*.local`,
 Added `.github/workflows/ci.yml` and `.github/dependabot.yml` providing automated verification on every PR and push to `main`:
 
 - **Pin by Commit SHA:** All GitHub Actions (`actions/checkout`, `actions/setup-node`, `gitleaks/gitleaks-action`) are pinned to immutable commit SHAs with semantic version comments.
+- **Node.js LTS (v24):** Workflows run on Node 24 LTS across validation and dependency auditing jobs.
 - **Concurrency & Scheduling:** Implemented workflow concurrency cancellation (`cancel-in-progress: true`) and a scheduled nightly audit (`0 4 * * *`).
 - **Plugin & Hook Validation:** Runs `bash scripts/generate-skills-index.sh` followed by `bash scripts/validate-plugins.sh` across all 37 plugins.
-- **Unit Tests:** Runs `node --test tests/*.test.js`.
+- **Unit & Regression Tests:** Automated test suite (`node --test tests/*.test.js`) verifying generator discovery, env transformations, circuit breaker CWE-377 isolation, symlink defenses, counter reset mechanics, and drift detection.
 - **Drift & Untracked Guard:** Verifies `node scripts/generate-cross-platform.js` produces zero git diff and zero untracked artifacts (`git status --porcelain --untracked-files=all`).
 - **Destructive Command Guard:** Scans tracked files for dangerous `git push --force` or `-f` flags.
 - **Dependency Audit:** Runs `npm audit --audit-level=high` on `plugins/qa-droid` with npm cache support.
@@ -131,10 +132,11 @@ Added `.github/workflows/ci.yml` and `.github/dependabot.yml` providing automate
 | Secret Scanning | Git log pattern & entropy scan | Full repo history | PASS (0 secrets found) |
 | Gitignore Boundaries | Path matching & rule audit | `.gitignore` | PASS (Hardened with schema negations) |
 | Destructive Script Audit | Static file review & CI guard | Repo scripts & history | PASS (Removed `scrub_history.sh`, CI guard added) |
-| Temp File Security | Private 0700 dir + symlink check | `budget-guard.sh` | PASS (CWE-377 closed) |
+| Temp File Security | Private 0700 dir + symlink check | `budget-guard.sh` | PASS (CWE-377 closed, isolated & tested) |
+| Counter Reset Integrity | Dedicated `reset-counter.sh` | Circuit Breaker | PASS (Reset path aligned and tested) |
 | Script Path Traversal | Canonical `pwd -P` + segment check | `install-plugins.sh` | PASS (Protected against root/home/shallow dirs) |
 | Vendored Shell Scan | Hook validator warn-only check | `node_modules` | PASS (Monitored for `eval`) |
 | Dependency Vulnerabilities | `npm audit` + `overrides` | `plugins/qa-droid` | PASS (0 vulnerabilities as of 2026-09-17) |
 | Marketplace Validation | `scripts/validate-plugins.sh` | 37 Plugins | PASS (37/37 passed, 0 failures, 0 warnings) |
 | Cross-Platform Consistency | `scripts/generate-cross-platform.js` | Cross-platform configs | PASS (Zero drift, AGENTS.md <= 6KiB) |
-| CI Pipeline & Hardening | GitHub Actions & Dependabot | `.github/workflows/ci.yml` | PASS (SHA pinned, Gitleaks, concurrency) |
+| CI Pipeline & Hardening | GitHub Actions & Dependabot | `.github/workflows/ci.yml` | PASS (SHA pinned, Node 24, Gitleaks, concurrency) |

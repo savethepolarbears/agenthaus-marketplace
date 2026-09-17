@@ -77,7 +77,8 @@ Tracks total tool usage per session and warns when the count exceeds a threshold
 - **Default threshold**: 100 tool calls
 - **Behavior**: Warning only (never blocks)
 - **Repeats**: Warns again every 25 calls after threshold
-- **Counter location**: `/tmp/circuit-breaker-counter`
+- **Counter location**: `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`
+- **Reset**: Run `hooks/scripts/reset-counter.sh` or remove `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`
 
 ## Architecture
 
@@ -90,6 +91,7 @@ hooks/
     block-prod-deploy.sh       # Time-of-day and day-of-week check
     require-tests.sh           # Staged file pattern matching
     budget-guard.sh            # Counter-based usage tracking
+    reset-counter.sh           # Counter cleanup and reset
 ```
 
 Each script reads `.circuit-breaker-config.json` to check if it is enabled before executing its logic. Scripts exit 0 to allow the action or exit 1 to block it.
