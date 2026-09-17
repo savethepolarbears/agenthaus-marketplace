@@ -1,0 +1,15 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "neuronwriter": {
+      "args": [
+        "-m",
+        "neuronwriter_mcp"
+      ],
+      "command": "python",
+      "env": {
+        "NEURONWRITER_API_KEY": "${env:NEURONWRITER_API_KEY}"
+      }
+    }
+  }
+}

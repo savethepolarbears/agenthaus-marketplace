@@ -1,0 +1,7 @@
+# Add to your Codex config.toml
+
+[mcp.servers.markupgo]
+command = "npx"
+args = ["markupgo-mcp-server"]
+[mcp.servers.markupgo.env]
+MARKUPGO_API_KEY = "${MARKUPGO_API_KEY}"

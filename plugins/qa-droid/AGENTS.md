@@ -9,13 +9,7 @@ Automated Playwright tests with Slack/Gmail notifications.
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 |----------|-----|-------|-----------------|--------|
 | Claude Code | full | n/a | full | full |
-| Codex CLI | none | n/a | partial | full |
+| Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |
 | Cursor | via .cursor/mcp.json | n/a | partial | full |
-| Windsurf | TBD | n/a | partial | full |
-
-## Environment Variables
-
-- `SLACK_BOT_TOKEN`
-- `SLACK_DEFAULT_CHANNEL`
-- `GMAIL_CREDENTIALS`
+| Windsurf | via mcp_config.json | n/a | partial | full |

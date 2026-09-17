@@ -64,21 +64,25 @@ When running queries:
 ### 4. Common Operations
 
 #### List all tables
+
 ```sql
 SELECT tablename FROM pg_tables WHERE schemaname = 'public';
 ```
 
 #### Count rows in a table
+
 ```sql
 SELECT COUNT(*) FROM table_name;
 ```
 
 #### Show table size
+
 ```sql
 SELECT pg_size_pretty(pg_total_relation_size('table_name'));
 ```
 
 #### Check active connections
+
 ```sql
 SELECT count(*) FROM pg_stat_activity;
 ```

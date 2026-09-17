@@ -1,0 +1,14 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "postgres": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${env:NEON_DATABASE_URL}"
+      ],
+      "command": "npx",
+      "env": {}
+    }
+  }
+}

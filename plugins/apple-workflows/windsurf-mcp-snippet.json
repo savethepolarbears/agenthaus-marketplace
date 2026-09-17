@@ -1,0 +1,17 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "apple-productivity": {
+      "args": [
+        "run",
+        "--project",
+        "./plugins/apple-workflows/mcp",
+        "apple-productivity-mcp"
+      ],
+      "command": "uv",
+      "env": {
+        "APPLE_REMINDERS_BACKEND": "${env:APPLE_REMINDERS_BACKEND}"
+      }
+    }
+  }
+}

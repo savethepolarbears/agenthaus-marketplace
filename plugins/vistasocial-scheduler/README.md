@@ -9,7 +9,7 @@ Turns Claude into a social media operations specialist. Handles post scheduling,
 ## Available Commands
 
 | Command | Description |
-|---------|-------------|
+| --------- | ------------- |
 | `/schedule-post` | Schedule a single post with SOP guardrails |
 | `/batch-schedule` | Schedule a week of posts with rate-limit pacing |
 | `/queue-audit` | Audit scheduled posts for gaps, duplicates, and issues |
@@ -20,7 +20,7 @@ Turns Claude into a social media operations specialist. Handles post scheduling,
 ## Skills
 
 | Skill | Purpose |
-|-------|---------|
+| ------- | --------- |
 | `scheduling-sop` | Timezone rules, cadence standards, first-comment protocol, labeling |
 | `content-creation` | Brand voice, format library, Threads rules, caption SOPs |
 | `greece-cluster` | Greece travel brand operations reference (customizable template) |
@@ -37,6 +37,7 @@ Turns Claude into a social media operations specialist. Handles post scheduling,
 ## Rate Limit Rules
 
 VistaSocial enforces a **60 requests per minute** hard ceiling. This plugin includes:
+
 - Automatic rate limit tracking via `x-vs-rate-limit-remaining` header
 - Batch pacing with configurable delays
 - Emergency stop when remaining calls < 5
@@ -47,7 +48,7 @@ VistaSocial enforces a **60 requests per minute** hard ceiling. This plugin incl
 These tools require VistaSocial Premium and are **not available**:
 
 | Tool | Reason |
-|------|--------|
+| ------ | -------- |
 | `getPostMetrics` | Requires Premium Integrations |
 | `getProfileDailyMetrics` | Requires Premium Integrations |
 | `createProfileGroup` | Requires Premium plan |
@@ -59,9 +60,11 @@ Use the VistaSocial dashboard for metrics and group management.
 
 1. Get your VistaSocial MCP API key: Settings > Account Settings > Integrations > Copy MCP link
 2. Set the environment variable:
+
    ```bash
    VISTASOCIAL_API_KEY=your_api_key_here
    ```
+
 3. Customize the skills under `skills/` with your brand-specific data (profile IDs, posting cadences, timezone rules)
 
 ## Customization

@@ -9,17 +9,7 @@ Open-source Claude Code agent skills for SEO, GEO, Google Ads, and Meta Ads. Con
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 |----------|-----|-------|-----------------|--------|
 | Claude Code | full | n/a | full | full |
-| Codex CLI | none | n/a | partial | full |
+| Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |
 | Cursor | via .cursor/mcp.json | n/a | partial | full |
-| Windsurf | TBD | n/a | partial | full |
-
-## Environment Variables
-
-- `GOOGLE_ADS_DEVELOPER_TOKEN`
-- `GOOGLE_ADS_CLIENT_ID`
-- `GOOGLE_ADS_CLIENT_SECRET`
-- `GOOGLE_ADS_REFRESH_TOKEN`
-- `GOOGLE_ADS_LOGIN_CUSTOMER_ID`
-- `META_ACCESS_TOKEN`
-- `META_AD_ACCOUNT_ID`
+| Windsurf | via mcp_config.json | n/a | partial | full |

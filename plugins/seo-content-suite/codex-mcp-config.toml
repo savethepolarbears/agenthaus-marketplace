@@ -1,0 +1,25 @@
+# Add to your Codex config.toml
+
+[mcp.servers.neuronwriter]
+command = "python"
+args = ["-m", "neuronwriter_mcp"]
+[mcp.servers.neuronwriter.env]
+NEURONWRITER_API_KEY = "${NEURONWRITER_API_KEY}"
+
+[mcp.servers.textfocus]
+command = "python"
+args = ["-m", "textfocus_server"]
+[mcp.servers.textfocus.env]
+TEXTFOCUS_API_KEY = "${TEXTFOCUS_API_KEY}"
+
+[mcp.servers.markupgo]
+command = "npx"
+args = ["markupgo-mcp-server"]
+[mcp.servers.markupgo.env]
+MARKUPGO_API_KEY = "${MARKUPGO_API_KEY}"
+
+[mcp.servers.outscraper]
+command = "node"
+args = ["node_modules/@outscraper/mcp-server/dist/index.js"]
+[mcp.servers.outscraper.env]
+OUTSCRAPER_API_KEY = "${OUTSCRAPER_API_KEY}"

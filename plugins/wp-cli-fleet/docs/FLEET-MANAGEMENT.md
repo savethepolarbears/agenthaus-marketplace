@@ -29,7 +29,7 @@ The fleet manifest is a JSON file describing all sites in your fleet. See `examp
 ### Site Fields
 
 | Field | Required | Description |
-|-------|----------|-------------|
+| ------- | ---------- | ------------- |
 | `alias` | Yes | WP-CLI alias (e.g., `@brand-prod`) |
 | `label` | Yes | Human-readable name |
 | `environment` | Yes | `production`, `staging`, `development`, or `local` |

@@ -5,7 +5,7 @@ Agentic WP-CLI and WordPress fleet management plugin for Claude Code. Provides c
 ## Platform Support
 
 | Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
-|---------|-------------|-----------|------------|--------|----------|----------------|
+| --------- | ------------- | ----------- | ------------ | -------- | ---------- | ---------------- |
 | Commands/Agents | full | partial | partial | partial | partial | n/a |
 | Skills | full | full | full | full | full | n/a |
 | MCP | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -42,7 +42,7 @@ For the WordPress companion plugin, copy `wordpress-plugin/agentic-wp-cli.php` t
 ## Commands
 
 | Command | Description |
-|---------|-------------|
+| --------- | ------------- |
 | `/wp-cli-fleet:inventory` | Get plugin/theme/core inventory for a site or fleet |
 | `/wp-cli-fleet:update` | Dry-run or execute plugin/theme/core updates |
 | `/wp-cli-fleet:health` | Check site health and integrity |
@@ -60,16 +60,19 @@ For the WordPress companion plugin, copy `wordpress-plugin/agentic-wp-cli.php` t
 ## Quick Start
 
 ### Single site inventory
+
 ```bash
 wp @mysite plugin list --format=json
 ```
 
 ### Fleet-wide health check
+
 ```bash
 python3 bin/wp_fleet_run.py examples/fleet.example.json --group @prod -- core verify-checksums
 ```
 
 ### Generate alias file
+
 ```bash
 python3 bin/render_wp_cli_aliases.py examples/fleet.example.json --output wp-cli.fleet.yml
 ```

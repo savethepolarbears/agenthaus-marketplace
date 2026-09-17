@@ -1,0 +1,13 @@
+---
+description: "SEO keyword analysis and semantic optimization with TextFocus — keyword metrics, related terms, SEO scoring, and semantic vocabulary analysis via MCP tools."
+globs: "**/*"
+alwaysApply: true
+---
+
+# textfocus
+
+SEO keyword analysis and semantic optimization with TextFocus — keyword metrics, related terms, SEO scoring, and semantic vocabulary analysis via MCP tools.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

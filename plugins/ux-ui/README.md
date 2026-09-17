@@ -5,7 +5,7 @@ Polish and improve front-end UX/UI, accessibility, design, and responsiveness fo
 ## Platform Support
 
 | Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
-|---------|-------------|-----------|------------|--------|----------|----------------|
+| --------- | ------------- | ----------- | ------------ | -------- | ---------- | ---------------- |
 | Commands/Agents | full | partial | partial | partial | partial | n/a |
 | Skills | full | full | full | full | full | n/a |
 | MCP | n/a | n/a | n/a | n/a | n/a | n/a |

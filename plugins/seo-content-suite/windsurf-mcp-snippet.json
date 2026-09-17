@@ -1,0 +1,43 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "markupgo": {
+      "args": [
+        "markupgo-mcp-server"
+      ],
+      "command": "npx",
+      "env": {
+        "MARKUPGO_API_KEY": "${env:MARKUPGO_API_KEY}"
+      }
+    },
+    "neuronwriter": {
+      "args": [
+        "-m",
+        "neuronwriter_mcp"
+      ],
+      "command": "python",
+      "env": {
+        "NEURONWRITER_API_KEY": "${env:NEURONWRITER_API_KEY}"
+      }
+    },
+    "outscraper": {
+      "args": [
+        "node_modules/@outscraper/mcp-server/dist/index.js"
+      ],
+      "command": "node",
+      "env": {
+        "OUTSCRAPER_API_KEY": "${env:OUTSCRAPER_API_KEY}"
+      }
+    },
+    "textfocus": {
+      "args": [
+        "-m",
+        "textfocus_server"
+      ],
+      "command": "python",
+      "env": {
+        "TEXTFOCUS_API_KEY": "${env:TEXTFOCUS_API_KEY}"
+      }
+    }
+  }
+}

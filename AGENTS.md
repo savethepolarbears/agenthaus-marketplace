@@ -1,70 +1,110 @@
 # AgentHaus Marketplace
 
-A highly discoverable marketplace of 30 production-ready developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins. Plugins provide commands, agents, skills, hooks, and MCP server integrations that extend AI assistant workflows.
-
-**Platform configs:** This file (`AGENTS.md`) is the canonical source for AI agents. `CLAUDE.md` and `GEMINI.md` are symlinked to this file.
+A discoverable marketplace of 37 developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
 
 ## Repository Map & Architecture
 
 ```text
 agenthaus-marketplace/
-├── plugins/                # 30 production plugins (e.g. social-media, notion-workspace, qa-droid)
-├── schemas/                # JSON schemas for validation
-├── scripts/                # Validation and utility scripts
-├── reports/                # ALL project reports and documentation go here
-├── .env.example            # Required environment variables
-├── CONTRIBUTING.md         # Plugin development guide
-└── README.md               # Project overview
+├── plugins/        # 37 production plugins
+├── schemas/        # JSON schemas for validation
+├── scripts/        # Validation and utility scripts
+├── reports/        # ALL project reports and documentation go here
+├── .env.example    # Required environment variables
+└── README.md       # Project overview
 ```
 
 ## Build & Core Commands
 
 ```bash
 bash scripts/validate-plugins.sh         # Validate all plugins and marketplace
-bash scripts/generate-skills-index.sh    # Re-generate the skills index when skills are added/removed
+bash scripts/generate-skills-index.sh    # Re-generate skills index
 bash scripts/install-plugins.sh          # Interactively install plugins
-bash scripts/generate-cross-platform.js  # Generate MCP and hooks files
+bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 ```
 
 ## Tech Stack & Conventions
 
 - **Validation:** Zod 4.3.6
-- **Package Manager:** npm (v11+) or pnpm (v10+). No root `package.json` exists; run PM commands in subdirectories where appropriate.
-- **Manifest:** JSON in `.claude-plugin/plugin.json` (name, version, description). Use explicit paths, not globs.
-- **Commands & Agents:** Markdown with YAML frontmatter. `description` field required.
+- **Package Manager:** npm (v11+) / pnpm (v10+). No root `package.json`.
+- **Manifest:** JSON in `.claude-plugin/plugin.json` (name, version, description). Explicit paths only.
+- **Commands & Agents:** Markdown with YAML frontmatter (`description` required).
 - **Skills:** Markdown in `skills/<name>/SKILL.md` with YAML frontmatter.
-- **Hooks:** JSON with `{ "hooks": { "PreToolUse": [...], "PostToolUse": [...] } }` format (object, not array).
+- **Hooks:** JSON with `{ "hooks": { "PreToolUse": [...], "PostToolUse": [...] } }` format.
 - **MCP Configs:** JSON in `.mcp.json`.
-- **LSP Configs:** JSON in `.lsp.json`.
 - **Naming:** kebab-case for plugin directories and file names.
 
 ## Agent Boundaries & Guidelines
 
-- **Never commit** API keys, tokens, or credentials. Use `.env` and `.env.local` (which are gitignored).
-- **Environment variables:** Use `${ENV_VAR}` interpolation in MCP configs; never inline credentials.
-- **Path references:** Use `${CLAUDE_PLUGIN_ROOT}` for plugin-local scripts in hooks and MCP configs. Plugins are cached, so `../` won't resolve.
-- **Security:** Plugin hooks run shell commands — review carefully for injection risks. Only use trusted MCP servers. Validate inputs at system boundaries.
-- **Files:** Temp files go in `temp/` or `tmp/` and must not be committed. ALL output reports go to `reports/` (e.g., `TEST_RESULTS_2026-02-06.md`).
-- **PRs:** All plugins must pass validation (`bash scripts/validate-plugins.sh`). Do not modify global `.json` files unless instructed.
-- **Development:** Favor simple, modular solutions. Fix the code, not the test. Failing tests reveal bugs — fix the root cause.
+- **Never commit** API keys, tokens, or credentials. Use `.env` and `.env.local`.
+- **Environment variables:** Use `${ENV_VAR}` in MCP configs; never inline credentials.
+- **Path references:** Use `${CLAUDE_PLUGIN_ROOT}` for plugin-local scripts in hooks/MCP configs.
+- **Security:** Plugin hooks run shell commands — audit for injection risks. Only trusted MCP servers.
+- **Files:** Temp files in `temp/` or `tmp/`. ALL output reports go to `reports/`.
+- **PRs:** All plugins must pass `bash scripts/validate-plugins.sh`. Do not edit global `.json` unless instructed.
+- **Development:** Modular solutions. Fix root cause, not tests.
+
+## Plugins
+
+| Plugin | Description | MCP | Hooks |
+|--------|-------------|-----|-------|
+| activepieces | Agent plugin pack for ... | no | no |
+| agent-handoff | State-based task hando... | no | no |
+| agent-memory | Shared persistent memo... | yes | no |
+| apple-photos | Manage Apple Photos li... | no | yes |
+| apple-workflows | Manage Apple Notes, Re... | yes | no |
+| circuit-breaker | Pre-built safety guard... | no | no |
+| clickup-tasks | Manage ClickUp tasks, ... | yes | no |
+| cloudflare-platform | Manage Cloudflare Work... | yes | no |
+| context7-docs | Fetch up-to-date, hall... | yes | no |
+| data-core | Serverless Postgres da... | yes | no |
+| devops-flow | Orchestrate Cloudflare... | yes | yes |
+| encharge | Encharge.io marketing ... | yes | no |
+| fleet-commander | Visualization and cont... | no | no |
+| github-integration | Full GitHub management... | yes | no |
+| gog-workspace | Google Workspace CLI i... | no | no |
+| knowledge-synapse | RAG Agent combining Co... | yes | no |
+| marketplace-cli | Utility commands for s... | no | no |
+| markupgo | Generate images, PDFs,... | yes | no |
+| neon-db | Interact with Neon ser... | yes | no |
+| neuronwriter | SEO content analysis a... | yes | no |
+| notfair-marketing | Open-source Claude Cod... | yes | no |
+| notion-workspace | Interact with your Not... | yes | no |
+| openclaw-bridge | Convert AgentHaus plug... | no | no |
+| outscraper | Web scraping and data ... | yes | no |
+| playwright-testing | End-to-end browser aut... | yes | no |
+| plugin-auditor | Audit plugins for secu... | no | no |
+| qa-droid | Automated Playwright t... | yes | no |
+| seo-content-suite | Unified SEO content pi... | yes | no |
+| seo-geo-rag | Six-phase SEO, Generat... | no | no |
+| shadow-mode | Agents draft outputs t... | no | no |
+| social-media | Generate high-engageme... | no | no |
+| task-commander | ClickUp task managemen... | yes | no |
+| textfocus | SEO keyword analysis a... | yes | no |
+| ux-ui | Polish and improve you... | no | no |
+| vercel-deploy | Manage Vercel projects... | yes | no |
+| vistasocial-scheduler | Social media schedulin... | yes | no |
+| wp-cli-fleet | Agentic WP-CLI and Wor... | no | no |
 
 ## Platform Support
 
-| Platform | MCP | Hooks | Commands/Agents | Skills |
-|----------|-----|-------|-----------------|--------|
+| Platform | MCP | Hooks | Commands | Skills |
+|----------|-----|-------|----------|--------|
 | Claude Code | full | full | full | full |
 | Codex CLI | none | none | partial | full |
 | Gemini CLI | via gemini-settings | none | partial | full |
 | Cursor | via .cursor/mcp.json | none | partial | full |
 | Windsurf | global config | none | partial | full |
 
+> Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.
+
 ## Gemini Context Caching
 
-When working with Gemini, use context caching to retain the full plugin catalog and `marketplace.json` across turns. Use `@include` patterns to pull in relevant plugin manifests (e.g., `@plugins/<plugin-name>/.claude-plugin/plugin.json`).
+Use context caching to retain plugin catalog and `marketplace.json` across turns. Use `@plugins/<name>/.claude-plugin/plugin.json` to pull in manifests.
 
 ## Antigravity IDE Integration (Memory Bank)
 
-Before starting large tasks, read `.agent/memory-bank/` for persistent project context:
+Read `.agent/memory-bank/` for persistent context before large tasks:
 - `architecture.md` — Repo structure, plugin anatomy
 - `api-contracts.md` — Schema specs for manifests
 - `decision-log.md` — Architectural decisions (ADRs)
@@ -73,12 +113,8 @@ Update these docs when making significant changes. For non-trivial tasks, plan b
 
 ## Agent Delegation & Parallel Execution
 
-Use specialized agents when available. When performing multiple independent operations (like searching patterns, reading files, grep operations), send all tool calls in a single message for parallel execution (3-5x faster). Sequential execution is only for when the output of one call is needed for the next.
+Send all independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when output is chained.
 
 ## Required Environment Variables
 
-Check `.env.example`. Key examples:
-- `cloudflare-platform` / `devops-flow`: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-- `github-integration`: `GITHUB_TOKEN`
-- `notion-workspace`: `NOTION_API_KEY`
-- `neon-db` / `data-core`: `DATABASE_URL`, `NEON_API_KEY`
+Check `.env.example`: `CLOUDFLARE_API_TOKEN`, `GITHUB_TOKEN`, `NOTION_API_KEY`, `DATABASE_URL`, `NEON_API_KEY`.

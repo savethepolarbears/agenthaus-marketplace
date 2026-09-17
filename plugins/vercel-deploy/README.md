@@ -5,7 +5,7 @@ Deploy and manage your Vercel projects from within Claude using the **vercel-dep
 ## Platform Support
 
 | Feature | Claude Code | Codex CLI | Gemini CLI | Cursor | Windsurf | Claude Desktop |
-|---------|-------------|-----------|------------|--------|----------|----------------|
+| --------- | ------------- | ----------- | ------------ | -------- | ---------- | ---------------- |
 | Commands | full | partial | partial | partial | partial | n/a |
 | Skills | full | full | full | full | full | n/a |
 | MCP | full | none | full | full | partial | full |

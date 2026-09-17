@@ -11,15 +11,7 @@ Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 |----------|-----|-------|-----------------|--------|
 | Claude Code | full | full | full | full |
-| Codex CLI | none | none | partial | full |
+| Codex CLI | full | none | partial | full |
 | Gemini CLI | via gemini-settings | none | partial | full |
 | Cursor | via .cursor/mcp.json | none | partial | full |
-| Windsurf | TBD | none | partial | full |
-
-## Environment Variables
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `GITHUB_PERSONAL_ACCESS_TOKEN`
-- `SLACK_BOT_TOKEN`
-- `SLACK_DEFAULT_CHANNEL`
+| Windsurf | via mcp_config.json | none | partial | full |

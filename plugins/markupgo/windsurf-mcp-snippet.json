@@ -1,0 +1,14 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "markupgo": {
+      "args": [
+        "markupgo-mcp-server"
+      ],
+      "command": "npx",
+      "env": {
+        "MARKUPGO_API_KEY": "${env:MARKUPGO_API_KEY}"
+      }
+    }
+  }
+}

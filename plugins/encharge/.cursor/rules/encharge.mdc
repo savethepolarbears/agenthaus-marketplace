@@ -1,0 +1,13 @@
+---
+description: "Encharge.io marketing automation — manage people, tags, emails, segments, custom objects, and multi-account workflows via 55 MCP tools and CLI commands."
+globs: "**/*"
+alwaysApply: true
+---
+
+# encharge
+
+Encharge.io marketing automation — manage people, tags, emails, segments, custom objects, and multi-account workflows via 55 MCP tools and CLI commands.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

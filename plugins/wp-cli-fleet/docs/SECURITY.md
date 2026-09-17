@@ -41,6 +41,7 @@ The plugin defaults to dry-run mode for all update operations. The `--execute` f
 ### Safety Hooks
 
 The Claude Code plugin includes PreToolUse hooks that warn before:
+
 - `wp core update` without `--dry-run`
 - `wp db drop`, `wp db reset`, `wp db import`
 - `wp search-replace` without `--dry-run`
@@ -48,6 +49,7 @@ The Claude Code plugin includes PreToolUse hooks that warn before:
 ## Audit Logging
 
 All operations (REST and CLI) are logged with:
+
 - Timestamp (UTC)
 - Operation name
 - Source (rest or cli)

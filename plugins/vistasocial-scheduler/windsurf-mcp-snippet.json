@@ -1,0 +1,10 @@
+{
+  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "mcpServers": {
+    "vistasocial": {
+      "name": "VistaSocial",
+      "type": "url",
+      "url": "https://vistasocial.com/api/integration/mcp?api_key=${env:VISTASOCIAL_API_KEY}"
+    }
+  }
+}

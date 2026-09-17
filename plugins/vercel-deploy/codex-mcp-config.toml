@@ -1,0 +1,7 @@
+# Add to your Codex config.toml
+
+[mcp.servers.vercel]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-vercel"]
+[mcp.servers.vercel.env]
+VERCEL_TOKEN = "${VERCEL_TOKEN}"

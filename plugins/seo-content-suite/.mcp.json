@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "neuronwriter": {
+      "command": "python",
+      "args": ["-m", "neuronwriter_mcp"],
+      "env": {
+        "NEURONWRITER_API_KEY": "${NEURONWRITER_API_KEY}"
+      }
+    },
+    "textfocus": {
+      "command": "python",
+      "args": ["-m", "textfocus_server"],
+      "env": {
+        "TEXTFOCUS_API_KEY": "${TEXTFOCUS_API_KEY}"
+      }
+    },
+    "markupgo": {
+      "command": "npx",
+      "args": ["markupgo-mcp-server"],
+      "env": {
+        "MARKUPGO_API_KEY": "${MARKUPGO_API_KEY}"
+      }
+    },
+    "outscraper": {
+      "command": "node",
+      "args": ["node_modules/@outscraper/mcp-server/dist/index.js"],
+      "env": {
+        "OUTSCRAPER_API_KEY": "${OUTSCRAPER_API_KEY}"
+      }
+    }
+  }
+}

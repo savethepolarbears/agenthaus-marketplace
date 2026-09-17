@@ -1,0 +1,19 @@
+# Add to your Codex config.toml
+
+[mcp.servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+[mcp.servers.context7.env]
+CONTEXT7_API_KEY = "${CONTEXT7_API_KEY}"
+
+[mcp.servers.notion]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-notion"]
+[mcp.servers.notion.env]
+NOTION_API_KEY = "${NOTION_API_KEY}"
+
+[mcp.servers.google-drive]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-google-drive"]
+[mcp.servers.google-drive.env]
+GOOGLE_DRIVE_TOKEN = "${GOOGLE_DRIVE_TOKEN}"

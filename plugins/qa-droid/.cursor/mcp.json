@@ -12,7 +12,7 @@
     },
     "playwright-local": {
       "args": [
-        "${env:CLAUDE_PLUGIN_ROOT}/index.js"
+        "${workspaceFolder}/plugins/qa-droid/index.js"
       ],
       "command": "node"
     },

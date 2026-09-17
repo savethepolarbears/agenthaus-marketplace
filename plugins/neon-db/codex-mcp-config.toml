@@ -1,0 +1,7 @@
+# Add to your Codex config.toml
+
+[mcp.servers.postgres]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-postgres"]
+[mcp.servers.postgres.env]
+DATABASE_URL = "${NEON_DATABASE_URL}"

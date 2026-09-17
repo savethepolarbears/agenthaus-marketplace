@@ -1,0 +1,7 @@
+# Add to your Codex config.toml
+
+[mcp.servers.textfocus]
+command = "python"
+args = ["-m", "textfocus_server"]
+[mcp.servers.textfocus.env]
+TEXTFOCUS_API_KEY = "${TEXTFOCUS_API_KEY}"

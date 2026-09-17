@@ -1,0 +1,13 @@
+---
+description: "Unified SEO content pipeline combining NeuronWriter (content analysis), TextFocus (keyword research), MarkupGo (visual assets), and Outscraper (market research) into end-to-end workflows for keyword research → content creation → visual assets → publishing."
+globs: "**/*"
+alwaysApply: true
+---
+
+# seo-content-suite
+
+Unified SEO content pipeline combining NeuronWriter (content analysis), TextFocus (keyword research), MarkupGo (visual assets), and Outscraper (market research) into end-to-end workflows for keyword research → content creation → visual assets → publishing.
+
+## MCP Configuration
+
+MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.

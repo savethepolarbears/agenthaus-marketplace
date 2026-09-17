@@ -9,15 +9,7 @@ ClickUp task management with Slack, Gmail and Calendar notifications.
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 |----------|-----|-------|-----------------|--------|
 | Claude Code | full | n/a | full | full |
-| Codex CLI | none | n/a | partial | full |
+| Codex CLI | full | n/a | partial | full |
 | Gemini CLI | via gemini-settings | n/a | partial | full |
 | Cursor | via .cursor/mcp.json | n/a | partial | full |
-| Windsurf | TBD | n/a | partial | full |
-
-## Environment Variables
-
-- `CLICKUP_API_KEY`
-- `SLACK_BOT_TOKEN`
-- `SLACK_DEFAULT_CHANNEL`
-- `GMAIL_CREDENTIALS`
-- `GOOGLE_CALENDAR_TOKEN`
+| Windsurf | via mcp_config.json | n/a | partial | full |
