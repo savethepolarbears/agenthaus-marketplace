@@ -8,12 +8,13 @@ A repository-wide dependency analysis was conducted, identifying and addressing 
 
 | Ecosystem | Package | Scope | From | To | Class | Reason | Migration |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| npm | `fast-uri` | `plugins/qa-droid` | `3.1.1` | `3.1.3` | Patch | High severity security fix (host confusion via percent-encoded authority delimiters) | None required |
-| npm | `hono` | `plugins/qa-droid` | `4.12.16` | `4.12.29` | Patch | High severity security fixes (CSS Declaration Injection, JWT validation, cache leakage, IP restriction bypass, etc.) | None required |
-| npm | `ip-address` | `plugins/qa-droid` | `10.1.0` | `10.2.0` | Minor | Moderate severity security fix (XSS in Address6 HTML-emitting methods) | None required |
-| npm | `qs` | `plugins/qa-droid` | `6.15.1` | `6.15.3` | Patch | Moderate severity security fix (Remotely triggerable DoS via `qs.stringify`) | None required |
+| npm | `fast-uri` | `plugins/qa-droid` | `3.1.1` | `3.1.8` | Patch | High severity security fix (host confusion via percent-encoded authority delimiters) | None required |
+| npm | `hono` | `plugins/qa-droid` | `4.12.16` | `4.13.8` | Patch | High severity security fixes (CSS Declaration Injection, JWT validation, cache leakage, IP restriction bypass) | None required |
+| npm | `@hono/node-server` | `plugins/qa-droid` | `1.19.14` | `1.19.17` | Patch | Upstream adapter update for hono runtime | None required |
+| npm | `ip-address` | `plugins/qa-droid` | `10.1.0` | `10.7.2` | Minor | Moderate severity security fix (XSS in Address6 HTML-emitting methods) | None required |
+| npm | `qs` | `plugins/qa-droid` | `6.15.1` | `6.16.0` | Patch | Moderate severity security fix (Remotely triggerable DoS via `qs.stringify`) | None required |
 
-*Note: Some transitive dependencies were also safely bumped to resolve the vulnerabilities.*
+*Note: All transitive dependencies were safely bumped within non-breaking ranges, resulting in 0 vulnerabilities.*
 
 ## Validation and Next Steps
 

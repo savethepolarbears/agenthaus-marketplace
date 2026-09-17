@@ -4,7 +4,8 @@
 
 set -euo pipefail
 
-COUNTER_FILE="/tmp/circuit-breaker-counter"
+USER_ID="${UID:-$(id -u 2>/dev/null || echo 0)}"
+COUNTER_FILE="${TMPDIR:-/tmp}/circuit-breaker-counter-${USER_ID}"
 THRESHOLD=100
 
 # Check if this breaker is disabled

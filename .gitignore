@@ -8,11 +8,25 @@ out/
 dist/
 build/
 
-# Environment files
+# Environment and credential files
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.cer
+*.crt
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.keystore
+*credentials*.json
+*token*.json
+service-account*.json
+auth.json
 
 # IDE and editors
 .idea/
@@ -73,3 +87,9 @@ skills_index.json
 
 # Web storefront (removed — not part of the open-source distribution)
 agenthaus-web/
+
+# Agent runtime state and review queues
+review_queue/
+.shadow-mode-enabled
+.circuit-breaker-config.json
+scrub_*.sh

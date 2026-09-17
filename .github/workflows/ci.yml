@@ -1,0 +1,53 @@
+name: CI & Security Checks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Plugins & Marketplace
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Validate all marketplace plugins
+        run: bash scripts/validate-plugins.sh
+
+      - name: Run unit tests
+        run: node --test tests/*.test.js
+
+      - name: Verify cross-platform generator consistency
+        run: |
+          node scripts/generate-cross-platform.js
+          git diff --exit-code || (echo "Generated files are out of sync. Run 'node scripts/generate-cross-platform.js' and commit changes." && exit 1)
+
+  dependency-audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run npm audit in qa-droid
+        working-directory: plugins/qa-droid
+        run: npm audit --audit-level=high
