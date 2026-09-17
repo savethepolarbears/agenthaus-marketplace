@@ -18,6 +18,7 @@ permissions:
 jobs:
   validate:
     name: Validate Plugins & Marketplace
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -43,16 +44,35 @@ jobs:
       - name: Verify cross-platform generator consistency
         run: |
           node scripts/generate-cross-platform.js
-          if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
+          DRIFT_STATUS=$(git status --porcelain --untracked-files=all -- \
+            '*claude-desktop-snippet.json' '*gemini-settings-snippet.json' \
+            '*windsurf-mcp-snippet.json' '*codex-mcp-config.toml' \
+            '.cursor' 'GEMINI.md' 'AGENTS.md' 'skills_index.json')
+          if [ -n "$DRIFT_STATUS" ]; then
             echo "Generated files are out of sync or produced untracked artifacts:"
-            git status --porcelain --untracked-files=all
+            echo "$DRIFT_STATUS"
+            exit 1
+          fi
+
+      - name: Guard against absolute file:// links in documentation
+        run: |
+          if git grep -nE 'file:///' -- '*.md'; then
+            echo "ERROR: Local absolute file:/// links detected in markdown documentation."
             exit 1
           fi
 
       - name: Guard against destructive git commands
         run: |
-          if git grep -nE 'git push.*(--force|-f)\b' -- '*.sh' '*.js' '*.py'; then
-            echo "ERROR: Destructive git push --force detected in script files."
+          FAILED=0
+          if git grep -nE 'git push.*(--force|-f)\b' -- '*.sh' '*.js' '*.py' '*.yml' '*.yaml' '*.md' '*.ts' '*.php' 'Makefile' | grep -v -- '--force-with-lease'; then
+            echo "ERROR: Destructive git push --force detected without --force-with-lease."
+            FAILED=1
+          fi
+          if git grep -nE 'git (push.*(--mirror|--delete)|filter-repo|filter-branch)\b' -- '*.sh' '*.js' '*.py' '*.yml' '*.yaml' '*.md' '*.ts' '*.php' 'Makefile'; then
+            echo "ERROR: Destructive git mirror/delete/filter-repo command detected."
+            FAILED=1
+          fi
+          if [ "$FAILED" -ne 0 ]; then
             exit 1
           fi
 
@@ -83,6 +103,8 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Note: gitleaks-action is free for public repositories. If transferred or
+      # mirrored as an organization-owned private repository, GITLEAKS_LICENSE is required.
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:

@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-17  
 **Scope:** Consolidated Technical Debt Register for `savethepolarbears/agenthaus-marketplace`  
-**Detailed Report:** See [reports/TECHNICAL_DEBT_INVENTORY.md](file:///Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/reports/TECHNICAL_DEBT_INVENTORY.md)
+**Detailed Report:** See [reports/TECHNICAL_DEBT_INVENTORY.md](reports/TECHNICAL_DEBT_INVENTORY.md)
 
 ---
 
@@ -12,7 +12,7 @@
 - **Languages:** Markdown (349), JSON (174), Cursor MDC (37), Codex TOML (24), Bash Shell (11), JavaScript (5), Python (4), TypeScript (4), PHP (1), YAML (2).
 - **Active Production Plugins:** 37 verified production plugins in `plugins/`.
 - **Runtime Dependencies:** Pinned in `plugins/qa-droid/package.json` (`@modelcontextprotocol/sdk`, `playwright`, overrides locked).
-- **Test / Validation Time:** ~270 ms for Node 24 native tests (`tests/*.test.js`), ~4.5 s for `validate-plugins.sh`.
+- **Test / Validation Time:** ~260 ms for Node 24 native tests (`tests/*.test.js`), ~4.5 s for `validate-plugins.sh`.
 
 ---
 

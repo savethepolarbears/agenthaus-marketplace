@@ -520,7 +520,10 @@ uninstall_from() {
   IFS='/' read -ra segs <<< "$trimmed"
   seg_count="${#segs[@]}"
 
-  if [[ -z "$target_dir" || "$target_dir" == "/" || "$target_dir" == "$HOME" || "$seg_count" -lt 2 ]]; then
+  local canonical_home
+  canonical_home="$(cd "${HOME:-/}" 2>/dev/null && pwd -P || echo "${HOME:-/}")"
+
+  if [[ -z "$target_dir" || "$target_dir" == "/" || "$target_dir" == "$canonical_home" || "$target_dir" == "$HOME" || "$seg_count" -lt 2 ]] || [ "$target_dir" -ef "$canonical_home" ] || ([ -n "${HOME:-}" ] && [ "$target_dir" -ef "$HOME" ]); then
     error "Refusing to uninstall from root, home, or shallow directory: $target_dir"
     return 1
   fi

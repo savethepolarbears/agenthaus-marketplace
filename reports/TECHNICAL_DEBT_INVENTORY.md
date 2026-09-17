@@ -14,7 +14,7 @@
 | **File Count by Type** | 625 files | 349 Markdown (`.md`), 174 JSON (`.json`), 37 Cursor MDC (`.mdc`), 24 Codex TOML (`.toml`), 11 Shell (`.sh`), 5 JavaScript (`.js`), 4 TypeScript (`.ts`), 4 Python (`.py`), 1 PHP (`.php`), 2 YAML (`.yml`) |
 | **Active Production Plugins** | 37 plugins | 100% registered in `.claude-plugin/marketplace.json` and validated |
 | **Dependencies** | 2 runtime dependencies | Isolated to `plugins/qa-droid/package.json` (`@modelcontextprotocol/sdk`, `playwright`) with pinned `overrides` |
-| **Test Suite Execution Time** | ~270 ms | 10 passing tests across 2 suites (`tests/circuit-breaker.test.js`, `tests/drift-guard.test.js`, `tests/generate-cross-platform.test.js`) |
+| **Test Suite Execution Time** | ~260 ms | 12 passing tests across 3 suites (`tests/circuit-breaker.test.js`, `tests/drift-guard.test.js`, `tests/generate-cross-platform.test.js`) |
 | **Marketplace Validation Time** | ~4.5 s | Full schema, symlink, hook security, and index verification for 37 plugins |
 | **Bundle Footprint** | N/A | Modular developer tooling and plugin distribution (no compiled web bundle in OSS distribution) |
 

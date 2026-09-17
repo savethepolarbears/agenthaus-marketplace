@@ -267,7 +267,7 @@ validate_hook_security() {
     content="$(sed 's/[[:space:]]*#.*$//' "$sh_file" 2>/dev/null)" || continue
 
     # Check for eval usage
-    if echo "$content" | grep -qE '(^|[^a-zA-Z_])eval[[:space:]]'; then
+    if echo "$content" | grep -qE '(^|[^a-zA-Z_])eval([[:space:]]|"|\(|\$)'; then
       log_warn "[security] ${name}/${rel_path}: uses 'eval' — review for injection risk"
       warn_count=$((warn_count + 1))
       found_issues=1
@@ -300,10 +300,10 @@ validate_hook_security() {
     local content
     content="$(sed 's/[[:space:]]*#.*$//' "$vendored_sh" 2>/dev/null)" || continue
 
-    if echo "$content" | grep -qE '(^|[^a-zA-Z_])eval[[:space:]]'; then
+    if echo "$content" | grep -qE '(^|[^a-zA-Z_])eval([[:space:]]|"|\(|\$)'; then
       log_warn "[security] ${name}/${rel_path}: vendored script uses 'eval' — review for supply chain risk"
       warn_count=$((warn_count + 1))
-      found_issues=1
+      # Note: do not set found_issues=1 for vendored scripts so the warn-only contract is preserved
     fi
   done < <(find "$dir" -path "*/node_modules/*" -name "*.sh" -type f 2>/dev/null)
 

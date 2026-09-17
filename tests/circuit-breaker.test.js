@@ -112,25 +112,73 @@ describe('Circuit Breaker Budget Guard & Reset Hardening', () => {
         const counterFile = path.join(tmpDir, `circuit-breaker-${userId}`, 'counter');
         assert.strictEqual(fs.readFileSync(counterFile, 'utf8').trim(), '3');
 
-        // Execute reset script
-        execFileSync('bash', [RESET_SCRIPT], { env, stdio: 'pipe' });
+        // Verify config reset in addition to counter reset
+        const configPath = path.join(tmpDir, '.circuit-breaker-config.json');
+        fs.writeFileSync(configPath, '{"breakers":{"budget-guard":{"enabled":false}}}');
+
+        // Execute reset script from tmpDir
+        execFileSync('bash', [RESET_SCRIPT], { env, cwd: tmpDir, stdio: 'pipe' });
         assert.strictEqual(fs.existsSync(counterFile), false, 'Counter file should be removed');
+        assert.strictEqual(fs.existsSync(configPath), false, 'Config file should be reset/removed');
 
         // Next run starts back at 1
         execFileSync('bash', [BUDGET_GUARD_SCRIPT], { env, stdio: 'pipe' });
         assert.strictEqual(fs.readFileSync(counterFile, 'utf8').trim(), '1');
     });
 
-    test('exits 0 with warning-only on non-writable directory storage failure', () => {
+    test('reset-counter.sh does not delete counter when state directory is a symlink', () => {
         const userId = process.getuid ? process.getuid() : 0;
+        const targetDir = path.join(tmpDir, 'symlink-target-dir');
+        fs.mkdirSync(targetDir);
+
+        const sentinelCounter = path.join(targetDir, 'counter');
+        fs.writeFileSync(sentinelCounter, 'PRESERVE_ME');
+
         const stateDir = path.join(tmpDir, `circuit-breaker-${userId}`);
-        fs.mkdirSync(stateDir, { mode: 0o500 }); // read-only directory
+        fs.symlinkSync(targetDir, stateDir);
 
         const env = { ...process.env, TMPDIR: tmpDir };
 
-        // Should exit 0 without failing despite chmod or write error
+        execFileSync('bash', [RESET_SCRIPT], { env, stdio: 'pipe' });
+
+        // Sentinel counter file inside symlinked target directory must NOT be deleted
+        assert.ok(fs.existsSync(sentinelCounter), 'Target counter should not be deleted via symlinked state directory');
+        assert.strictEqual(fs.readFileSync(sentinelCounter, 'utf8'), 'PRESERVE_ME');
+    });
+
+    test('exits 0 with warning-only and unchanged counter on non-writable counter file', () => {
+        const userId = process.getuid ? process.getuid() : 0;
+        const stateDir = path.join(tmpDir, `circuit-breaker-${userId}`);
+        fs.mkdirSync(stateDir, { mode: 0o700 });
+
+        const counterFile = path.join(stateDir, 'counter');
+        fs.writeFileSync(counterFile, '5\n');
+        fs.chmodSync(counterFile, 0o444); // Read-only file: write denied to owner
+
+        const env = { ...process.env, TMPDIR: tmpDir };
+
+        // Should exit 0 without failing despite non-writable counter file
         assert.doesNotThrow(() => {
             execFileSync('bash', [BUDGET_GUARD_SCRIPT], { env, stdio: 'pipe' });
         });
+
+        // Counter must remain unchanged at 5
+        assert.strictEqual(fs.readFileSync(counterFile, 'utf8').trim(), '5');
+    });
+
+    test('exits 0 gracefully without loosening permissions when state directory is non-writable (mode 0500)', () => {
+        const userId = process.getuid ? process.getuid() : 0;
+        const stateDir = path.join(tmpDir, `circuit-breaker-${userId}`);
+        fs.mkdirSync(stateDir, { mode: 0o500 }); // Read-only directory
+
+        const env = { ...process.env, TMPDIR: tmpDir };
+
+        assert.doesNotThrow(() => {
+            execFileSync('bash', [BUDGET_GUARD_SCRIPT], { env, stdio: 'pipe' });
+        });
+
+        // Directory permissions must remain 0500 (not mutated back to 0700)
+        const stat = fs.statSync(stateDir);
+        assert.strictEqual(stat.mode & 0o777, 0o500);
     });
 });

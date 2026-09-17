@@ -14,10 +14,10 @@ A repository-wide dependency analysis was conducted, identifying and addressing 
 | npm | `hono` | `plugins/qa-droid` | `4.12.16` | `4.13.8` | Minor | High severity security fixes (CSS Declaration Injection, JWT validation, cache leakage, IP restriction bypass) | None required |
 | npm | `@hono/node-server` | `plugins/qa-droid` | `1.19.14` | `1.19.17` | Patch | Upstream adapter update for hono runtime | None required |
 | npm | `ip-address` | `plugins/qa-droid` | `10.1.0` | `10.7.2` | Minor | Moderate severity security fix (XSS in Address6 HTML-emitting methods) | None required |
-| npm | `qs` | `plugins/qa-droid` | `6.15.1` | `6.16.0` | Patch | Moderate severity security fix (Remotely triggerable DoS via `qs.stringify`) | None required |
+| npm | `qs` | `plugins/qa-droid` | `6.15.1` | `6.16.0` | Minor | Moderate severity security fix (Remotely triggerable DoS via `qs.stringify`) | None required |
 
 ## Validation and Regression Safeguards
 
-1. **Lockfile & Overrides**: Transitive dependencies were locked via `npm audit fix` in `plugins/qa-droid/package-lock.json` and reinforced with an `overrides` block in `package.json` so fresh `npm ci` or `npm install` runs do not reintroduce legacy transitive versions.
+1. **Lockfile & Overrides**: Transitive dependencies were secured via `npm audit fix` in `plugins/qa-droid/package-lock.json` and reinforced with `>=` minimum version constraints in the `overrides` block of `package.json` (`fast-uri >= 3.1.8`, `hono >= 4.13.8`, `@hono/node-server >= 1.19.17`, `ip-address >= 10.7.2`, `qs >= 6.16.0`). This prevents regressions below secure thresholds while allowing Dependabot and lockfile updates to take future upstream patches.
 2. **Point-in-Time Status**: As of 2026-09-17, `npm audit` reports **0 vulnerabilities** (0 high, 0 moderate, 0 low).
-3. **Automated Ongoing Verification**: Pair with `.github/dependabot.yml` and scheduled nightly GitHub Actions CI audit to detect newly published advisories continuously without breaking daily PR development.
+3. **Automated Ongoing Verification**: Paired with `.github/dependabot.yml` and scheduled nightly GitHub Actions CI audit to detect newly published advisories continuously without breaking daily PR development.

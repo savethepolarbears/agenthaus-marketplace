@@ -46,14 +46,13 @@
 
 ### C. Hook and Script References
 
-- Hook shell scripts scanned in `plugins/*/hooks/scripts/`: **6**
-- All 6 scripts are referenced in their respective `hooks.json` manifests or command instructions:
-  - `plugins/circuit-breaker/hooks/scripts/budget-guard.sh` (referenced in `hooks.json`)
-  - `plugins/circuit-breaker/hooks/scripts/reset-counter.sh` (referenced in `commands/configure.md` & `README.md`)
-  - `plugins/circuit-breaker/hooks/scripts/block-prod-deploy.sh` (referenced in `hooks.json`)
-  - `plugins/circuit-breaker/hooks/scripts/require-tests.sh` (referenced in `hooks.json`)
-  - `plugins/apple-photos/hooks/scripts/export-guard.sh` (referenced in `hooks.json`)
-  - `plugins/wp-cli-fleet/hooks/scripts/production-guard.sh` (referenced in `hooks.json`)
+- Shell scripts scanned in `plugins/*/hooks/scripts/`: **6** total (5 registered directly as hook triggers in `hooks.json`, plus 1 operational lifecycle utility referenced in command instructions):
+  - `plugins/circuit-breaker/hooks/scripts/budget-guard.sh` (registered in `hooks.json`)
+  - `plugins/circuit-breaker/hooks/scripts/block-prod-deploy.sh` (registered in `hooks.json`)
+  - `plugins/circuit-breaker/hooks/scripts/require-tests.sh` (registered in `hooks.json`)
+  - `plugins/apple-photos/hooks/scripts/export-guard.sh` (registered in `hooks.json`)
+  - `plugins/wp-cli-fleet/hooks/scripts/production-guard.sh` (registered in `hooks.json`)
+  - `plugins/circuit-breaker/hooks/scripts/reset-counter.sh` (operational lifecycle utility referenced in `commands/configure.md` & `README.md`)
 
 ---
 

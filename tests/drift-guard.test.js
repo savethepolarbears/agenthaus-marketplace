@@ -56,37 +56,47 @@ describe('Drift Guard & Untracked Files Check', () => {
 
     test('clean repository exhibits no untracked generated files after generator run', () => {
         const repoRoot = path.resolve(__dirname, '..');
+        const cleanFixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'drift-clean-'));
 
-        // Run cross-platform generator
-        execSync('node scripts/generate-cross-platform.js', {
-            cwd: repoRoot,
-            stdio: 'pipe'
-        });
+        try {
+            // Copy generator inputs to isolated fixture excluding node_modules
+            fs.cpSync(path.join(repoRoot, 'plugins'), path.join(cleanFixtureDir, 'plugins'), {
+                recursive: true,
+                filter: (src) => !src.includes('node_modules')
+            });
+            fs.cpSync(path.join(repoRoot, 'scripts'), path.join(cleanFixtureDir, 'scripts'), {
+                recursive: true
+            });
+            fs.copyFileSync(path.join(repoRoot, 'skills_index.json'), path.join(cleanFixtureDir, 'skills_index.json'));
+            fs.copyFileSync(path.join(repoRoot, 'AGENTS.md'), path.join(cleanFixtureDir, 'AGENTS.md'));
+            fs.copyFileSync(path.join(repoRoot, 'GEMINI.md'), path.join(cleanFixtureDir, 'GEMINI.md'));
 
-        // Get status and verify no generated files are untracked
-        const status = execSync('git status --porcelain --untracked-files=all', {
-            cwd: repoRoot,
-            encoding: 'utf8'
-        });
+            execSync('git init -b main', { cwd: cleanFixtureDir, stdio: 'ignore' });
+            execSync('git config user.email "test@example.com"', { cwd: cleanFixtureDir, stdio: 'ignore' });
+            execSync('git config user.name "Test"', { cwd: cleanFixtureDir, stdio: 'ignore' });
+            execSync('git add -A && git commit -m "initial"', { cwd: cleanFixtureDir, stdio: 'ignore' });
 
-        const lines = status ? status.trim().split('\n') : [];
-        const generatedPatterns = [
-            'claude-desktop-snippet.json',
-            'gemini-settings-snippet.json',
-            'windsurf-mcp-snippet.json',
-            'codex-mcp-config.toml',
-            '.cursor/mcp.json',
-            '.cursor/rules/',
-            'GEMINI.md',
-            'AGENTS.md'
-        ];
+            // Run generator in isolated fixture
+            execSync('node scripts/generate-cross-platform.js', {
+                cwd: cleanFixtureDir,
+                stdio: 'pipe'
+            });
 
-        const untrackedGenerated = lines.filter(line => {
-            if (!line.startsWith('??')) return false;
-            const file = line.substring(3).trim();
-            return generatedPatterns.some(pat => file.endsWith(pat) || file.includes(pat));
-        });
+            // Assert against generator artifact pathspecs
+            const status = execSync(
+                'git status --porcelain --untracked-files=all -- ' +
+                '"*claude-desktop-snippet.json" "*gemini-settings-snippet.json" ' +
+                '"*windsurf-mcp-snippet.json" "*codex-mcp-config.toml" ' +
+                '".cursor" "GEMINI.md" "AGENTS.md" "skills_index.json"',
+                {
+                    cwd: cleanFixtureDir,
+                    encoding: 'utf8'
+                }
+            ).trim();
 
-        assert.deepStrictEqual(untrackedGenerated, [], 'No generated artifact should be left untracked');
+            assert.strictEqual(status, '', 'Generator should not produce untracked or drifted artifacts');
+        } finally {
+            fs.rmSync(cleanFixtureDir, { recursive: true, force: true });
+        }
     });
 });

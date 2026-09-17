@@ -6,12 +6,12 @@ This directory contains ALL project reports including validation, testing, analy
 
 | Report | Category | Description | Date |
 | :--- | :--- | :--- | :--- |
-| [SECURITY_AND_GIT_AUDIT_2026-09-17.md](file:///Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/reports/SECURITY_AND_GIT_AUDIT_2026-09-17.md) | Security | Git history scan, CWE-377 mitigation, CI hardening, and leak prevention | 2026-09-17 |
-| [DEPENDENCY_AUDIT.md](file:///Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/reports/DEPENDENCY_AUDIT.md) | Supply Chain | Transitive dependency vulnerability remediation and overrides locking | 2026-09-17 |
-| [TECHNICAL_DEBT_INVENTORY.md](file:///Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/reports/TECHNICAL_DEBT_INVENTORY.md) | Quality & Architecture | Full technical debt register, code hotspots, and ROI remediation | 2026-09-17 |
-| [DEAD_CODE_AUDIT.md](file:///Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/reports/DEAD_CODE_AUDIT.md) | Cleanliness | Multi-signal dead code audit across skills, plugins, and scripts | 2026-09-17 |
-| [CODE_PERFORMANCE_AUDIT.md](file:///Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/reports/CODE_PERFORMANCE_AUDIT.md) | Performance | Generator execution benchmarks, hook latency, and Node 24 performance | 2026-09-17 |
-| [BBM_AGENT_AUTOMATION_AUDIT.md](file:///Users/klkro/Projects/0.Infra/automation/agenthaus-marketplace/reports/BBM_AGENT_AUTOMATION_AUDIT.md) | Governance | Cross-platform compatibility matrix, circuit breaker checks, and triggers | 2026-09-17 |
+| [SECURITY_AND_GIT_AUDIT_2026-09-17.md](./SECURITY_AND_GIT_AUDIT_2026-09-17.md) | Security | Git history scan, CWE-377 mitigation, CI hardening, and leak prevention | 2026-09-17 |
+| [DEPENDENCY_AUDIT.md](./DEPENDENCY_AUDIT.md) | Supply Chain | Transitive dependency vulnerability remediation and overrides locking | 2026-09-17 |
+| [TECHNICAL_DEBT_INVENTORY.md](./TECHNICAL_DEBT_INVENTORY.md) | Quality & Architecture | Full technical debt register, code hotspots, and ROI remediation | 2026-09-17 |
+| [DEAD_CODE_AUDIT.md](./DEAD_CODE_AUDIT.md) | Cleanliness | Multi-signal dead code audit across skills, plugins, and scripts | 2026-09-17 |
+| [CODE_PERFORMANCE_AUDIT.md](./CODE_PERFORMANCE_AUDIT.md) | Performance | Generator execution benchmarks, hook latency, and Node 24 performance | 2026-09-17 |
+| [BBM_AGENT_AUTOMATION_AUDIT.md](./BBM_AGENT_AUTOMATION_AUDIT.md) | Governance | Cross-platform compatibility matrix, circuit breaker checks, and triggers | 2026-09-17 |
 
 ## Report Categories
 

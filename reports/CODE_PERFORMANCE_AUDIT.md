@@ -27,7 +27,7 @@ This audit analyzed:
 | **`scripts/generate-cross-platform.js`** | **87 ms** | ~140 ms | Processes 37 plugins, checks 226 files, performs selective write |
 | **`scripts/generate-skills-index.sh`** | **250 ms** | ~380 ms | Indexes 177 skills across 37 plugin hierarchies |
 | **`scripts/validate-plugins.sh`** | **4.5 s** | ~17 s | Validates 37 manifests, JSON schemas, hook syntax, and file existence |
-| **`tests/*.test.js` (`node:test`)** | **270 ms** | ~450 ms | 10 unit and integration tests (zero external dependencies) |
+| **`tests/*.test.js` (`node:test`)** | **~260 ms** | ~450 ms | 12 unit and integration tests across 3 suites (zero external dependencies) |
 | **`budget-guard.sh` (No Config)** | **~4 ms** | ~7 ms | Fast-path: skips `jq`, increments counter, exits 0 |
 | **`budget-guard.sh` (With Config)** | **~18 ms** | ~28 ms | Evaluates `.circuit-breaker-config.json` via single `jq` subshell |
 | **Full Local Verification (`run_checks.sh`)** | **~4.8 s** | N/A | Combines validation, unit tests, and conditional web checks |
@@ -49,14 +49,14 @@ This audit analyzed:
 - **Mechanism:** The hook checks `[ -f "$CONFIG_FILE" ]` before spawning `jq`. In projects without custom overrides, zero `jq` subshells are invoked.
 - **Performance Impact:**
   - Execution overhead dropped from ~35ms to **< 5ms** per tool invocation.
-  - Storage directory caching with `chmod 700` and mode check prevents redundant directory recreation.
+  - Storage directory caching with private mode and non-mutating permission checks prevents redundant directory recreation.
 
 ### C. Node 24 Native Test Runner (`node:test`)
 
 - **Mechanism:** Replaces external heavyweight test frameworks (Jest/Vitest/Mocha) with Node.js built-in `node:test` and `node:assert`.
 - **Performance Impact:**
   - Zero `node_modules` installation overhead for tests in root.
-  - 10 tests execute and exit in **270 ms** cold start.
+  - 12 tests across 3 suites execute and exit in **~260 ms** cold start.
   - Total process RSS memory remains below **35 MB**.
 
 ### D. CI Pipeline Optimization
