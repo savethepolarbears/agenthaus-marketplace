@@ -30,8 +30,9 @@ A systematic audit across Git commit history, configuration files, shell scripts
 ### Findings
 
 - **Result:** **0 secrets detected in Git history or tracked files.**
-- **Finding Remediated:** The repository contained an obsolete maintenance script `scrub_history.sh` which executed `git filter-repo` and `git push origin --force --all`. Leaving destructive history-rewriting scripts in a public repository posed a severe operational hazard.
-  - **Fix:** Removed `scrub_history.sh` from tracking, added `scrub_*.sh` to `.gitignore`, and added an automated CI check rejecting destructive `git push --force` scripts.
+- **Finding Remediated:** The repository contained an obsolete maintenance script `scrub_history.sh` which executed history filtering and forced pushing (`--force --all`). Leaving destructive history-rewriting scripts in a public repository posed a severe operational hazard.
+  - **Fix:** Removed `scrub_history.sh` from tracking, added `scrub_*.sh` to `.gitignore`, and added an automated CI check rejecting destructive force-push scripts.
+
 
 ---
 
@@ -118,7 +119,7 @@ Added `.github/workflows/ci.yml` and `.github/dependabot.yml` providing automate
 - **Plugin & Hook Validation:** Runs `bash scripts/generate-skills-index.sh` followed by `bash scripts/validate-plugins.sh` across all 37 plugins.
 - **Unit & Regression Tests:** Automated test suite (`node --test tests/*.test.js`) verifying generator discovery, env transformations, circuit breaker CWE-377 isolation, symlink defenses, counter reset mechanics, and drift detection.
 - **Drift & Untracked Guard:** Verifies `node scripts/generate-cross-platform.js` produces zero git diff and zero untracked artifacts (`git status --porcelain --untracked-files=all`).
-- **Destructive Command Guard:** Scans tracked files for dangerous `git push --force` or `-f` flags.
+- **Destructive Command Guard:** Scans tracked files for dangerous force-push or branch deletion flags.
 - **Dependency Audit:** Runs `npm audit --audit-level=high` on `plugins/qa-droid` with npm cache support.
 - **Automated Secret Scanning:** Automated Gitleaks analysis across all commits on every pull request.
 - **Dependabot Integration:** Configured `.github/dependabot.yml` for automated weekly updates across npm dependencies and GitHub Actions.

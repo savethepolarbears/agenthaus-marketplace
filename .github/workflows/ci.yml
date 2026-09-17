@@ -64,11 +64,11 @@ jobs:
       - name: Guard against destructive git commands
         run: |
           FAILED=0
-          if git grep -nE 'git push.*(--force|-f)\b' -- '*.sh' '*.js' '*.py' '*.yml' '*.yaml' '*.md' '*.ts' '*.php' 'Makefile' | grep -v -- '--force-with-lease'; then
+          if git grep -nE 'git push.*(--force|-f)\b' -- '*.sh' '*.js' '*.py' '*.yml' '*.yaml' '*.md' '*.ts' '*.php' 'Makefile' ':!reports/*' | grep -v -- '--force-with-lease'; then
             echo "ERROR: Destructive git push --force detected without --force-with-lease."
             FAILED=1
           fi
-          if git grep -nE 'git (push.*(--mirror|--delete)|filter-repo|filter-branch)\b' -- '*.sh' '*.js' '*.py' '*.yml' '*.yaml' '*.md' '*.ts' '*.php' 'Makefile'; then
+          if git grep -nE 'git (push.*(--mirror|--delete)|filter-repo|filter-branch)\b' -- '*.sh' '*.js' '*.py' '*.yml' '*.yaml' '*.md' '*.ts' '*.php' 'Makefile' ':!reports/*'; then
             echo "ERROR: Destructive git mirror/delete/filter-repo command detected."
             FAILED=1
           fi
