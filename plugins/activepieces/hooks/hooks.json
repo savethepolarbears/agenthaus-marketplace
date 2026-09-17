@@ -3,15 +3,23 @@
     "PreToolUse": [
       {
         "matcher": "ap_delete_step|ap_delete_branch",
-        "requires_approval": true,
-        "approval_message": "You are about to delete a step or branch in an ActivePieces flow. This is a destructive change. Do you approve?",
-        "hooks": []
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"Destructive ActivePieces change: this deletes a step or branch from a flow and cannot be undone.\"}}'",
+            "timeout": 5
+          }
+        ]
       },
       {
         "matcher": "ap_lock_and_publish|ap_change_flow_status",
-        "requires_approval": true,
-        "approval_message": "You are about to publish or change the status of an ActivePieces flow. Do you approve?",
-        "hooks": []
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"This publishes an ActivePieces flow or changes its status, which takes effect immediately in the live workspace.\"}}'",
+            "timeout": 5
+          }
+        ]
       }
     ]
   }

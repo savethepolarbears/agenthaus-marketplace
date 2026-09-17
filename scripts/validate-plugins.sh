@@ -263,7 +263,8 @@ validate_hook_security() {
   while IFS= read -r sh_file; do
     local rel_path="${sh_file#$dir/}"
     local content
-    content="$(cat "$sh_file" 2>/dev/null)" || continue
+    # Strip comment lines: prose that names a variable is documentation, not a read.
+    content="$(sed 's/[[:space:]]*#.*$//' "$sh_file" 2>/dev/null)" || continue
 
     # Check for eval usage
     if echo "$content" | grep -qE '(^|[^a-zA-Z_])eval[[:space:]]'; then
@@ -272,32 +273,50 @@ validate_hook_security() {
       found_issues=1
     fi
 
-    # Check for unquoted $TOOL_INPUT
-    if echo "$content" | grep -qE '\$TOOL_INPUT[^"]' | grep -vqE '"\$TOOL_INPUT' 2>/dev/null; then
-      : # handled below
-    fi
-    if echo "$content" | grep -qP '(?<!")\$TOOL_INPUT(?!")' 2>/dev/null || \
-       echo "$content" | grep -qE '[^"]\$TOOL_INPUT[^"a-zA-Z_]' 2>/dev/null; then
-      log_warn "[security] ${name}/${rel_path}: unquoted \$TOOL_INPUT — should be \"\$TOOL_INPUT\""
-      warn_count=$((warn_count + 1))
+    # $TOOL_INPUT and friends are not environment variables. Claude Code delivers the
+    # tool call as JSON on STDIN, so a script that reads them gets an empty string and
+    # every test against it silently passes — a guard that protects nothing.
+    # A script that assigns the name itself (TOOL_INPUT="$(cat)") is using it as a
+    # local variable, which is fine; only an unassigned read is the bug.
+    if echo "$content" | grep -qE '\$\{?TOOL_INPUT(_[A-Z_]+)?\b' && \
+       ! echo "$content" | grep -qE '^[[:space:]]*(local[[:space:]]+)?TOOL_INPUT(_[A-Z_]+)?='; then
+      log_fail "[hooks] ${name}/${rel_path}: reads \$TOOL_INPUT* as an environment variable — no such variable exists; parse the JSON on STDIN instead (jq -r '.tool_input.command // empty')"
+      fail_count=$((fail_count + 1))
       found_issues=1
     fi
 
-    # Check for backtick command substitution with user input
-    if echo "$content" | grep -qE '`[^`]*\$TOOL_INPUT[^`]*`'; then
-      log_warn "[security] ${name}/${rel_path}: backtick substitution with \$TOOL_INPUT — use \$(…) with proper quoting"
-      warn_count=$((warn_count + 1))
-      found_issues=1
-    fi
-
-    # Check for $(...) with TOOL_INPUT or TOOL_INPUT_COMMAND inside
-    if echo "$content" | grep -qE '\$\([^)]*\$(TOOL_INPUT|TOOL_INPUT_COMMAND)'; then
-      log_warn "[security] ${name}/${rel_path}: command substitution contains \$TOOL_INPUT — injection risk"
+    # exit 1 is a non-blocking hook error; exit 2 is what actually blocks a tool call.
+    if echo "$content" | grep -qE '^[[:space:]]*exit[[:space:]]+1[[:space:]]*$'; then
+      log_warn "[hooks] ${name}/${rel_path}: 'exit 1' does not block a tool call — use 'exit 2' (and write the reason to stderr) to block"
       warn_count=$((warn_count + 1))
       found_issues=1
     fi
 
   done < <(find "$dir" -name "*.sh" -type f 2>/dev/null)
+
+  # Hook configuration files: keys Claude Code does not define are dropped at load
+  # time, so a guard expressed through one is inert.
+  while IFS= read -r hook_json; do
+    local rel_path="${hook_json#$dir/}"
+
+    if grep -qE '"(requires_approval|approval_message)"' "$hook_json" 2>/dev/null; then
+      log_fail "[hooks] ${name}/${rel_path}: 'requires_approval'/'approval_message' are not part of the Claude Code hook schema and are ignored at load time — return {\"hookSpecificOutput\":{\"permissionDecision\":\"ask\"}} from the hook command instead"
+      fail_count=$((fail_count + 1))
+      found_issues=1
+    fi
+
+    if grep -qE '"matcher"[[:space:]]*:[[:space:]]*"\*"' "$hook_json" 2>/dev/null; then
+      log_warn "[hooks] ${name}/${rel_path}: matcher \"*\" is not a valid regex — use \".*\" to match every tool"
+      warn_count=$((warn_count + 1))
+      found_issues=1
+    fi
+
+    if grep -qE '"hooks"[[:space:]]*:[[:space:]]*\[[[:space:]]*\]' "$hook_json" 2>/dev/null; then
+      log_warn "[hooks] ${name}/${rel_path}: empty \"hooks\": [] array — this matcher group runs nothing"
+      warn_count=$((warn_count + 1))
+      found_issues=1
+    fi
+  done < <(find "$dir" -path "*/hooks/*" -name "*.json" -type f 2>/dev/null)
 
   if [[ "$found_issues" -eq 0 ]]; then
     # Only log if there were .sh files to check

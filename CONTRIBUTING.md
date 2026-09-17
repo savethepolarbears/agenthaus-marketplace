@@ -380,7 +380,8 @@ See `.github/workflows/validate.yml` for details.
 
 ## Human-in-the-Loop (HITL) Requirements
 
-Plugins that perform destructive or externally-visible actions **must** include `requires_approval` flags in their hook configurations. This applies to:
+Plugins that perform destructive or externally-visible actions **must** gate them
+behind a `PreToolUse` hook that returns a permission decision. This applies to:
 
 - Cloud deployments (Cloudflare Workers, Vercel, AWS)
 - Repository mutations (git push, PR creation, branch deletion)
@@ -388,18 +389,61 @@ Plugins that perform destructive or externally-visible actions **must** include 
 - External notifications (Slack messages, emails)
 - WordPress site modifications (core updates, search-replace)
 
-Example hook with HITL:
+> **There is no `requires_approval` key.** Claude Code's hook schema does not
+> define `requires_approval` or `approval_message`. Keys it does not recognize are
+> dropped at load time — you get an `unknown keys ... ignored` warning at startup and
+> a guard that silently does nothing. Approval is expressed in the hook's *output*,
+> not in its configuration.
+
+A hook asks for approval by printing a `permissionDecision` on stdout:
 
 ```json
 {
   "matcher": "Bash",
-  "requires_approval": true,
-  "approval_message": "This will deploy to production. Approve?",
-  "hooks": [{ "type": "command", "command": "..." }]
+  "hooks": [
+    {
+      "type": "command",
+      "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/my-guard.sh\"",
+      "timeout": 10
+    }
+  ]
 }
 ```
 
-The `requires_approval` flag is defined in `schemas/plugin.schema.json` and enforced during validation.
+```bash
+# my-guard.sh — the tool call arrives as JSON on STDIN.
+CMD="$(jq -r '.tool_input.command // empty')"
+case "$CMD" in
+  *"deploy --env production"*)
+    jq -nc --arg r "Deploys to production." \
+      '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"ask",permissionDecisionReason:$r}}'
+    ;;
+esac
+exit 0
+```
+
+Three rules the schema cannot enforce for you:
+
+1. **Read STDIN, not the environment.** The tool call is delivered as JSON on stdin
+   (`.tool_name`, `.tool_input.command`, `.tool_input.file_path`). There is no
+   `$TOOL_INPUT`, `$TOOL_INPUT_COMMAND` or `$TOOL_INPUT_FILE_PATH` variable — reading
+   one yields an empty string, so every `grep` against it matches nothing and the
+   guard passes everything through.
+2. **Exit 2 blocks; exit 1 does not.** `permissionDecision: "deny"` or exit code 2
+   blocks the call and returns stderr to the model. Any other non-zero exit is
+   reported as a non-blocking hook error and the tool still runs. Write blocking
+   messages to stderr, not stdout.
+3. **`matcher` is a regex.** Use `.*` to match every tool; a bare `*` is not valid
+   regex. Prefer the `if` field (`"if": "Bash(git commit *)"`) to filter by command
+   shape without spawning a process for unrelated calls.
+
+Pipe-test every hook before committing it — an untested guard that matches nothing
+looks identical to one that works:
+
+```bash
+echo '{"tool_name":"Bash","tool_input":{"command":"wp @site.prod db drop"}}' \
+  | bash plugins/<name>/hooks/scripts/my-guard.sh; echo "exit=$?"
+```
 
 ## Credential Documentation
 

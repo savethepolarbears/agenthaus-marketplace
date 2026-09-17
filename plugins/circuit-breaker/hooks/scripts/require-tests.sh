@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Require test files in staged changes before allowing a commit.
-# Exit 0 = allow, Exit 1 = block.
+# Exit 0 = allow, Exit 2 = block (Claude Code's blocking exit code; stderr is
+# returned to the model. Any other non-zero exit is a non-blocking hook error).
 
 set -euo pipefail
 
@@ -26,13 +27,13 @@ fi
 TEST_FILES=$(echo "$STAGED_FILES" | grep -E '\.(test|spec)\.(ts|tsx|js|jsx|py|rb|go)$' || true)
 
 if [ -z "$TEST_FILES" ]; then
-    echo "CIRCUIT BREAKER: No test files found in staged changes."
-    echo "Staged files:"
-    echo "$STAGED_FILES" | head -10
+    echo "CIRCUIT BREAKER: No test files found in staged changes." >&2
+    echo "Staged files:" >&2
+    echo "$STAGED_FILES" | head -10 >&2
     echo ""
-    echo "Add test files (*.test.* or *.spec.*) to your commit."
-    echo "Override: disable this breaker with /configure disable require-tests"
-    exit 1
+    echo "Add test files (*.test.* or *.spec.*) to your commit." >&2
+    echo "Override: disable this breaker with /configure disable require-tests" >&2
+    exit 2
 fi
 
 echo "Test files found in staged changes: $(echo "$TEST_FILES" | wc -l | tr -d ' ')"

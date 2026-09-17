@@ -161,7 +161,7 @@
         },
         {
           "type": "object",
-          "description": "Inline hooks configuration with optional HITL approval flags",
+          "description": "Inline hooks configuration. Mirrors the Claude Code hooks schema exactly — a key Claude Code does not define is dropped at load time with an 'unknown keys ... ignored' warning at startup, so a guard expressed through one silently does nothing. To require human approval, emit a permission decision from the hook command instead (see the 'command' description below).",
           "properties": {
             "hooks": {
               "type": "object",
@@ -172,9 +172,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "matcher": { "type": "string", "description": "Tool name pattern to match (* for all)" },
-                      "requires_approval": { "type": "boolean", "default": false, "description": "If true, pause execution and request human approval before running" },
-                      "approval_message": { "type": "string", "description": "Message shown to user when approval is required" },
+                      "matcher": { "type": "string", "description": "Regex matched against the tool name, e.g. 'Bash' or 'Write|Edit'. Use '.*' to match every tool — a bare '*' is not a valid regex." },
                       "hooks": {
                         "type": "array",
                         "items": {
@@ -182,7 +180,13 @@
                           "required": ["type", "command"],
                           "properties": {
                             "type": { "type": "string", "enum": ["command"] },
-                            "command": { "type": "string" }
+                            "command": {
+                              "type": "string",
+                              "description": "Shell command. The tool call arrives as JSON on STDIN — read it with jq (.tool_name, .tool_input.command, .tool_input.file_path). There is no $TOOL_INPUT/$TOOL_INPUT_COMMAND environment variable. To gate the call, print {\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\"|\"deny\"|\"allow\",\"permissionDecisionReason\":\"...\"}} on stdout, or exit 2 to block with stderr returned to the model. Any other non-zero exit is a non-blocking hook error."
+                            },
+                            "if": { "type": "string", "description": "Optional permission-rule filter, e.g. 'Bash(git commit *)'. The hook only runs when the tool call matches, which avoids spawning a process for every unrelated call." },
+                            "timeout": { "type": "number", "exclusiveMinimum": 0, "description": "Timeout in seconds for this command." },
+                            "statusMessage": { "type": "string", "description": "Status text shown in the spinner while the hook runs." }
                           },
                           "additionalProperties": false
                         }
@@ -196,7 +200,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "matcher": { "type": "string" },
+                      "matcher": { "type": "string", "description": "Regex matched against the tool name. Use '.*' to match every tool." },
                       "hooks": {
                         "type": "array",
                         "items": {
@@ -204,7 +208,13 @@
                           "required": ["type", "command"],
                           "properties": {
                             "type": { "type": "string", "enum": ["command"] },
-                            "command": { "type": "string" }
+                            "command": {
+                              "type": "string",
+                              "description": "Shell command. The tool call and its result arrive as JSON on STDIN (.tool_name, .tool_input, .tool_response) — read them with jq, not from environment variables."
+                            },
+                            "if": { "type": "string", "description": "Optional permission-rule filter, e.g. 'Bash(git commit *)'." },
+                            "timeout": { "type": "number", "exclusiveMinimum": 0, "description": "Timeout in seconds for this command." },
+                            "statusMessage": { "type": "string", "description": "Status text shown in the spinner while the hook runs." }
                           },
                           "additionalProperties": false
                         }
