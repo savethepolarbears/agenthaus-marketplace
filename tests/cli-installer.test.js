@@ -140,3 +140,47 @@ test('updatePlugin updates outdated marketplace symlinks', (t) => {
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
+
+test('updatePlugin preserves conventional foreign fork symlinks with /plugins/<name> layout when valid', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+  const forkTarget = path.join(tmpDir, 'work', 'fork', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+  fs.mkdirSync(forkTarget, { recursive: true });
+
+  const destPath = path.join(target, 'src-plugin');
+  fs.symlinkSync(forkTarget, destPath, process.platform === 'win32' ? 'junction' : 'dir');
+
+  const res = updatePlugin(source, target);
+  assert.strictEqual(res.status, 'skipped');
+  assert.strictEqual(res.reason, 'foreign symlink');
+  assert.strictEqual(path.resolve(fs.readlinkSync(destPath)), path.resolve(forkTarget));
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('installPlugin invokes provider postInstall hook', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+
+  let postInstallCalled = false;
+  const mockProvider = {
+    postInstall(src, tgt, opts) {
+      postInstallCalled = true;
+    }
+  };
+
+  const res = installPlugin(source, target, { provider: mockProvider });
+  assert.strictEqual(res.status, 'installed');
+  assert.strictEqual(postInstallCalled, true);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+

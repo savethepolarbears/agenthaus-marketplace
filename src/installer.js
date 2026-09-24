@@ -38,7 +38,7 @@ function validateTargetSafety(targetDir) {
   return canonical;
 }
 
-function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = false } = {}) {
+function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = false, provider = null } = {}) {
   if (method !== 'symlink' && method !== 'copy') {
     throw new Error(`Unsupported method: ${method}`);
   }
@@ -66,10 +66,14 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
     }
   }
 
+  if (provider && typeof provider.postInstall === 'function') {
+    provider.postInstall(sourceDir, safeTargetDir, { dryRun });
+  }
+
   return { status: 'installed', method, path: destPath };
 }
 
-function uninstallPlugin(targetDir, pluginName, { dryRun = false } = {}) {
+function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = null } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
   const destPath = path.join(safeTargetDir, pluginName);
 
@@ -86,6 +90,10 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false } = {}) {
     } else if (lstat.isDirectory()) {
       fs.rmSync(destPath, { recursive: true, force: true });
     }
+  }
+
+  if (provider && typeof provider.postUninstall === 'function') {
+    provider.postUninstall(pluginName, safeTargetDir, { dryRun });
   }
 
   return { status: 'removed', path: destPath };
@@ -117,13 +125,19 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false } = {}) {
       return { status: 'skipped', path: destPath };
     }
 
-    // Verify ownership: symlink is ours if it points to a marketplace plugins directory for this plugin
+    // Preserve valid links: if the target exists and is not our sourceDir,
+    // it is a valid foreign symlink (including user forks with conventional /plugins/<name> layout).
+    if (fs.existsSync(resolvedTarget)) {
+      return { status: 'skipped', reason: 'foreign symlink', path: destPath };
+    }
+
+    // For dangling symlinks (target does not exist), check if it pointed to a marketplace plugins directory
     const targetNorm = process.platform === 'win32' ? resolvedTarget.toLowerCase() : resolvedTarget;
     const expectedSuffix = `${path.sep}plugins${path.sep}${pluginName}`;
     const expectedNorm = process.platform === 'win32' ? expectedSuffix.toLowerCase() : expectedSuffix;
-    const isOurLink = path.basename(resolvedTarget) === pluginName && targetNorm.endsWith(expectedNorm);
+    const isOurBrokenLink = path.basename(resolvedTarget) === pluginName && targetNorm.endsWith(expectedNorm);
 
-    if (!isOurLink) {
+    if (!isOurBrokenLink) {
       return { status: 'skipped', reason: 'foreign symlink', path: destPath };
     }
 

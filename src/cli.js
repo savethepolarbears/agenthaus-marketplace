@@ -44,20 +44,20 @@ async function handleInstall({ target, plugin, all, method, dryRun }) {
   if (all) {
     const plugins = discoverPlugins();
     for (const p of plugins) {
-      const res = installPlugin(p.path, targetDir, { method, dryRun });
+      const res = installPlugin(p.path, targetDir, { method, dryRun, provider });
       ui.info(`Plugin ${p.name}: ${res.status}`);
     }
   } else if (plugin) {
     const plugins = discoverPlugins();
     const p = plugins.find(x => x.name === plugin);
     if (!p) throw new Error(`Plugin not found: ${plugin}`);
-    const res = installPlugin(p.path, targetDir, { method, dryRun });
+    const res = installPlugin(p.path, targetDir, { method, dryRun, provider });
     ui.info(`Plugin ${p.name}: ${res.status}`);
   } else {
     if (!process.stdin.isTTY) throw new Error('Missing required --plugin flag');
     const plugins = discoverPlugins();
     const selected = await ui.promptSelect('Select plugin to install:', plugins.map(p => ({ name: p.name, value: p })));
-    const res = installPlugin(selected.path, targetDir, { method, dryRun });
+    const res = installPlugin(selected.path, targetDir, { method, dryRun, provider });
     ui.info(`Plugin ${selected.name}: ${res.status}`);
   }
 }

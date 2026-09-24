@@ -124,4 +124,36 @@ test('CLI Doctor', async (t) => {
     assert.ok(typeof result.warn_count === 'number');
     assert.ok(typeof result.fail_count === 'number');
   });
+
+  await t.test('runDoctor diagnoses copied plugins from provider target directories', () => {
+    // Setup simulated provider in tmpDir (e.g. Copilot cwd with .github)
+    const projectDir = path.join(tmpDir, 'project');
+    const copilotPluginsDir = path.join(projectDir, '.github', 'plugins');
+    fs.mkdirSync(copilotPluginsDir, { recursive: true });
+
+    // Copied plugin with corrupted manifest
+    const badManifestPlugin = path.join(copilotPluginsDir, 'bad-manifest');
+    fs.mkdirSync(path.join(badManifestPlugin, '.claude-plugin'), { recursive: true });
+    fs.writeFileSync(path.join(badManifestPlugin, '.claude-plugin', 'plugin.json'), '{ invalid json');
+
+    // Copied plugin with malformed .mcp.json
+    const badMcpPlugin = path.join(copilotPluginsDir, 'bad-mcp');
+    fs.mkdirSync(path.join(badMcpPlugin, '.claude-plugin'), { recursive: true });
+    fs.writeFileSync(path.join(badMcpPlugin, '.claude-plugin', 'plugin.json'), JSON.stringify({ name: 'bad-mcp' }));
+    fs.writeFileSync(path.join(badMcpPlugin, '.mcp.json'), '{ bad json');
+
+    // Copied plugin with deprecated approval property
+    const deprecatedPlugin = path.join(copilotPluginsDir, 'deprecated-approval');
+    fs.mkdirSync(path.join(deprecatedPlugin, '.claude-plugin'), { recursive: true });
+    fs.writeFileSync(path.join(deprecatedPlugin, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      name: 'deprecated-approval',
+      requires_approval: true
+    }));
+
+    const result = runDoctor({ cwd: projectDir, repoRoot: path.resolve(__dirname, '..') });
+    
+    assert.ok(result.checks.some(c => c.severity === 'FAIL' && c.message.includes('Corrupted manifest in bad-manifest')));
+    assert.ok(result.checks.some(c => c.severity === 'FAIL' && c.message.includes('Corrupted .mcp.json in bad-mcp')));
+    assert.ok(result.checks.some(c => c.severity === 'FAIL' && c.message.includes('Deprecated approval property in deprecated-approval')));
+  });
 });

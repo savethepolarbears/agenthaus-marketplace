@@ -274,6 +274,35 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
       addResult({ severity: 'FAIL', message: `Corrupted .mcp.json in ${p.name}: ${p.mcpParseError}` });
     }
   }
+
+  // Diagnose installed copied plugins from detected provider directories
+  for (const provider of providers) {
+    const targetDir = provider.getTargetDir(cwd);
+    if (!fs.existsSync(targetDir)) continue;
+    try {
+      const entries = fs.readdirSync(targetDir);
+      for (const entry of entries) {
+        const pDir = path.join(targetDir, entry);
+        try {
+          const st = fs.lstatSync(pDir);
+          if (st.isDirectory() && !st.isSymbolicLink()) {
+            addResults(checkHookSchema(pDir));
+            const mcpPath = path.join(pDir, '.mcp.json');
+            if (fs.existsSync(mcpPath)) {
+              try {
+                const parsed = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+                if (parsed.mcpServers) {
+                  addResults(checkMcpCommands([{ mcpServers: parsed.mcpServers }]));
+                }
+              } catch (e) {
+                addResult({ severity: 'FAIL', message: `Corrupted .mcp.json in ${entry} (${provider.id}): ${e.message}` });
+              }
+            }
+          }
+        } catch {}
+      }
+    } catch {}
+  }
   
   const requiredVars = ['CLOUDFLARE_API_TOKEN', 'GITHUB_TOKEN', 'NOTION_API_KEY', 'DATABASE_URL', 'NEON_API_KEY'];
   addResults(checkCredentials(requiredVars));
