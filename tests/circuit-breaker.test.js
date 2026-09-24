@@ -166,7 +166,12 @@ describe('Circuit Breaker Budget Guard & Reset Hardening', () => {
         assert.strictEqual(fs.readFileSync(counterFile, 'utf8').trim(), '5');
     });
 
-    test('exits 0 gracefully without loosening permissions when state directory is non-writable (mode 0500)', () => {
+    test('exits 0 gracefully without loosening permissions when state directory is non-writable (mode 0500)', (t) => {
+        if (process.platform === 'win32') {
+            t.skip('POSIX permission bits are not supported on Windows');
+            return;
+        }
+
         const userId = process.getuid ? process.getuid() : 0;
         const stateDir = path.join(tmpDir, `circuit-breaker-${userId}`);
         fs.mkdirSync(stateDir, { mode: 0o500 }); // Read-only directory

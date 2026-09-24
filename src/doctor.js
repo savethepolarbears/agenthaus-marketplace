@@ -6,23 +6,58 @@ const { detectAll } = require('./providers/index.js');
 const { discoverPlugins } = require('./catalog.js');
 
 function isCommandAccessible(command) {
-  if (path.isAbsolute(command)) {
+  const extensions = process.platform === 'win32'
+    ? (process.env.PATHEXT || '.EXE;.CMD;.BAT;.COM').split(';').map(e => e.toLowerCase())
+    : [''];
+
+  const checkFile = (filePath) => {
     try {
-      fs.accessSync(command, fs.constants.X_OK);
-      return { accessible: true, path: command };
+      if (process.platform === 'win32') {
+        fs.accessSync(filePath, fs.constants.F_OK);
+        return true;
+      }
+      fs.accessSync(filePath, fs.constants.X_OK);
+      return true;
     } catch {
-      return { accessible: false, path: null };
+      return false;
     }
+  };
+
+  const getCandidatePaths = (basePath) => {
+    const list = [];
+    if (process.platform === 'win32') {
+      const ext = path.extname(basePath);
+      if (ext) {
+        list.push(basePath);
+      } else {
+        for (const e of extensions) {
+          list.push(basePath + e);
+          list.push(basePath + e.toUpperCase());
+        }
+      }
+    } else {
+      list.push(basePath);
+    }
+    return list;
+  };
+
+  if (path.isAbsolute(command)) {
+    for (const candidate of getCandidatePaths(command)) {
+      if (checkFile(candidate)) {
+        return { accessible: true, path: candidate };
+      }
+    }
+    return { accessible: false, path: null };
   }
 
   const paths = (process.env.PATH || '').split(path.delimiter);
   for (const p of paths) {
     if (!p) continue;
-    const fullPath = path.join(p, command);
-    try {
-      fs.accessSync(fullPath, fs.constants.X_OK);
-      return { accessible: true, path: fullPath };
-    } catch {}
+    for (const candidate of getCandidatePaths(path.join(p, command))) {
+      if (checkFile(candidate)) {
+        return { accessible: true, path: candidate };
+      }
+    }
   }
   return { accessible: false, path: null };
 }

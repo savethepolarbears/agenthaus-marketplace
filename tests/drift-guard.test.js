@@ -67,7 +67,9 @@ describe('Drift Guard & Untracked Files Check', () => {
             fs.cpSync(path.join(repoRoot, 'scripts'), path.join(cleanFixtureDir, 'scripts'), {
                 recursive: true
             });
-            fs.copyFileSync(path.join(repoRoot, 'skills_index.json'), path.join(cleanFixtureDir, 'skills_index.json'));
+            if (fs.existsSync(path.join(repoRoot, 'skills_index.json'))) {
+                fs.copyFileSync(path.join(repoRoot, 'skills_index.json'), path.join(cleanFixtureDir, 'skills_index.json'));
+            }
             fs.copyFileSync(path.join(repoRoot, 'AGENTS.md'), path.join(cleanFixtureDir, 'AGENTS.md'));
             fs.copyFileSync(path.join(repoRoot, 'GEMINI.md'), path.join(cleanFixtureDir, 'GEMINI.md'));
             fs.copyFileSync(path.join(repoRoot, '.gitignore'), path.join(cleanFixtureDir, '.gitignore'));

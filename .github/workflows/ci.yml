@@ -94,6 +94,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Generate skills index
+        run: bash scripts/generate-skills-index.sh
+        shell: bash
+
       - name: Run test suite
         run: node --test 'tests/**/*.test.js'
 
