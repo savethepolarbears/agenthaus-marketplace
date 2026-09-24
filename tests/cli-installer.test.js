@@ -85,12 +85,13 @@ test('updatePlugin updates copy', (t) => {
   const target = path.join(tmpDir, 'target-dir');
   
   fs.mkdirSync(source);
-  fs.writeFileSync(path.join(source, 'plugin.json'), JSON.stringify({ version: '1.0.0' }));
+  fs.mkdirSync(path.join(source, '.claude-plugin'));
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '1.0.0' }));
   
   installPlugin(source, target, { method: 'copy' });
   
   // update source
-  fs.writeFileSync(path.join(source, 'plugin.json'), JSON.stringify({ version: '2.0.0' }));
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '2.0.0' }));
   
   const res = updatePlugin(source, target);
   assert.strictEqual(res.status, 'updated');

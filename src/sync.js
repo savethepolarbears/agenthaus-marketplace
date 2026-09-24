@@ -117,8 +117,10 @@ function repairHookFile(filePath, { dryRun = false } = {}) {
     }
   };
 
-  if (data.PreToolUse) checkGroup(data.PreToolUse);
-  if (data.PostToolUse) checkGroup(data.PostToolUse);
+  // Support both wrapped ({hooks: {PreToolUse: [...]}}) and unwrapped ({PreToolUse: [...]}) formats
+  const hookData = data.hooks || data;
+  if (hookData.PreToolUse) checkGroup(hookData.PreToolUse);
+  if (hookData.PostToolUse) checkGroup(hookData.PostToolUse);
 
   if (!modified) {
     return { repaired: false };

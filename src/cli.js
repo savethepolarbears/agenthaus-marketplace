@@ -2,9 +2,9 @@
 
 const util = require('node:util');
 const path = require('node:path');
-const { discoverPlugins } = require('./catalog.js');
+const { discoverPlugins, PLUGINS_DIR } = require('./catalog.js');
 const { runDoctor } = require('./doctor.js');
-const { getProvider, detectAll } = require('./providers/index.js');
+const { getProvider, detectAll, getAllProviders } = require('./providers/index.js');
 const { installPlugin, updatePlugin } = require('./installer.js');
 const { cleanOrphanedCache, healDirectorySymlinks, repairHookFile } = require('./sync.js');
 const fs = require('node:fs');
@@ -33,7 +33,7 @@ function parseCliArgs(rawArgs) {
 async function handleInstall({ target, plugin, all, method, dryRun }) {
   if (!target) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
-    const providers = ['claude', 'cursor', 'cline', 'roo-cline', 'windsurf', 'aider'];
+    const providers = getAllProviders().map(p => p.id);
     target = await ui.promptSelect('Select target provider:', providers);
   }
   
@@ -65,7 +65,7 @@ async function handleInstall({ target, plugin, all, method, dryRun }) {
 async function handleUpdate({ target, plugin, all, dryRun }) {
   if (!target) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
-    const providers = ['claude', 'cursor', 'cline', 'roo-cline', 'windsurf', 'aider'];
+    const providers = getAllProviders().map(p => p.id);
     target = await ui.promptSelect('Select target provider:', providers);
   }
 
@@ -94,7 +94,7 @@ async function handleSync({ target, all, dryRun }) {
     all = await ui.promptConfirm('Sync all providers?', true);
   }
 
-  const repoPluginsDir = path.join(process.cwd(), 'plugins');
+  const repoPluginsDir = PLUGINS_DIR;
   
   if (all) {
     // Sweep Claude cache
@@ -111,7 +111,7 @@ async function handleSync({ target, all, dryRun }) {
       // repair hooks
       if (fs.existsSync(targetDir)) {
         for (const entry of fs.readdirSync(targetDir)) {
-          const hookFile = path.join(targetDir, entry, 'hook.json');
+          const hookFile = path.join(targetDir, entry, 'hooks', 'hooks.json');
           if (fs.existsSync(hookFile)) {
             const res = repairHookFile(hookFile, { dryRun });
             if (res.repaired) ui.info(`Hook ${entry}: repaired (${res.actions.map(x=>x.type).join(', ')})`);
@@ -167,13 +167,13 @@ async function runCli(rawArgs) {
             const tDir = p.getTargetDir(process.cwd());
             if (!fs.existsSync(tDir)) continue;
             for (const entry of fs.readdirSync(tDir)) {
-              const hFile = path.join(tDir, entry, 'hook.json');
+              const hFile = path.join(tDir, entry, 'hooks', 'hooks.json');
               if (fs.existsSync(hFile)) {
                 repairHookFile(hFile, { dryRun });
               }
             }
           }
-          ui.success('Applied fixes automatically');
+          if (!values.json) ui.success('Applied fixes automatically');
         }
 
         if (values.json) {

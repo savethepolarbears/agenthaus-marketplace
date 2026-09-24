@@ -111,8 +111,8 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false } = {}) {
     }
     return { status: 'skipped', path: destPath }; // No update needed
   } else if (lstat.isDirectory()) {
-    const sourcePkgPath = path.join(sourceDir, 'plugin.json');
-    const destPkgPath = path.join(destPath, 'plugin.json');
+    const sourcePkgPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
+    const destPkgPath = path.join(destPath, '.claude-plugin', 'plugin.json');
     let sourceVersion = '0.0.0';
     let destVersion = '0.0.0';
 
