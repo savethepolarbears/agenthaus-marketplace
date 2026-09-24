@@ -38,7 +38,8 @@ function healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun = false } = {
         const rawTarget = fs.readlinkSync(entryPath);
         const resolvedTarget = path.resolve(path.dirname(entryPath), rawTarget);
         
-        if (!resolvedTarget.startsWith(repoPluginsDir)) {
+        const pluginsDirWithSep = repoPluginsDir.endsWith(path.sep) ? repoPluginsDir : repoPluginsDir + path.sep;
+        if (!resolvedTarget.startsWith(pluginsDirWithSep) && resolvedTarget !== repoPluginsDir) {
           actions.push({ type: 'foreign', path: entryPath });
           continue;
         }

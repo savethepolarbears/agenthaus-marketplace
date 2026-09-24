@@ -224,6 +224,9 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   for (const p of plugins) {
     const pDir = path.join(repoRoot, 'plugins', p.name);
     addResults(checkHookSchema(pDir));
+    if (p.mcpParseError) {
+      addResult({ severity: 'FAIL', message: `Corrupted .mcp.json in ${p.name}: ${p.mcpParseError}` });
+    }
   }
   
   const requiredVars = ['CLOUDFLARE_API_TOKEN', 'GITHUB_TOKEN', 'NOTION_API_KEY', 'DATABASE_URL', 'NEON_API_KEY'];

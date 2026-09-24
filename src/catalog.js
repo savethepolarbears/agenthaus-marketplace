@@ -53,10 +53,13 @@ function loadPlugin(dir, name) {
 
   const mcpJsonPath = path.join(pluginDir, '.mcp.json');
   let mcpJson = { mcpServers: {} };
+  let mcpParseError = null;
   if (fs.existsSync(mcpJsonPath)) {
     try {
       mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
-    } catch (e) {}
+    } catch (e) {
+      mcpParseError = e.message;
+    }
   }
 
   const hooksJsonPath = path.join(pluginDir, 'hooks', 'hooks.json');
@@ -103,6 +106,7 @@ function loadPlugin(dir, name) {
       skills: hasSkills
     },
     mcpServers,
+    mcpParseError,
     manifest
   };
 }
