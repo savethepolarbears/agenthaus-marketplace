@@ -66,3 +66,71 @@ module.exports = {
   cleanOrphanedCache,
   healDirectorySymlinks
 };
+
+function repairHookFile(filePath, { dryRun = false } = {}) {
+  let content;
+  try {
+    content = fs.readFileSync(filePath, 'utf8');
+  } catch (err) {
+    return { repaired: false, error: err.message };
+  }
+
+  let data;
+  try {
+    data = JSON.parse(content);
+  } catch (err) {
+    return { repaired: false, error: err.message };
+  }
+
+  let modified = false;
+  const actions = [];
+
+  const checkGroup = (groups) => {
+    if (!Array.isArray(groups)) return;
+    for (let i = groups.length - 1; i >= 0; i--) {
+      const group = groups[i];
+      if (group.matcher === '*') {
+        group.matcher = '.*';
+        modified = true;
+        actions.push({ type: 'fix-matcher' });
+      }
+      if (Array.isArray(group.hooks) && group.hooks.length === 0) {
+        groups.splice(i, 1);
+        modified = true;
+        actions.push({ type: 'prune-empty-group' });
+        continue;
+      }
+      if (Array.isArray(group.hooks)) {
+        for (const h of group.hooks) {
+          if ('requires_approval' in h) {
+            delete h.requires_approval;
+            modified = true;
+            actions.push({ type: 'strip-requires-approval' });
+          }
+          if ('approval_message' in h) {
+            delete h.approval_message;
+            modified = true;
+            actions.push({ type: 'strip-approval-message' });
+          }
+        }
+      }
+    }
+  };
+
+  if (data.PreToolUse) checkGroup(data.PreToolUse);
+  if (data.PostToolUse) checkGroup(data.PostToolUse);
+
+  if (!modified) {
+    return { repaired: false };
+  }
+
+  const backupPath = `${filePath}.bak.${Date.now()}`;
+  if (!dryRun) {
+    fs.copyFileSync(filePath, backupPath);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
+  }
+
+  return { repaired: true, backupPath, actions };
+}
+
+module.exports.repairHookFile = repairHookFile;

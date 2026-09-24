@@ -139,3 +139,80 @@ test('healDirectorySymlinks preserves valid active symlinks', (t) => {
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
+
+test('repairHookFile repairs invalid schema and writes backup', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));
+  const hookFile = path.join(tmpDir, 'hook.json');
+  
+  const invalidHook = {
+    PreToolUse: [
+      {
+        matcher: '*',
+        hooks: [
+          {
+            command: 'echo hello',
+            requires_approval: true,
+            approval_message: 'ok?'
+          }
+        ]
+      },
+      {
+        matcher: '.*',
+        hooks: []
+      }
+    ]
+  };
+  
+  fs.writeFileSync(hookFile, JSON.stringify(invalidHook));
+  
+  const { repairHookFile } = require('../src/sync');
+  const result = repairHookFile(hookFile);
+  
+  assert.strictEqual(result.repaired, true);
+  assert.ok(result.backupPath);
+  assert.strictEqual(fs.existsSync(result.backupPath), true);
+  
+  const updatedContent = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
+  assert.strictEqual(updatedContent.PreToolUse.length, 1);
+  assert.strictEqual(updatedContent.PreToolUse[0].matcher, '.*');
+  assert.strictEqual('requires_approval' in updatedContent.PreToolUse[0].hooks[0], false);
+  assert.strictEqual('approval_message' in updatedContent.PreToolUse[0].hooks[0], false);
+  
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('repairHookFile with dryRun true does not write changes to disk', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));
+  const hookFile = path.join(tmpDir, 'hook.json');
+  
+  const invalidHook = {
+    PreToolUse: [
+      {
+        matcher: '*',
+        hooks: [
+          {
+            command: 'echo hello',
+            requires_approval: true
+          }
+        ]
+      }
+    ]
+  };
+  
+  const originalStr = JSON.stringify(invalidHook);
+  fs.writeFileSync(hookFile, originalStr);
+  
+  const { repairHookFile } = require('../src/sync');
+  const result = repairHookFile(hookFile, { dryRun: true });
+  
+  assert.strictEqual(result.repaired, true);
+  
+  // Verify file not modified and backup not created
+  assert.strictEqual(fs.readFileSync(hookFile, 'utf8'), originalStr);
+  
+  // check for any .bak files
+  const files = fs.readdirSync(tmpDir);
+  assert.strictEqual(files.length, 1); // only the hook file
+  
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
