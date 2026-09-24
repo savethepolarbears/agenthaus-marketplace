@@ -4,6 +4,20 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
+function findOrCreateAgentsPath(cwd) {
+  let cur = path.resolve(cwd);
+  while (true) {
+    const candidate = path.join(cur, 'AGENTS.md');
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = path.dirname(cur);
+    if (parent === cur) break;
+    cur = parent;
+  }
+  return path.join(cwd, 'AGENTS.md');
+}
+
 module.exports = {
   id: 'codex',
   name: 'Codex CLI',
@@ -22,7 +36,6 @@ module.exports = {
     const hasSkills = fs.existsSync(path.join(sourceDir, 'skills'));
     
     if (hasSkills) {
-      const agentsPath = path.join(process.cwd(), 'AGENTS.md');
       const skillsDest = path.join(targetDir, pluginName, 'skills');
       let skillPath;
 
@@ -63,16 +76,21 @@ module.exports = {
       if (!skillPath.endsWith('/')) skillPath += '/';
 
       const skillRef = `Read skills from ${skillPath}`;
+      const agentsPath = findOrCreateAgentsPath(process.cwd());
+      let content = '';
       if (fs.existsSync(agentsPath)) {
         try {
-          const content = fs.readFileSync(agentsPath, 'utf8');
-          if (!content.includes(skillRef)) {
-            const updated = content.trimEnd() + `\n\n<!-- agenthaus:codex-skills -->\n- ${skillRef}\n`;
-            if (!dryRun) {
-              fs.writeFileSync(agentsPath, updated, 'utf8');
-            }
-          }
+          content = fs.readFileSync(agentsPath, 'utf8');
         } catch {}
+      } else {
+        content = '# Project Guidelines\n';
+      }
+
+      if (!content.includes(skillRef)) {
+        const updated = content.trimEnd() + `\n\n<!-- agenthaus:codex-skills -->\n- ${skillRef}\n`;
+        if (!dryRun) {
+          fs.writeFileSync(agentsPath, updated, 'utf8');
+        }
       }
       console.log(`[info] Codex: Reference skills in AGENTS.md: '${skillRef}'`);
     }
@@ -82,7 +100,7 @@ module.exports = {
     }
   },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
-    const agentsPath = path.join(process.cwd(), 'AGENTS.md');
+    const agentsPath = findOrCreateAgentsPath(process.cwd());
     const skillPattern = `${pluginName}/skills/`;
     if (fs.existsSync(agentsPath)) {
       try {

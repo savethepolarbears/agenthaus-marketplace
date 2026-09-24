@@ -54,6 +54,9 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
   }
 
   if (exists) {
+    if (provider && typeof provider.postInstall === 'function') {
+      provider.postInstall(sourceDir, safeTargetDir, { dryRun });
+    }
     return { status: 'skipped', reason: 'already exists', path: destPath };
   }
 
@@ -67,7 +70,21 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
   }
 
   if (provider && typeof provider.postInstall === 'function') {
-    provider.postInstall(sourceDir, safeTargetDir, { dryRun });
+    try {
+      provider.postInstall(sourceDir, safeTargetDir, { dryRun });
+    } catch (err) {
+      if (!dryRun) {
+        try {
+          const lstat = fs.lstatSync(destPath);
+          if (lstat.isSymbolicLink()) {
+            fs.unlinkSync(destPath);
+          } else if (lstat.isDirectory()) {
+            fs.rmSync(destPath, { recursive: true, force: true });
+          }
+        } catch {}
+      }
+      throw err;
+    }
   }
 
   return { status: 'installed', method, path: destPath };

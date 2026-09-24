@@ -100,7 +100,7 @@ async function handleUpdate({ target, plugin, all, dryRun, mode }) {
   }
 }
 
-async function handleSync({ target, all, dryRun }) {
+async function handleSync({ target, all, dryRun, mode }) {
   if (!target && !all) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target or --all flag');
     all = await ui.promptConfirm('Sync all providers?', true);
@@ -117,19 +117,24 @@ async function handleSync({ target, all, dryRun }) {
     const providers = detectAll(process.cwd());
     const catalogNames = new Set(discoverPlugins().map(p => p.name));
     for (const p of providers) {
-      const targetDir = p.getTargetDir(process.cwd());
-      const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
-      for (const a of actions) ui.info(`Symlink ${p.name}: ${a.type} ${a.path}`);
+      const targetDirs = mode ? [p.getTargetDir(process.cwd(), mode)] : Array.from(new Set([
+        p.getTargetDir(process.cwd(), 'user'),
+        p.getTargetDir(process.cwd(), 'project')
+      ]));
+      for (const targetDir of targetDirs) {
+        const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
+        for (const a of actions) ui.info(`Symlink ${p.name}: ${a.type} ${a.path}`);
 
-      // repair hooks scoped to known catalog plugins
-      if (fs.existsSync(targetDir)) {
-        for (const entry of fs.readdirSync(targetDir)) {
-          if (!catalogNames.has(entry)) continue;
-          if (fs.lstatSync(path.join(targetDir, entry)).isSymbolicLink()) continue;
-          const hookFile = path.join(targetDir, entry, 'hooks', 'hooks.json');
-          if (fs.existsSync(hookFile)) {
-            const res = repairHookFile(hookFile, { dryRun });
-            if (res.repaired) ui.info(`Hook ${entry}: repaired (${res.actions.map(x=>x.type).join(', ')})`);
+        // repair hooks scoped to known catalog plugins
+        if (fs.existsSync(targetDir)) {
+          for (const entry of fs.readdirSync(targetDir)) {
+            if (!catalogNames.has(entry)) continue;
+            if (fs.lstatSync(path.join(targetDir, entry)).isSymbolicLink()) continue;
+            const hookFile = path.join(targetDir, entry, 'hooks', 'hooks.json');
+            if (fs.existsSync(hookFile)) {
+              const res = repairHookFile(hookFile, { dryRun });
+              if (res.repaired) ui.info(`Hook ${entry}: repaired (${res.actions.map(x=>x.type).join(', ')})`);
+            }
           }
         }
       }
@@ -137,7 +142,7 @@ async function handleSync({ target, all, dryRun }) {
   } else if (target) {
     const provider = getProvider(target);
     if (!provider) throw new Error(`Unknown provider: ${target}`);
-    const targetDir = provider.getTargetDir(process.cwd());
+    const targetDir = provider.getTargetDir(process.cwd(), mode);
     const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
     for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
   }
@@ -182,15 +187,20 @@ async function runCli(rawArgs) {
           const catalogNames = new Set(discoverPlugins().map(p => p.name));
           const detected = detectAll(process.cwd());
           for (const p of detected) {
-            const tDir = p.getTargetDir(process.cwd());
-            if (!fs.existsSync(tDir)) continue;
-            for (const entry of fs.readdirSync(tDir)) {
-              if (!catalogNames.has(entry)) continue;
-              if (fs.lstatSync(path.join(tDir, entry)).isSymbolicLink()) continue;
-              const hFile = path.join(tDir, entry, 'hooks', 'hooks.json');
-              if (fs.existsSync(hFile)) {
-                const res = repairHookFile(hFile, { dryRun });
-                if (res.repaired) fixCount++;
+            const targetDirs = new Set([
+              p.getTargetDir(process.cwd(), 'user'),
+              p.getTargetDir(process.cwd(), 'project')
+            ]);
+            for (const tDir of targetDirs) {
+              if (!fs.existsSync(tDir)) continue;
+              for (const entry of fs.readdirSync(tDir)) {
+                if (!catalogNames.has(entry)) continue;
+                if (fs.lstatSync(path.join(tDir, entry)).isSymbolicLink()) continue;
+                const hFile = path.join(tDir, entry, 'hooks', 'hooks.json');
+                if (fs.existsSync(hFile)) {
+                  const res = repairHookFile(hFile, { dryRun });
+                  if (res.repaired) fixCount++;
+                }
               }
             }
           }
@@ -225,7 +235,7 @@ async function runCli(rawArgs) {
         await handleUpdate({ target: values.target, plugin: values.plugin, all: values.all, dryRun, mode: values.mode });
         break;
       case 'sync':
-        await handleSync({ target: values.target, all: values.all, dryRun });
+        await handleSync({ target: values.target, all: values.all, dryRun, mode: values.mode });
         break;
       default:
         if (command) {

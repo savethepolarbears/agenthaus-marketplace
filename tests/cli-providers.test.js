@@ -144,6 +144,14 @@ test('CLI Providers', async (t) => {
     }));
     fs.writeFileSync(settingsPath, '{ malformed json');
 
+    // With dryRun: true, it throws but does NOT create backup file
+    assert.throws(() => {
+      antigravity.postInstall(fakeSource, fakeTargetDir, { dryRun: true });
+    }, /Malformed Gemini settings/);
+    let files = fs.readdirSync(path.dirname(settingsPath));
+    assert.strictEqual(files.some(f => f.startsWith('settings.json.bak.')), false);
+
+    // With dryRun: false, it throws AND creates backup file
     assert.throws(() => {
       antigravity.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
     }, /Malformed Gemini settings/);
@@ -152,7 +160,7 @@ test('CLI Providers', async (t) => {
     assert.strictEqual(fs.readFileSync(settingsPath, 'utf8'), '{ malformed json');
 
     // Verify backup was created
-    const files = fs.readdirSync(path.dirname(settingsPath));
+    files = fs.readdirSync(path.dirname(settingsPath));
     assert.ok(files.some(f => f.startsWith('settings.json.bak.')));
   });
 
@@ -163,8 +171,22 @@ test('CLI Providers', async (t) => {
     fs.mkdirSync(path.join(fakeSource, 'skills'), { recursive: true });
     fs.writeFileSync(path.join(fakeSource, 'codex-mcp-config.toml'), '# toml config');
 
-    // Simulate AGENTS.md in cwd
+    // Case A: cwd does NOT have AGENTS.md initially - postInstall should create it!
     const origCwd = process.cwd();
+    const workDirA = path.join(tmpDir, 'workdir-missing-agents');
+    fs.mkdirSync(workDirA, { recursive: true });
+    process.chdir(workDirA);
+    try {
+      const targetDir = path.join(workDirA, '.codex', 'agenthaus-skills');
+      codex.postInstall(fakeSource, targetDir, { dryRun: false });
+      const agentsPathA = path.join(workDirA, 'AGENTS.md');
+      assert.strictEqual(fs.existsSync(agentsPathA), true);
+      assert.ok(fs.readFileSync(agentsPathA, 'utf8').includes('Read skills from .codex/agenthaus-skills/codex-plugin/skills/'));
+    } finally {
+      process.chdir(origCwd);
+    }
+
+    // Case B: cwd has existing AGENTS.md
     const workDir = path.join(tmpDir, 'workdir');
     fs.mkdirSync(workDir, { recursive: true });
     const agentsPath = path.join(workDir, 'AGENTS.md');

@@ -101,9 +101,13 @@ module.exports = {
       try {
         settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
       } catch (err) {
-        const backupPath = `${settingsPath}.bak.${Date.now()}`;
-        fs.copyFileSync(settingsPath, backupPath);
-        throw new Error(`Malformed Gemini settings at ${settingsPath} (backed up to ${backupPath}): ${err.message}. Aborting to preserve existing configuration.`);
+        let backupMsg = '';
+        if (!dryRun) {
+          const backupPath = `${settingsPath}.bak.${Date.now()}`;
+          fs.copyFileSync(settingsPath, backupPath);
+          backupMsg = ` (backed up to ${backupPath})`;
+        }
+        throw new Error(`Malformed Gemini settings at ${settingsPath}${backupMsg}: ${err.message}. Aborting to preserve existing configuration.`);
       }
     }
 

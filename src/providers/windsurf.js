@@ -49,9 +49,13 @@ module.exports = {
         try {
           config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
         } catch (err) {
-          const backupPath = `${configPath}.bak.${Date.now()}`;
-          fs.copyFileSync(configPath, backupPath);
-          throw new Error(`Malformed Windsurf MCP config at ${configPath} (backed up to ${backupPath}): ${err.message}`);
+          let backupMsg = '';
+          if (!dryRun) {
+            const backupPath = `${configPath}.bak.${Date.now()}`;
+            fs.copyFileSync(configPath, backupPath);
+            backupMsg = ` (backed up to ${backupPath})`;
+          }
+          throw new Error(`Malformed Windsurf MCP config at ${configPath}${backupMsg}: ${err.message}`);
         }
       }
 

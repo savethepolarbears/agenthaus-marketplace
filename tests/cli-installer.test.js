@@ -240,3 +240,54 @@ test('updatePlugin invokes provider postInstall hook on outdated symlink update'
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+test('installPlugin rolls back destPath on provider postInstall failure', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+
+  const failingProvider = {
+    postInstall() {
+      throw new Error('Simulation: Malformed settings');
+    }
+  };
+
+  assert.throws(() => {
+    installPlugin(source, target, { method: 'symlink', provider: failingProvider });
+  }, /Simulation: Malformed settings/);
+
+  // destPath should have been rolled back so it is not left in a partial unrecoverable state
+  assert.strictEqual(fs.existsSync(path.join(target, 'src-plugin')), false);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('installPlugin reruns provider postInstall on already existing plugin', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+
+  // First install without provider
+  installPlugin(source, target, { method: 'symlink' });
+  assert.strictEqual(fs.existsSync(path.join(target, 'src-plugin')), true);
+
+  // Second install with provider: should return skipped, but still rerun provider.postInstall
+  let postInstallCount = 0;
+  const mockProvider = {
+    postInstall() {
+      postInstallCount++;
+    }
+  };
+
+  const res = installPlugin(source, target, { method: 'symlink', provider: mockProvider });
+  assert.strictEqual(res.status, 'skipped');
+  assert.strictEqual(postInstallCount, 1);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
