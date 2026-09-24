@@ -117,7 +117,7 @@ test('updatePlugin preserves foreign symlinks', (t) => {
   const res = updatePlugin(source, target);
   assert.strictEqual(res.status, 'skipped');
   assert.strictEqual(res.reason, 'foreign symlink');
-  assert.strictEqual(fs.readlinkSync(destPath), foreignTarget);
+  assert.strictEqual(path.resolve(fs.readlinkSync(destPath)), path.resolve(foreignTarget));
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
@@ -136,7 +136,7 @@ test('updatePlugin updates outdated marketplace symlinks', (t) => {
 
   const res = updatePlugin(source, target);
   assert.strictEqual(res.status, 'updated');
-  assert.strictEqual(fs.readlinkSync(destPath), source);
+  assert.strictEqual(path.resolve(fs.readlinkSync(destPath)), path.resolve(source));
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });

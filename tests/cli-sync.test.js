@@ -83,7 +83,7 @@ test('healDirectorySymlinks detects dangling symlink and repairs to marketplace 
   
   // Verify it was fixed
   const newTarget = fs.readlinkSync(symlinkPath);
-  assert.strictEqual(newTarget, validSource);
+  assert.strictEqual(path.resolve(newTarget), path.resolve(validSource));
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
@@ -213,7 +213,7 @@ test('healDirectorySymlinks heals dangling symlink pointing to an old checkout l
   assert.strictEqual(actions[0].type, 'repair-link');
   assert.strictEqual(actions[0].path, symlinkPath);
   assert.strictEqual(actions[0].target, validSource);
-  assert.strictEqual(fs.readlinkSync(symlinkPath), validSource);
+  assert.strictEqual(path.resolve(fs.readlinkSync(symlinkPath)), path.resolve(validSource));
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
