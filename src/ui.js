@@ -1,6 +1,7 @@
 'use strict';
 
 const util = require('node:util');
+const { stableStringify } = require('./catalog.js');
 
 const hasColor = !process.env.NO_COLOR && process.stdout.isTTY;
 
@@ -25,24 +26,44 @@ function style(format, text) {
   return text;
 }
 
-function info(msg) {
-  console.log(`${style('blue', '[INFO]')} ${msg}`);
+function info(msg) { console.log(`${style('blue', '[INFO]')} ${msg}`); }
+function success(msg) { console.log(`${style('green', '[SUCCESS]')} ${msg}`); }
+function warn(msg) { console.warn(`${style('yellow', '[WARN]')} ${msg}`); }
+function error(msg) { console.error(`${style('red', '[ERROR]')} ${msg}`); }
+function skip(msg) { console.log(`${style('cyan', '[SKIP]')} ${msg}`); }
+
+function renderTable(headers, rows, options = {}) {
+  const colWidths = headers.map((h, i) => {
+    return Math.max(h.length, ...rows.map(r => (r[i] ? r[i].replace(/\x1b\[[0-9;]*m/g, '').length : 0)));
+  });
+
+  const printRow = (row) => {
+    return row.map((cell, i) => {
+      const stripped = cell ? cell.replace(/\x1b\[[0-9;]*m/g, '') : '';
+      const pad = ' '.repeat(Math.max(0, colWidths[i] - stripped.length));
+      return cell + pad;
+    }).join('  ');
+  };
+
+  console.log(printRow(headers));
+  console.log(colWidths.map(w => '-'.repeat(w)).join('  '));
+  rows.forEach(r => console.log(printRow(r)));
 }
 
-function success(msg) {
-  console.log(`${style('green', '[SUCCESS]')} ${msg}`);
+function renderPluginList(plugins, { json, verbose } = {}) {
+  if (json) {
+    process.stdout.write(stableStringify(plugins));
+    return;
+  }
+  const rows = plugins.map(p => {
+    const badges = [];
+    if (p.badges.mcp) badges.push(style('cyan', '[MCP]'));
+    if (p.badges.hooks) badges.push(style('yellow', '[Hooks]'));
+    if (p.badges.commands) badges.push(style('blue', '[Cmds]'));
+    if (p.badges.skills) badges.push(style('green', '[Skills]'));
+    return [p.name, p.version, badges.join(' '), p.description];
+  });
+  renderTable(['Plugin', 'Version', 'Capabilities', 'Description'], rows);
 }
 
-function warn(msg) {
-  console.warn(`${style('yellow', '[WARN]')} ${msg}`);
-}
-
-function error(msg) {
-  console.error(`${style('red', '[ERROR]')} ${msg}`);
-}
-
-function skip(msg) {
-  console.log(`${style('cyan', '[SKIP]')} ${msg}`);
-}
-
-module.exports = { style, info, success, warn, error, skip };
+module.exports = { style, info, success, warn, error, skip, renderTable, renderPluginList };
