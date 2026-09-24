@@ -56,14 +56,41 @@ function renderPluginList(plugins, { json, verbose } = {}) {
     return;
   }
   const rows = plugins.map(p => {
-    const badges = [];
-    if (p.badges.mcp) badges.push(style('cyan', '[MCP]'));
-    if (p.badges.hooks) badges.push(style('yellow', '[Hooks]'));
-    if (p.badges.commands) badges.push(style('blue', '[Cmds]'));
-    if (p.badges.skills) badges.push(style('green', '[Skills]'));
-    return [p.name, p.category || 'general', p.version, badges.join(' '), p.description];
+    const platformList = p.platforms || ['claude', 'codex', 'gemini', 'cursor', 'windsurf'];
+    const platformBadges = platformList.map(plat => {
+      switch (plat.toLowerCase()) {
+        case 'claude':
+        case 'claude-code':
+          return style('magenta', '[Claude]');
+        case 'codex':
+          return style('green', '[Codex]');
+        case 'gemini':
+        case 'antigravity':
+          return style('blue', '[Gemini]');
+        case 'cursor':
+          return style('cyan', '[Cursor]');
+        case 'windsurf':
+          return style('yellow', '[Windsurf]');
+        default:
+          return `[${plat}]`;
+      }
+    });
+
+    const capBadges = [];
+    if (p.badges.mcp) capBadges.push(style('cyan', '[MCP]'));
+    if (p.badges.hooks) capBadges.push(style('yellow', '[Hooks]'));
+    if (p.badges.commands) capBadges.push(style('blue', '[Cmds]'));
+    if (p.badges.skills) capBadges.push(style('green', '[Skills]'));
+    return [
+      p.name,
+      p.category || 'general',
+      p.version,
+      platformBadges.join(' '),
+      capBadges.join(' '),
+      p.description
+    ];
   });
-  renderTable(['Plugin', 'Category', 'Version', 'Capabilities', 'Description'], rows);
+  renderTable(['Plugin', 'Category', 'Version', 'Platforms', 'Capabilities', 'Description'], rows);
 }
 
 module.exports = { style, info, success, warn, error, skip, renderTable, renderPluginList };

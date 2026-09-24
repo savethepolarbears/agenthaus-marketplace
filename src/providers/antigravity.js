@@ -24,6 +24,37 @@ module.exports = {
     return { mcp: 'via gemini-settings', hooks: false, commands: 'partial', skills: true };
   },
   postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
+    const pluginName = path.basename(sourceDir);
+    const destPath = path.join(targetDir, pluginName);
+
+    // 1. Generate valid Gemini extension manifest (gemini-extension.json)
+    const manifestPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
+    let manifest = {};
+    if (fs.existsSync(manifestPath)) {
+      try {
+        manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      } catch {}
+    }
+
+    const geminiManifest = {
+      name: manifest.name || pluginName,
+      version: manifest.version || '1.0.0',
+      description: manifest.description || '',
+      contextFileName: 'GEMINI.md'
+    };
+
+    if (!dryRun) {
+      try {
+        fs.mkdirSync(destPath, { recursive: true });
+        fs.writeFileSync(
+          path.join(destPath, 'gemini-extension.json'),
+          JSON.stringify(geminiManifest, null, 2) + '\n',
+          'utf8'
+        );
+      } catch {}
+    }
+
+    // 2. Merge MCP servers into settings.json (preserving existing settings or aborting on malformed JSON)
     const snippetPath = path.join(sourceDir, 'gemini-settings-snippet.json');
     let mcpServers = null;
 
@@ -45,8 +76,10 @@ module.exports = {
     if (fs.existsSync(settingsPath)) {
       try {
         settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      } catch {
-        settings = {};
+      } catch (err) {
+        const backupPath = `${settingsPath}.bak.${Date.now()}`;
+        fs.copyFileSync(settingsPath, backupPath);
+        throw new Error(`Malformed Gemini settings at ${settingsPath} (backed up to ${backupPath}): ${err.message}. Aborting to preserve existing configuration.`);
       }
     }
 

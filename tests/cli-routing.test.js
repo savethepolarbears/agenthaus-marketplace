@@ -59,6 +59,7 @@ test('CLI Routing and Flag Parsing', async (t) => {
     assert.ok(Array.isArray(plugins), 'Output should be an array');
     assert.ok(plugins.length >= 37, `Expected at least 37 plugins, found ${plugins.length}`);
     assert.ok(plugins.every(p => typeof p.category === 'string' && p.category.length > 0));
+    assert.ok(plugins.every(p => Array.isArray(p.platforms) && p.platforms.length >= 5));
   });
 
   await t.test('bin/agenthaus.js unknowncmd exits 1', () => {

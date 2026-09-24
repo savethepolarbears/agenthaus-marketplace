@@ -37,6 +37,13 @@ test('CLI Catalog', async (t) => {
     assert.strictEqual(gh.category, 'devops');
   });
 
+  await t.test('populates supported platforms array', () => {
+    assert.ok(plugins.every(p => Array.isArray(p.platforms) && p.platforms.length >= 5));
+    const cb = plugins.find(p => p.name === 'circuit-breaker');
+    assert.ok(cb.platforms.includes('claude'));
+    assert.ok(cb.platforms.includes('gemini'));
+  });
+
   await t.test('stableStringify deterministic sorting', () => {
     const obj1 = { b: 1, a: { d: 2, c: 3 } };
     const obj2 = { a: { c: 3, d: 2 }, b: 1 };

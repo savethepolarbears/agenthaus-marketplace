@@ -17,5 +17,79 @@ module.exports = {
   },
   getCapabilities() {
     return { mcp: 'via mcp_config.json', hooks: false, commands: 'partial', skills: true };
+  },
+  postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
+    // 1. Merge MCP servers into ~/.codeium/windsurf/mcp_config.json
+    let mcpServers = null;
+    const snippetPath = path.join(sourceDir, 'windsurf-mcp-snippet.json');
+    const mcpJsonPath = path.join(sourceDir, '.mcp.json');
+
+    if (fs.existsSync(snippetPath)) {
+      try {
+        const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
+        if (snippet.mcpServers && Object.keys(snippet.mcpServers).length > 0) {
+          mcpServers = snippet.mcpServers;
+        }
+      } catch {}
+    } else if (fs.existsSync(mcpJsonPath)) {
+      try {
+        const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
+        if (mcpJson.mcpServers && Object.keys(mcpJson.mcpServers).length > 0) {
+          mcpServers = mcpJson.mcpServers;
+        }
+      } catch {}
+    }
+
+    if (mcpServers) {
+      const configDir = path.join(os.homedir(), '.codeium', 'windsurf');
+      const configPath = path.join(configDir, 'mcp_config.json');
+
+      let config = {};
+      if (fs.existsSync(configPath)) {
+        try {
+          config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        } catch (err) {
+          const backupPath = `${configPath}.bak.${Date.now()}`;
+          fs.copyFileSync(configPath, backupPath);
+          throw new Error(`Malformed Windsurf MCP config at ${configPath} (backed up to ${backupPath}): ${err.message}`);
+        }
+      }
+
+      config.mcpServers = { ...(config.mcpServers || {}), ...mcpServers };
+
+      if (!dryRun) {
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+      }
+    }
+
+    // 2. Install project context rules (.windsurfrules) if running in a project workspace
+    const agentsPath = path.join(sourceDir, 'AGENTS.md');
+    if (fs.existsSync(agentsPath)) {
+      const projectRules = path.join(process.cwd(), '.windsurfrules');
+      if (fs.existsSync(path.join(process.cwd(), '.codeium')) || fs.existsSync(projectRules)) {
+        if (!dryRun && !fs.existsSync(projectRules)) {
+          try {
+            fs.copyFileSync(agentsPath, projectRules);
+          } catch {}
+        }
+      }
+    }
+  },
+  postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
+    const configPath = path.join(os.homedir(), '.codeium', 'windsurf', 'mcp_config.json');
+    if (!fs.existsSync(configPath)) return;
+
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (!config.mcpServers) return;
+
+      if (config.mcpServers[pluginName]) {
+        delete config.mcpServers[pluginName];
+        if (!dryRun) {
+          fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+        }
+      }
+    } catch {}
   }
 };

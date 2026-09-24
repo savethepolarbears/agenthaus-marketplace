@@ -116,12 +116,17 @@ function loadPlugin(dir, name) {
 
   const mktMeta = getMarketplaceMap().get(name) || {};
   const category = mktMeta.category || manifest.category || 'general';
+  const defaultPlatforms = ['claude', 'codex', 'gemini', 'cursor', 'windsurf'];
+  const platforms = Array.isArray(mktMeta.platforms) ? mktMeta.platforms :
+                    Array.isArray(manifest.platforms) ? manifest.platforms :
+                    defaultPlatforms;
 
   return {
     name,
     version: manifest.version || '0.0.0',
     description: manifest.description || '',
     category,
+    platforms,
     path: pluginDir,
     badges: {
       mcp: hasMcp,
