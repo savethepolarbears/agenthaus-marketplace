@@ -23,7 +23,9 @@ const RESET_SCRIPT = path.join(
     'reset-counter.sh'
 );
 
-describe('Circuit Breaker Budget Guard & Reset Hardening', () => {
+describe('Circuit Breaker Budget Guard & Reset Hardening', {
+    skip: process.platform === 'win32' ? 'POSIX bash hooks not supported on native Windows' : false
+}, () => {
     let tmpDir;
 
     beforeEach(() => {

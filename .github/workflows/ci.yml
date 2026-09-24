@@ -99,7 +99,7 @@ jobs:
         shell: bash
 
       - name: Run test suite
-        run: node --test 'tests/**/*.test.js'
+        run: node --test
 
   dependency-audit:
     name: Dependency Vulnerability Audit
