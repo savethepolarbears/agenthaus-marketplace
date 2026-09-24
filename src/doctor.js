@@ -101,19 +101,34 @@ function checkHookSchema(pluginDir) {
     results.push({ severity: 'FAIL', message: `Deprecated approval property in ${path.basename(pluginDir)}` });
   }
 
-  const hooks = manifest.hooks || {};
-  for (const group of ['PreToolUse', 'PostToolUse']) {
-    if (hooks[group]) {
-      if (Array.isArray(hooks[group])) {
-        if (hooks[group].length === 0) {
-          results.push({ severity: 'WARN', message: `Empty hooks array in ${path.basename(pluginDir)}` });
-        }
-        for (const h of hooks[group]) {
-          if (h.matcher === '*') {
-            results.push({ severity: 'FAIL', message: `Invalid matcher '*' in ${path.basename(pluginDir)}` });
+  const checkHookData = (hooks) => {
+    for (const group of ['PreToolUse', 'PostToolUse']) {
+      if (hooks[group]) {
+        if (Array.isArray(hooks[group])) {
+          if (hooks[group].length === 0) {
+            results.push({ severity: 'WARN', message: `Empty hooks array in ${path.basename(pluginDir)}` });
+          }
+          for (const h of hooks[group]) {
+            if (h.matcher === '*') {
+              results.push({ severity: 'INFO', message: `Wildcard matcher '*' in ${path.basename(pluginDir)} (matches all tools)` });
+            }
           }
         }
       }
+    }
+  };
+
+  const hooks = manifest.hooks || {};
+  checkHookData(hooks);
+
+  const realHookFile = path.join(pluginDir, 'hooks', 'hooks.json');
+  if (fs.existsSync(realHookFile)) {
+    try {
+      const hd = JSON.parse(fs.readFileSync(realHookFile, 'utf8'));
+      const realHooks = hd.hooks || hd;
+      checkHookData(realHooks);
+    } catch (e) {
+      results.push({ severity: 'FAIL', message: `Corrupted hook file in ${path.basename(pluginDir)}` });
     }
   }
 

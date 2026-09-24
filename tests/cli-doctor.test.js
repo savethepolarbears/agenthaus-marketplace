@@ -72,7 +72,7 @@ test('CLI Doctor', async (t) => {
     }));
     const res = checkHookSchema(tmpDir);
     assert.ok(res.some(r => r.severity === 'FAIL' && r.message.includes('Deprecated')));
-    assert.ok(res.some(r => r.severity === 'FAIL' && r.message.includes('matcher \'*\'')));
+    assert.ok(res.some(r => r.severity === 'INFO' && r.message.includes('matcher \'*\'')));
   });
 
   await t.test('checkCredentials', () => {

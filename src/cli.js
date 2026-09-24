@@ -85,6 +85,8 @@ async function handleUpdate({ target, plugin, all, dryRun }) {
     if (!p) throw new Error(`Plugin not found: ${plugin}`);
     const res = updatePlugin(p.path, targetDir, { dryRun });
     ui.info(`Plugin ${p.name}: ${res.status}`);
+  } else {
+    if (!process.stdin.isTTY) throw new Error('Missing required --plugin or --all flag');
   }
 }
 
@@ -111,6 +113,7 @@ async function handleSync({ target, all, dryRun }) {
       // repair hooks
       if (fs.existsSync(targetDir)) {
         for (const entry of fs.readdirSync(targetDir)) {
+          if (fs.lstatSync(path.join(targetDir, entry)).isSymbolicLink()) continue;
           const hookFile = path.join(targetDir, entry, 'hooks', 'hooks.json');
           if (fs.existsSync(hookFile)) {
             const res = repairHookFile(hookFile, { dryRun });
@@ -121,6 +124,7 @@ async function handleSync({ target, all, dryRun }) {
     }
   } else if (target) {
     const provider = getProvider(target);
+    if (!provider) throw new Error(`Unknown provider: ${target}`);
     const targetDir = provider.getTargetDir(process.cwd());
     const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
     for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
@@ -167,6 +171,7 @@ async function runCli(rawArgs) {
             const tDir = p.getTargetDir(process.cwd());
             if (!fs.existsSync(tDir)) continue;
             for (const entry of fs.readdirSync(tDir)) {
+              if (fs.lstatSync(path.join(tDir, entry)).isSymbolicLink()) continue;
               const hFile = path.join(tDir, entry, 'hooks', 'hooks.json');
               if (fs.existsSync(hFile)) {
                 repairHookFile(hFile, { dryRun });
@@ -221,8 +226,8 @@ Usage: agenthaus <command> [options]
 
 Commands:
   list       List all available plugins
-  install    Install a plugin
-  update     Update a plugin
+  install    Install a plugin (experimental)
+  update     Update a plugin (experimental)
   sync       Sync plugins
   doctor     Run diagnostic engine
 

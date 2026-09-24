@@ -10,10 +10,13 @@ function cleanOrphanedCache(cacheDir, { dryRun = false } = {}) {
   for (const entry of entries) {
     if (entry.isDirectory() && (entry.name.startsWith('temp_git_') || entry.name.startsWith('temp_subdir_'))) {
       const fullPath = path.join(cacheDir, entry.name);
-      actions.push({ type: 'prune-temp', path: fullPath });
-      
-      if (!dryRun) {
-        fs.rmSync(fullPath, { recursive: true, force: true });
+      const stat = fs.statSync(fullPath);
+      if (Date.now() - stat.mtimeMs > 3600000) {
+        actions.push({ type: 'prune-temp', path: fullPath });
+        
+        if (!dryRun) {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+        }
       }
     }
   }
@@ -35,6 +38,11 @@ function healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun = false } = {
         const rawTarget = fs.readlinkSync(entryPath);
         const resolvedTarget = path.resolve(path.dirname(entryPath), rawTarget);
         
+        if (!resolvedTarget.startsWith(repoPluginsDir)) {
+          actions.push({ type: 'foreign', path: entryPath });
+          continue;
+        }
+
         if (!fs.existsSync(resolvedTarget)) {
           // dangling symlink
           const pluginSource = path.join(repoPluginsDir, entry);
@@ -89,11 +97,6 @@ function repairHookFile(filePath, { dryRun = false } = {}) {
     if (!Array.isArray(groups)) return;
     for (let i = groups.length - 1; i >= 0; i--) {
       const group = groups[i];
-      if (group.matcher === '*') {
-        group.matcher = '.*';
-        modified = true;
-        actions.push({ type: 'fix-matcher' });
-      }
       if (Array.isArray(group.hooks) && group.hooks.length === 0) {
         groups.splice(i, 1);
         modified = true;

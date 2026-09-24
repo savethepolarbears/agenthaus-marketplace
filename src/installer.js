@@ -39,6 +39,9 @@ function validateTargetSafety(targetDir) {
 }
 
 function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = false } = {}) {
+  if (method !== 'symlink' && method !== 'copy') {
+    throw new Error(`Unsupported method: ${method}`);
+  }
   const safeTargetDir = validateTargetSafety(targetDir);
   const destPath = path.join(safeTargetDir, path.basename(sourceDir));
 

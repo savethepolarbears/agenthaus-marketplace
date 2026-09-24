@@ -19,6 +19,10 @@ test('cleanOrphanedCache identifies and prunes temp_git_ and temp_subdir_ direct
   fs.mkdirSync(validDir);
   fs.writeFileSync(validFile, 'test');
   
+  const pastTime = new Date(Date.now() - 4000000);
+  fs.utimesSync(tempGit, pastTime, pastTime);
+  fs.utimesSync(tempSubdir, pastTime, pastTime);
+  
   const actions = cleanOrphanedCache(tmpDir);
   
   assert.strictEqual(actions.length, 2);
@@ -39,6 +43,9 @@ test('cleanOrphanedCache with dryRun records pruning actions without deleting', 
   const tempGit = path.join(tmpDir, 'temp_git_12345');
   fs.mkdirSync(tempGit);
   
+  const pastTime = new Date(Date.now() - 4000000);
+  fs.utimesSync(tempGit, pastTime, pastTime);
+  
   const actions = cleanOrphanedCache(tmpDir, { dryRun: true });
   
   assert.strictEqual(actions.length, 1);
@@ -57,7 +64,7 @@ test('healDirectorySymlinks detects dangling symlink and repairs to marketplace 
   fs.mkdirSync(repoDir);
   
   const pluginName = 'my-plugin';
-  const badTarget = path.join(tmpDir, 'does-not-exist');
+  const badTarget = path.join(repoDir, 'does-not-exist');
   const symlinkPath = path.join(targetDir, pluginName);
   
   // Create dangling symlink
@@ -91,7 +98,7 @@ test('healDirectorySymlinks detects dangling symlink and prunes if unknown plugi
   fs.mkdirSync(repoDir);
   
   const pluginName = 'unknown-plugin';
-  const badTarget = path.join(tmpDir, 'does-not-exist');
+  const badTarget = path.join(repoDir, 'does-not-exist');
   const symlinkPath = path.join(targetDir, pluginName);
   
   // Create dangling symlink
@@ -174,7 +181,7 @@ test('repairHookFile repairs invalid schema and writes backup', (t) => {
   
   const updatedContent = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
   assert.strictEqual(updatedContent.PreToolUse.length, 1);
-  assert.strictEqual(updatedContent.PreToolUse[0].matcher, '.*');
+  assert.strictEqual(updatedContent.PreToolUse[0].matcher, '*');
   assert.strictEqual('requires_approval' in updatedContent.PreToolUse[0].hooks[0], false);
   assert.strictEqual('approval_message' in updatedContent.PreToolUse[0].hooks[0], false);
   

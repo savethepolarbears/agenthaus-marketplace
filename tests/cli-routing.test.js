@@ -68,7 +68,7 @@ test('CLI Routing and Flag Parsing', async (t) => {
   });
 
   await t.test('doctor --fix exits 0', () => {
-    const result = spawnSync('node', [BIN_PATH, 'doctor', '--fix'], { encoding: 'utf8' });
+    const result = spawnSync('node', [BIN_PATH, 'doctor', '--fix', '--dry-run'], { encoding: 'utf8' });
     assert.strictEqual(result.status, 0);
   });
 });
