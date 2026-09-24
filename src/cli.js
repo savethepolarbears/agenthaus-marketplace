@@ -73,6 +73,17 @@ async function handleUpdate({ target, plugin, all, dryRun }) {
   if (!provider) throw new Error(`Unknown provider: ${target}`);
   const targetDir = provider.getTargetDir(process.cwd());
 
+  if (!all && !plugin) {
+    if (!process.stdin.isTTY) throw new Error('Missing required --plugin or --all flag');
+    const updateAll = await ui.promptConfirm('Update all installed plugins?', true);
+    if (updateAll) {
+      all = true;
+    } else {
+      const plugins = discoverPlugins();
+      plugin = await ui.promptSelect('Select plugin to update:', plugins.map(p => p.name));
+    }
+  }
+
   if (all) {
     const plugins = discoverPlugins();
     for (const p of plugins) {
@@ -85,8 +96,6 @@ async function handleUpdate({ target, plugin, all, dryRun }) {
     if (!p) throw new Error(`Plugin not found: ${plugin}`);
     const res = updatePlugin(p.path, targetDir, { dryRun });
     ui.info(`Plugin ${p.name}: ${res.status}`);
-  } else {
-    if (!process.stdin.isTTY) throw new Error('Missing required --plugin or --all flag');
   }
 }
 
@@ -105,14 +114,16 @@ async function handleSync({ target, all, dryRun }) {
     for (const a of cacheActions) ui.info(`Cache: ${a.type} ${a.path}`);
 
     const providers = detectAll(process.cwd());
+    const catalogNames = new Set(discoverPlugins().map(p => p.name));
     for (const p of providers) {
       const targetDir = p.getTargetDir(process.cwd());
       const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
       for (const a of actions) ui.info(`Symlink ${p.name}: ${a.type} ${a.path}`);
 
-      // repair hooks
+      // repair hooks scoped to known catalog plugins
       if (fs.existsSync(targetDir)) {
         for (const entry of fs.readdirSync(targetDir)) {
+          if (!catalogNames.has(entry)) continue;
           if (fs.lstatSync(path.join(targetDir, entry)).isSymbolicLink()) continue;
           const hookFile = path.join(targetDir, entry, 'hooks', 'hooks.json');
           if (fs.existsSync(hookFile)) {
@@ -165,20 +176,30 @@ async function runCli(rawArgs) {
       case 'doctor':
         const docRes = runDoctor({ verbose: values.verbose, json: values.json });
         if (values.fix) {
-          // implement fix
+          // implement fix scoped to catalog plugins
+          let fixCount = 0;
+          const catalogNames = new Set(discoverPlugins().map(p => p.name));
           const detected = detectAll(process.cwd());
           for (const p of detected) {
             const tDir = p.getTargetDir(process.cwd());
             if (!fs.existsSync(tDir)) continue;
             for (const entry of fs.readdirSync(tDir)) {
+              if (!catalogNames.has(entry)) continue;
               if (fs.lstatSync(path.join(tDir, entry)).isSymbolicLink()) continue;
               const hFile = path.join(tDir, entry, 'hooks', 'hooks.json');
               if (fs.existsSync(hFile)) {
-                repairHookFile(hFile, { dryRun });
+                const res = repairHookFile(hFile, { dryRun });
+                if (res.repaired) fixCount++;
               }
             }
           }
-          if (!values.json) ui.success('Applied fixes automatically');
+          if (!values.json) {
+            if (dryRun) {
+              ui.info(`Would apply ${fixCount} fixes (dry run)`);
+            } else {
+              ui.success(`Applied ${fixCount} fixes automatically`);
+            }
+          }
         }
 
         if (values.json) {
@@ -188,6 +209,7 @@ async function runCli(rawArgs) {
           for (const check of docRes.checks) {
             if (check.severity === 'FAIL') ui.error(check.message);
             else if (check.severity === 'WARN') ui.warn(check.message);
+            else if (check.severity === 'INFO') ui.info(check.message);
             else ui.success(check.message);
           }
           console.log('');

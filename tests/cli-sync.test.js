@@ -147,6 +147,77 @@ test('healDirectorySymlinks preserves valid active symlinks', (t) => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+test('healDirectorySymlinks preserves foreign symlinks', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));
+  const targetDir = path.join(tmpDir, 'target');
+  const repoDir = path.join(tmpDir, 'repo', 'plugins');
+  const foreignDir = path.join(tmpDir, 'foreign-fork', 'my-plugin');
+
+  fs.mkdirSync(targetDir, { recursive: true });
+  fs.mkdirSync(repoDir, { recursive: true });
+  fs.mkdirSync(foreignDir, { recursive: true });
+
+  const symlinkPath = path.join(targetDir, 'my-plugin');
+  fs.symlinkSync(foreignDir, symlinkPath);
+
+  const actions = healDirectorySymlinks(targetDir, repoDir);
+  assert.strictEqual(actions.length, 1);
+  assert.strictEqual(actions[0].type, 'foreign');
+  assert.strictEqual(actions[0].path, symlinkPath);
+  assert.strictEqual(fs.existsSync(symlinkPath), true);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('healDirectorySymlinks preserves sibling-prefix path (/repo/plugins-old/foo)', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));
+  const targetDir = path.join(tmpDir, 'target');
+  const repoPluginsDir = path.join(tmpDir, 'repo', 'plugins');
+  const siblingDir = path.join(tmpDir, 'repo', 'plugins-old', 'my-plugin');
+
+  fs.mkdirSync(targetDir, { recursive: true });
+  fs.mkdirSync(repoPluginsDir, { recursive: true });
+  fs.mkdirSync(siblingDir, { recursive: true });
+
+  const symlinkPath = path.join(targetDir, 'my-plugin');
+  fs.symlinkSync(siblingDir, symlinkPath);
+
+  const actions = healDirectorySymlinks(targetDir, repoPluginsDir);
+  assert.strictEqual(actions.length, 1);
+  assert.strictEqual(actions[0].type, 'foreign');
+  assert.strictEqual(actions[0].path, symlinkPath);
+  assert.strictEqual(fs.existsSync(symlinkPath), true);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('healDirectorySymlinks heals dangling symlink pointing to an old checkout location', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));
+  const targetDir = path.join(tmpDir, 'target');
+  const currentPluginsDir = path.join(tmpDir, 'new-checkout', 'plugins');
+  const oldPluginsTarget = path.join(tmpDir, 'old-checkout', 'plugins', 'my-plugin');
+
+  fs.mkdirSync(targetDir, { recursive: true });
+  fs.mkdirSync(currentPluginsDir, { recursive: true });
+
+  // Valid plugin in new checkout
+  const validSource = path.join(currentPluginsDir, 'my-plugin');
+  fs.mkdirSync(validSource, { recursive: true });
+
+  // Symlink pointing to nonexistent old checkout
+  const symlinkPath = path.join(targetDir, 'my-plugin');
+  fs.symlinkSync(oldPluginsTarget, symlinkPath);
+
+  const actions = healDirectorySymlinks(targetDir, currentPluginsDir);
+  assert.strictEqual(actions.length, 1);
+  assert.strictEqual(actions[0].type, 'repair-link');
+  assert.strictEqual(actions[0].path, symlinkPath);
+  assert.strictEqual(actions[0].target, validSource);
+  assert.strictEqual(fs.readlinkSync(symlinkPath), validSource);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
 test('repairHookFile repairs invalid schema and writes backup', (t) => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));
   const hookFile = path.join(tmpDir, 'hook.json');
@@ -213,6 +284,7 @@ test('repairHookFile with dryRun true does not write changes to disk', (t) => {
   const result = repairHookFile(hookFile, { dryRun: true });
   
   assert.strictEqual(result.repaired, true);
+  assert.strictEqual(result.backupPath, null);
   
   // Verify file not modified and backup not created
   assert.strictEqual(fs.readFileSync(hookFile, 'utf8'), originalStr);

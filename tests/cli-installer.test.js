@@ -100,3 +100,43 @@ test('updatePlugin updates copy', (t) => {
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
+
+test('updatePlugin preserves foreign symlinks', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+  const foreignTarget = path.join(tmpDir, 'foreign-fork', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+  fs.mkdirSync(foreignTarget, { recursive: true });
+
+  const destPath = path.join(target, 'src-plugin');
+  fs.symlinkSync(foreignTarget, destPath);
+
+  const res = updatePlugin(source, target);
+  assert.strictEqual(res.status, 'skipped');
+  assert.strictEqual(res.reason, 'foreign symlink');
+  assert.strictEqual(fs.readlinkSync(destPath), foreignTarget);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('updatePlugin updates outdated marketplace symlinks', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+  const oldMarketplaceTarget = path.join(tmpDir, 'old-repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+
+  const destPath = path.join(target, 'src-plugin');
+  fs.symlinkSync(oldMarketplaceTarget, destPath);
+
+  const res = updatePlugin(source, target);
+  assert.strictEqual(res.status, 'updated');
+  assert.strictEqual(fs.readlinkSync(destPath), source);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});

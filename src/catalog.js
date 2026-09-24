@@ -5,6 +5,26 @@ const path = require('node:path');
 
 const PLUGINS_DIR = path.resolve(__dirname, '..', 'plugins');
 
+let marketplaceMap = null;
+function getMarketplaceMap() {
+  if (marketplaceMap) return marketplaceMap;
+  marketplaceMap = new Map();
+  const mktPath = path.resolve(__dirname, '..', '.claude-plugin', 'marketplace.json');
+  if (fs.existsSync(mktPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(mktPath, 'utf8'));
+      if (Array.isArray(data.plugins)) {
+        for (const p of data.plugins) {
+          if (p.name) marketplaceMap.set(p.name, p);
+        }
+      }
+    } catch (e) {
+      // Ignore parse errors, fallback to empty map
+    }
+  }
+  return marketplaceMap;
+}
+
 function stableStringify(obj) {
   if (obj === null || typeof obj !== 'object') {
     return JSON.stringify(obj);
@@ -94,10 +114,14 @@ function loadPlugin(dir, name) {
     hasSkills = fs.readdirSync(skillsDir).length > 0;
   }
 
+  const mktMeta = getMarketplaceMap().get(name) || {};
+  const category = mktMeta.category || manifest.category || 'general';
+
   return {
     name,
     version: manifest.version || '0.0.0',
     description: manifest.description || '',
+    category,
     path: pluginDir,
     badges: {
       mcp: hasMcp,

@@ -75,17 +75,36 @@ test('CLI Doctor', async (t) => {
     assert.ok(res.some(r => r.severity === 'INFO' && r.message.includes('matcher \'*\'')));
   });
 
+  await t.test('checkHookSchema detects deprecated keys inside hook objects', () => {
+    const testDir = path.join(tmpDir, 'nested-hook-test');
+    fs.mkdirSync(path.join(testDir, '.claude-plugin'), { recursive: true });
+    fs.writeFileSync(path.join(testDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [{ command: 'echo 1', requires_approval: true }]
+          }
+        ]
+      }
+    }));
+    const res = checkHookSchema(testDir);
+    assert.ok(res.some(r => r.severity === 'FAIL' && r.message.includes('Deprecated approval property in hook')));
+  });
+
   await t.test('checkCredentials', () => {
     const backup = process.env.FAKE_TOKEN;
     delete process.env.FAKE_TOKEN;
     const res = checkCredentials(['FAKE_TOKEN']);
     assert.strictEqual(res[0].status, 'MISSING');
     assert.strictEqual(res[0].severity, 'WARN');
+    assert.strictEqual(res[0].message, 'FAKE_TOKEN: MISSING');
     // Ensure value is not in output even if set
     process.env.FAKE_TOKEN = 'secret-123';
     const res2 = checkCredentials(['FAKE_TOKEN']);
     assert.strictEqual(res2[0].status, 'SET');
     assert.strictEqual(res2[0].severity, 'INFO');
+    assert.strictEqual(res2[0].message, 'FAKE_TOKEN: SET');
     assert.ok(!JSON.stringify(res2).includes('secret-123'));
     if (backup) process.env.FAKE_TOKEN = backup;
   });

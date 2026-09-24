@@ -28,6 +28,15 @@ test('CLI Catalog', async (t) => {
     assert.strictEqual(neon.badges.mcp, true, 'neon-db should have mcp');
   });
 
+  await t.test('populates category from marketplace metadata', () => {
+    const cb = plugins.find(p => p.name === 'circuit-breaker');
+    assert.ok(cb, 'circuit-breaker should exist');
+    assert.strictEqual(cb.category, 'safety');
+    const gh = plugins.find(p => p.name === 'github-integration');
+    assert.ok(gh, 'github-integration should exist');
+    assert.strictEqual(gh.category, 'devops');
+  });
+
   await t.test('stableStringify deterministic sorting', () => {
     const obj1 = { b: 1, a: { d: 2, c: 3 } };
     const obj2 = { a: { c: 3, d: 2 }, b: 1 };

@@ -102,15 +102,26 @@ function checkHookSchema(pluginDir) {
   }
 
   const checkHookData = (hooks) => {
-    for (const group of ['PreToolUse', 'PostToolUse']) {
-      if (hooks[group]) {
-        if (Array.isArray(hooks[group])) {
-          if (hooks[group].length === 0) {
-            results.push({ severity: 'WARN', message: `Empty hooks array in ${path.basename(pluginDir)}` });
+    if (hooks.requires_approval !== undefined || hooks.approval_message !== undefined) {
+      results.push({ severity: 'FAIL', message: `Deprecated approval property in ${path.basename(pluginDir)}` });
+    }
+    for (const groupName of ['PreToolUse', 'PostToolUse']) {
+      if (hooks[groupName] && Array.isArray(hooks[groupName])) {
+        if (hooks[groupName].length === 0) {
+          results.push({ severity: 'WARN', message: `Empty hooks array in ${path.basename(pluginDir)}` });
+        }
+        for (const group of hooks[groupName]) {
+          if (group.matcher === '*') {
+            results.push({ severity: 'INFO', message: `Wildcard matcher '*' in ${path.basename(pluginDir)} (matches all tools)` });
           }
-          for (const h of hooks[group]) {
-            if (h.matcher === '*') {
-              results.push({ severity: 'INFO', message: `Wildcard matcher '*' in ${path.basename(pluginDir)} (matches all tools)` });
+          if (group.requires_approval !== undefined || group.approval_message !== undefined) {
+            results.push({ severity: 'FAIL', message: `Deprecated approval property in ${path.basename(pluginDir)}` });
+          }
+          if (Array.isArray(group.hooks)) {
+            for (const h of group.hooks) {
+              if (h && (h.requires_approval !== undefined || h.approval_message !== undefined)) {
+                results.push({ severity: 'FAIL', message: `Deprecated approval property in hook within ${path.basename(pluginDir)}` });
+              }
             }
           }
         }
@@ -146,9 +157,9 @@ function checkCredentials(requiredVars) {
   const results = [];
   for (const v of requiredVars) {
     if (process.env[v]) {
-      results.push({ name: v, status: 'SET', severity: 'INFO' });
+      results.push({ name: v, status: 'SET', severity: 'INFO', message: `${v}: SET` });
     } else {
-      results.push({ name: v, status: 'MISSING', severity: 'WARN' });
+      results.push({ name: v, status: 'MISSING', severity: 'WARN', message: `${v}: MISSING` });
     }
   }
   return results;

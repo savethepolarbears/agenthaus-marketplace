@@ -60,7 +60,7 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
   if (!dryRun) {
     fs.mkdirSync(safeTargetDir, { recursive: true });
     if (method === 'symlink') {
-      fs.symlinkSync(sourceDir, destPath);
+      fs.symlinkSync(sourceDir, destPath, process.platform === 'win32' ? 'junction' : 'dir');
     } else if (method === 'copy') {
       fs.cpSync(sourceDir, destPath, { recursive: true });
     }
@@ -93,7 +93,8 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false } = {}) {
 
 function updatePlugin(sourceDir, targetDir, { dryRun = false } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
-  const destPath = path.join(safeTargetDir, path.basename(sourceDir));
+  const pluginName = path.basename(sourceDir);
+  const destPath = path.join(safeTargetDir, pluginName);
 
   let lstat;
   try {
@@ -105,14 +106,32 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false } = {}) {
   if (lstat.isSymbolicLink()) {
     const rawTarget = fs.readlinkSync(destPath);
     const resolvedTarget = path.resolve(path.dirname(destPath), rawTarget);
-    if (resolvedTarget !== sourceDir || !fs.existsSync(resolvedTarget)) {
-      if (!dryRun) {
-        fs.unlinkSync(destPath);
-        fs.symlinkSync(sourceDir, destPath);
-      }
-      return { status: 'updated', path: destPath };
+
+    let isSame = false;
+    try {
+      isSame = fs.realpathSync(destPath) === fs.realpathSync(sourceDir);
+    } catch (e) {
+      isSame = (resolvedTarget === sourceDir);
     }
-    return { status: 'skipped', path: destPath }; // No update needed
+    if (isSame) {
+      return { status: 'skipped', path: destPath };
+    }
+
+    // Verify ownership: symlink is ours if it points to a marketplace plugins directory for this plugin
+    const targetNorm = process.platform === 'win32' ? resolvedTarget.toLowerCase() : resolvedTarget;
+    const expectedSuffix = `${path.sep}plugins${path.sep}${pluginName}`;
+    const expectedNorm = process.platform === 'win32' ? expectedSuffix.toLowerCase() : expectedSuffix;
+    const isOurLink = path.basename(resolvedTarget) === pluginName && targetNorm.endsWith(expectedNorm);
+
+    if (!isOurLink) {
+      return { status: 'skipped', reason: 'foreign symlink', path: destPath };
+    }
+
+    if (!dryRun) {
+      fs.unlinkSync(destPath);
+      fs.symlinkSync(sourceDir, destPath, process.platform === 'win32' ? 'junction' : 'dir');
+    }
+    return { status: 'updated', path: destPath };
   } else if (lstat.isDirectory()) {
     const sourcePkgPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
     const destPkgPath = path.join(destPath, '.claude-plugin', 'plugin.json');

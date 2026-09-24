@@ -61,9 +61,9 @@ function renderPluginList(plugins, { json, verbose } = {}) {
     if (p.badges.hooks) badges.push(style('yellow', '[Hooks]'));
     if (p.badges.commands) badges.push(style('blue', '[Cmds]'));
     if (p.badges.skills) badges.push(style('green', '[Skills]'));
-    return [p.name, p.version, badges.join(' '), p.description];
+    return [p.name, p.category || 'general', p.version, badges.join(' '), p.description];
   });
-  renderTable(['Plugin', 'Version', 'Capabilities', 'Description'], rows);
+  renderTable(['Plugin', 'Category', 'Version', 'Capabilities', 'Description'], rows);
 }
 
 module.exports = { style, info, success, warn, error, skip, renderTable, renderPluginList };
