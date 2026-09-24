@@ -44,4 +44,31 @@ test('CLI Routing and Flag Parsing', async (t) => {
     const result = spawnSync('node', [BIN_PATH, 'unknowncmd'], { encoding: 'utf8' });
     assert.strictEqual(result.status, 1);
   });
+
+  await t.test('install --dry-run -t claude -p circuit-breaker exits 0', () => {
+    const result = spawnSync('node', [BIN_PATH, 'install', '--dry-run', '-t', 'claude', '-p', 'circuit-breaker'], { encoding: 'utf8' });
+    assert.strictEqual(result.status, 0);
+  });
+
+  await t.test('install without --target in non-TTY mode exits 1', () => {
+    // spawnSync has no TTY by default unless we pass stdio: 'inherit'
+    const result = spawnSync('node', [BIN_PATH, 'install'], { encoding: 'utf8' });
+    assert.strictEqual(result.status, 1);
+    assert.ok(result.stderr.includes('Missing required --target flag'));
+  });
+
+  await t.test('update --dry-run -t claude --all exits 0', () => {
+    const result = spawnSync('node', [BIN_PATH, 'update', '--dry-run', '-t', 'claude', '--all'], { encoding: 'utf8' });
+    assert.strictEqual(result.status, 0);
+  });
+
+  await t.test('sync --dry-run --all exits 0', () => {
+    const result = spawnSync('node', [BIN_PATH, 'sync', '--dry-run', '--all'], { encoding: 'utf8' });
+    assert.strictEqual(result.status, 0);
+  });
+
+  await t.test('doctor --fix exits 0', () => {
+    const result = spawnSync('node', [BIN_PATH, 'doctor', '--fix'], { encoding: 'utf8' });
+    assert.strictEqual(result.status, 0);
+  });
 });

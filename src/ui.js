@@ -67,3 +67,52 @@ function renderPluginList(plugins, { json, verbose } = {}) {
 }
 
 module.exports = { style, info, success, warn, error, skip, renderTable, renderPluginList };
+
+const readline = require('node:readline/promises');
+
+async function promptSelect(question, choices) {
+  if (!process.stdin.isTTY) {
+    throw new Error('Interactive selection is unavailable in non-interactive CI environments. Please supply explicit flags.');
+  }
+  
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  console.log(question);
+  choices.forEach((c, i) => console.log(`${i + 1}) ${c.name || c}`));
+  
+  while (true) {
+    const answer = await rl.question('Select a number: ');
+    const num = parseInt(answer, 10);
+    if (!isNaN(num) && num > 0 && num <= choices.length) {
+      rl.close();
+      return choices[num - 1].value !== undefined ? choices[num - 1].value : choices[num - 1];
+    }
+    console.log('Invalid selection, try again.');
+  }
+}
+
+async function promptConfirm(question, defaultYes = true) {
+  if (!process.stdin.isTTY) {
+    throw new Error('Interactive selection is unavailable in non-interactive CI environments. Please supply explicit flags.');
+  }
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  const hint = defaultYes ? '(Y/n)' : '(y/N)';
+  const answer = await rl.question(`${question} ${hint}: `);
+  rl.close();
+  
+  const trimmed = answer.trim().toLowerCase();
+  if (trimmed === 'y' || trimmed === 'yes') return true;
+  if (trimmed === 'n' || trimmed === 'no') return false;
+  return defaultYes;
+}
+
+module.exports.promptSelect = promptSelect;
+module.exports.promptConfirm = promptConfirm;

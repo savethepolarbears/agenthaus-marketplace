@@ -95,6 +95,7 @@ function loadPlugin(dir, name) {
     name,
     version: manifest.version || '0.0.0',
     description: manifest.description || '',
+    path: pluginDir,
     badges: {
       mcp: hasMcp,
       hooks: hasHooks,
