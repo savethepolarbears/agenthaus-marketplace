@@ -99,7 +99,7 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = nul
   return { status: 'removed', path: destPath };
 }
 
-function updatePlugin(sourceDir, targetDir, { dryRun = false } = {}) {
+function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
   const pluginName = path.basename(sourceDir);
   const destPath = path.join(safeTargetDir, pluginName);
@@ -145,6 +145,9 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false } = {}) {
       fs.unlinkSync(destPath);
       fs.symlinkSync(sourceDir, destPath, process.platform === 'win32' ? 'junction' : 'dir');
     }
+    if (provider && typeof provider.postInstall === 'function') {
+      provider.postInstall(sourceDir, safeTargetDir, { dryRun });
+    }
     return { status: 'updated', path: destPath };
   } else if (lstat.isDirectory()) {
     const sourcePkgPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
@@ -160,6 +163,9 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false } = {}) {
       if (!dryRun) {
         fs.rmSync(destPath, { recursive: true, force: true });
         fs.cpSync(sourceDir, destPath, { recursive: true });
+      }
+      if (provider && typeof provider.postInstall === 'function') {
+        provider.postInstall(sourceDir, safeTargetDir, { dryRun });
       }
       return { status: 'updated', path: destPath, fromVersion: destVersion, toVersion: sourceVersion };
     }

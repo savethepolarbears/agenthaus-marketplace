@@ -23,7 +23,46 @@ module.exports = {
     
     if (hasSkills) {
       const agentsPath = path.join(process.cwd(), 'AGENTS.md');
-      const skillRef = `Read skills from .codex/agenthaus-skills/${pluginName}/skills/`;
+      const skillsDest = path.join(targetDir, pluginName, 'skills');
+      let skillPath;
+
+      const realpathDeep = (p) => {
+        let cur = path.resolve(p);
+        const parts = [];
+        while (!fs.existsSync(cur)) {
+          const parent = path.dirname(cur);
+          if (parent === cur) break;
+          parts.unshift(path.basename(cur));
+          cur = parent;
+        }
+        try {
+          const realBase = fs.realpathSync(cur);
+          return path.join(realBase, ...parts);
+        } catch {
+          return path.resolve(p);
+        }
+      };
+
+      const realCwd = realpathDeep(process.cwd());
+      const realHome = realpathDeep(os.homedir());
+      const realDest = realpathDeep(skillsDest);
+
+      const relCwd = path.relative(realCwd, realDest);
+      const isInsideCwd = !relCwd.startsWith('..') && !path.isAbsolute(relCwd);
+
+      const relHome = path.relative(realHome, realDest);
+      const isInsideHome = !relHome.startsWith('..') && !path.isAbsolute(relHome);
+
+      if (isInsideCwd) {
+        skillPath = relCwd.replace(/\\/g, '/');
+      } else if (isInsideHome) {
+        skillPath = `~/${relHome.replace(/\\/g, '/')}`;
+      } else {
+        skillPath = skillsDest.replace(/\\/g, '/');
+      }
+      if (!skillPath.endsWith('/')) skillPath += '/';
+
+      const skillRef = `Read skills from ${skillPath}`;
       if (fs.existsSync(agentsPath)) {
         try {
           const content = fs.readFileSync(agentsPath, 'utf8');
@@ -44,14 +83,14 @@ module.exports = {
   },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
     const agentsPath = path.join(process.cwd(), 'AGENTS.md');
-    const skillRef = `Read skills from .codex/agenthaus-skills/${pluginName}/skills/`;
+    const skillPattern = `${pluginName}/skills/`;
     if (fs.existsSync(agentsPath)) {
       try {
         const content = fs.readFileSync(agentsPath, 'utf8');
-        if (content.includes(skillRef)) {
+        if (content.includes(skillPattern)) {
           const updated = content
             .split('\n')
-            .filter(line => !line.includes(skillRef))
+            .filter(line => !line.includes(skillPattern))
             .join('\n');
           if (!dryRun) {
             fs.writeFileSync(agentsPath, updated, 'utf8');

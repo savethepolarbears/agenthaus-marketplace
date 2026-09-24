@@ -28,6 +28,32 @@ module.exports = {
     const destPath = path.join(targetDir, pluginName);
 
     // 1. Generate valid Gemini extension manifest (gemini-extension.json)
+    // Avoid writing through a whole-directory symlink to sourceDir (which dirties
+    // the source repo and fails if sourceDir is read-only). Convert the whole-directory
+    // symlink into an installation-owned directory containing item-level symlinks
+    // to sourceDir entries, plus the installation's own gemini-extension.json manifest.
+    let isSymlink = false;
+    try {
+      isSymlink = fs.lstatSync(destPath).isSymbolicLink();
+    } catch {}
+
+    if (isSymlink && !dryRun) {
+      fs.unlinkSync(destPath);
+      fs.mkdirSync(destPath, { recursive: true });
+      for (const entry of fs.readdirSync(sourceDir)) {
+        const srcEntry = path.join(sourceDir, entry);
+        const dstEntry = path.join(destPath, entry);
+        let stat;
+        try {
+          stat = fs.statSync(srcEntry);
+        } catch {
+          continue;
+        }
+        const symType = stat.isDirectory() ? (process.platform === 'win32' ? 'junction' : 'dir') : 'file';
+        fs.symlinkSync(srcEntry, dstEntry, symType);
+      }
+    }
+
     const manifestPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
     let manifest = {};
     if (fs.existsSync(manifestPath)) {
@@ -44,14 +70,12 @@ module.exports = {
     };
 
     if (!dryRun) {
-      try {
-        fs.mkdirSync(destPath, { recursive: true });
-        fs.writeFileSync(
-          path.join(destPath, 'gemini-extension.json'),
-          JSON.stringify(geminiManifest, null, 2) + '\n',
-          'utf8'
-        );
-      } catch {}
+      fs.mkdirSync(destPath, { recursive: true });
+      fs.writeFileSync(
+        path.join(destPath, 'gemini-extension.json'),
+        JSON.stringify(geminiManifest, null, 2) + '\n',
+        'utf8'
+      );
     }
 
     // 2. Merge MCP servers into settings.json (preserving existing settings or aborting on malformed JSON)

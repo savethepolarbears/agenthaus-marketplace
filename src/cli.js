@@ -19,6 +19,7 @@ function parseCliArgs(rawArgs) {
       plugin: { type: 'string', short: 'p' },
       all: { type: 'boolean', short: 'a', default: false },
       method: { type: 'string', short: 'm', default: 'symlink' },
+      mode: { type: 'string', default: 'user' },
       json: { type: 'boolean', default: false },
       verbose: { type: 'boolean', short: 'v', default: false },
       fix: { type: 'boolean', default: false },
@@ -30,7 +31,7 @@ function parseCliArgs(rawArgs) {
   });
 }
 
-async function handleInstall({ target, plugin, all, method, dryRun }) {
+async function handleInstall({ target, plugin, all, method, dryRun, mode }) {
   if (!target) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
     const providers = getAllProviders().map(p => p.id);
@@ -39,7 +40,7 @@ async function handleInstall({ target, plugin, all, method, dryRun }) {
   
   const provider = getProvider(target);
   if (!provider) throw new Error(`Unknown provider: ${target}`);
-  const targetDir = provider.getTargetDir(process.cwd());
+  const targetDir = provider.getTargetDir(process.cwd(), mode);
 
   if (all) {
     const plugins = discoverPlugins();
@@ -62,7 +63,7 @@ async function handleInstall({ target, plugin, all, method, dryRun }) {
   }
 }
 
-async function handleUpdate({ target, plugin, all, dryRun }) {
+async function handleUpdate({ target, plugin, all, dryRun, mode }) {
   if (!target) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
     const providers = getAllProviders().map(p => p.id);
@@ -71,7 +72,7 @@ async function handleUpdate({ target, plugin, all, dryRun }) {
 
   const provider = getProvider(target);
   if (!provider) throw new Error(`Unknown provider: ${target}`);
-  const targetDir = provider.getTargetDir(process.cwd());
+  const targetDir = provider.getTargetDir(process.cwd(), mode);
 
   if (!all && !plugin) {
     if (!process.stdin.isTTY) throw new Error('Missing required --plugin or --all flag');
@@ -87,15 +88,15 @@ async function handleUpdate({ target, plugin, all, dryRun }) {
   if (all) {
     const plugins = discoverPlugins();
     for (const p of plugins) {
-      const res = updatePlugin(p.path, targetDir, { dryRun });
+      const res = updatePlugin(p.path, targetDir, { dryRun, provider });
       ui.info(`Plugin ${p.name}: ${res.status} ${res.fromVersion ? `(${res.fromVersion} -> ${res.toVersion})` : ''}`);
     }
   } else if (plugin) {
     const plugins = discoverPlugins();
     const p = plugins.find(x => x.name === plugin);
     if (!p) throw new Error(`Plugin not found: ${plugin}`);
-    const res = updatePlugin(p.path, targetDir, { dryRun });
-    ui.info(`Plugin ${p.name}: ${res.status}`);
+    const res = updatePlugin(p.path, targetDir, { dryRun, provider });
+    ui.info(`Plugin ${p.name}: ${res.status} ${res.fromVersion ? `(${res.fromVersion} -> ${res.toVersion})` : ''}`);
   }
 }
 
@@ -218,10 +219,10 @@ async function runCli(rawArgs) {
         process.exit(docRes.fail_count > 0 ? 1 : 0);
         break;
       case 'install':
-        await handleInstall({ target: values.target, plugin: values.plugin, all: values.all, method: values.method, dryRun });
+        await handleInstall({ target: values.target, plugin: values.plugin, all: values.all, method: values.method, dryRun, mode: values.mode });
         break;
       case 'update':
-        await handleUpdate({ target: values.target, plugin: values.plugin, all: values.all, dryRun });
+        await handleUpdate({ target: values.target, plugin: values.plugin, all: values.all, dryRun, mode: values.mode });
         break;
       case 'sync':
         await handleSync({ target: values.target, all: values.all, dryRun });
@@ -258,6 +259,7 @@ Options:
   -p, --plugin <plugin>   Plugin name
   -a, --all               All plugins
   -m, --method <method>   Installation method (default: symlink)
+  --mode <mode>           Installation scope: user (default) or project
   --json                  Output as JSON
   -v, --verbose           Verbose output
   --fix                   Fix issues automatically

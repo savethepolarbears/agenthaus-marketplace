@@ -30,10 +30,11 @@ test('CLI Routing and Flag Parsing', async (t) => {
   });
 
   await t.test('parseCliArgs parses options correctly', () => {
-    const parsed = parseCliArgs(['-t', 'test', '-p', 'myplugin', '-a', '--json']);
+    const parsed = parseCliArgs(['-t', 'test', '-p', 'myplugin', '-a', '--mode', 'project', '--json']);
     assert.strictEqual(parsed.values.target, 'test');
     assert.strictEqual(parsed.values.plugin, 'myplugin');
     assert.strictEqual(parsed.values.all, true);
+    assert.strictEqual(parsed.values.mode, 'project');
     assert.strictEqual(parsed.values.json, true);
   });
 

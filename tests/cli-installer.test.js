@@ -184,3 +184,59 @@ test('installPlugin invokes provider postInstall hook', (t) => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+test('updatePlugin invokes provider postInstall hook on copied update', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(path.join(source, '.claude-plugin'), { recursive: true });
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '1.0.0' }));
+
+  installPlugin(source, target, { method: 'copy' });
+
+  // Update source version
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '2.0.0' }));
+
+  let postInstallCalled = false;
+  const mockProvider = {
+    postInstall(src, tgt, opts) {
+      postInstallCalled = true;
+      assert.strictEqual(src, source);
+      assert.strictEqual(tgt, validateTargetSafety(target));
+    }
+  };
+
+  const res = updatePlugin(source, target, { provider: mockProvider });
+  assert.strictEqual(res.status, 'updated');
+  assert.strictEqual(postInstallCalled, true);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('updatePlugin invokes provider postInstall hook on outdated symlink update', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+  const oldMarketplaceTarget = path.join(tmpDir, 'old-repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+
+  const destPath = path.join(target, 'src-plugin');
+  fs.symlinkSync(oldMarketplaceTarget, destPath);
+
+  let postInstallCalled = false;
+  const mockProvider = {
+    postInstall(src, tgt, opts) {
+      postInstallCalled = true;
+    }
+  };
+
+  const res = updatePlugin(source, target, { provider: mockProvider });
+  assert.strictEqual(res.status, 'updated');
+  assert.strictEqual(postInstallCalled, true);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+

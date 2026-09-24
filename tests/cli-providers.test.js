@@ -91,26 +91,44 @@ test('CLI Providers', async (t) => {
     assert.strictEqual(settings.mcpServers['test-server'], undefined);
   });
 
-  await t.test('antigravity postInstall generates gemini-extension.json manifest', () => {
+  await t.test('antigravity postInstall generates gemini-extension.json manifest without dirtying sourceDir', () => {
     const antigravity = getProvider('antigravity');
     const fakeSource = path.join(tmpDir, 'manifest-plugin');
     const fakeTargetDir = path.join(tmpDir, 'gemini-root', 'extensions');
 
     fs.mkdirSync(path.join(fakeSource, '.claude-plugin'), { recursive: true });
+    fs.mkdirSync(path.join(fakeSource, 'commands'), { recursive: true });
     fs.writeFileSync(path.join(fakeSource, '.claude-plugin', 'plugin.json'), JSON.stringify({
       name: 'manifest-plugin',
       version: '1.2.3',
       description: 'Test extension'
     }));
+    fs.writeFileSync(path.join(fakeSource, 'commands', 'cmd.md'), '# Command');
+
+    // Simulate symlink install created by installPlugin
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const destPath = path.join(fakeTargetDir, 'manifest-plugin');
+    fs.symlinkSync(fakeSource, destPath, process.platform === 'win32' ? 'junction' : 'dir');
 
     antigravity.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
-    const extPath = path.join(fakeTargetDir, 'manifest-plugin', 'gemini-extension.json');
+
+    // destPath should now be an installation-owned directory, NOT a whole-directory symlink
+    assert.strictEqual(fs.lstatSync(destPath).isDirectory(), true);
+    assert.strictEqual(fs.lstatSync(destPath).isSymbolicLink(), false);
+
+    const extPath = path.join(destPath, 'gemini-extension.json');
     assert.strictEqual(fs.existsSync(extPath), true);
     const ext = JSON.parse(fs.readFileSync(extPath, 'utf8'));
     assert.strictEqual(ext.name, 'manifest-plugin');
     assert.strictEqual(ext.version, '1.2.3');
     assert.strictEqual(ext.description, 'Test extension');
     assert.strictEqual(ext.contextFileName, 'GEMINI.md');
+
+    // Source repo is NOT dirtied! No gemini-extension.json inside fakeSource
+    assert.strictEqual(fs.existsSync(path.join(fakeSource, 'gemini-extension.json')), false);
+
+    // Commands entry is accessible via item-level symlink
+    assert.strictEqual(fs.existsSync(path.join(destPath, 'commands', 'cmd.md')), true);
   });
 
   await t.test('antigravity postInstall preserves malformed settings.json and creates backup', () => {
@@ -138,10 +156,9 @@ test('CLI Providers', async (t) => {
     assert.ok(files.some(f => f.startsWith('settings.json.bak.')));
   });
 
-  await t.test('codex postInstall registers skills in AGENTS.md', () => {
+  await t.test('codex postInstall registers skills in AGENTS.md for global and project flows', () => {
     const codex = getProvider('codex');
     const fakeSource = path.join(tmpDir, 'codex-plugin');
-    const fakeTargetDir = path.join(tmpDir, 'codex-skills');
 
     fs.mkdirSync(path.join(fakeSource, 'skills'), { recursive: true });
     fs.writeFileSync(path.join(fakeSource, 'codex-mcp-config.toml'), '# toml config');
@@ -155,13 +172,25 @@ test('CLI Providers', async (t) => {
 
     process.chdir(workDir);
     try {
-      codex.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
-      const updated = fs.readFileSync(agentsPath, 'utf8');
+      // 1. Global flow: targetDir in os.homedir()
+      const globalTargetDir = path.join(os.homedir(), '.codex', 'agenthaus-skills');
+      codex.postInstall(fakeSource, globalTargetDir, { dryRun: false });
+      let updated = fs.readFileSync(agentsPath, 'utf8');
+      assert.ok(updated.includes('Read skills from ~/.codex/agenthaus-skills/codex-plugin/skills/'));
+
+      codex.postUninstall('codex-plugin', globalTargetDir, { dryRun: false });
+      let uninstalled = fs.readFileSync(agentsPath, 'utf8');
+      assert.ok(!uninstalled.includes('codex-plugin/skills/'));
+
+      // 2. Project flow: targetDir in cwd
+      const projectTargetDir = path.join(workDir, '.codex', 'agenthaus-skills');
+      codex.postInstall(fakeSource, projectTargetDir, { dryRun: false });
+      updated = fs.readFileSync(agentsPath, 'utf8');
       assert.ok(updated.includes('Read skills from .codex/agenthaus-skills/codex-plugin/skills/'));
 
-      codex.postUninstall('codex-plugin', fakeTargetDir, { dryRun: false });
-      const uninstalled = fs.readFileSync(agentsPath, 'utf8');
-      assert.ok(!uninstalled.includes('Read skills from .codex/agenthaus-skills/codex-plugin/skills/'));
+      codex.postUninstall('codex-plugin', projectTargetDir, { dryRun: false });
+      uninstalled = fs.readFileSync(agentsPath, 'utf8');
+      assert.ok(!uninstalled.includes('codex-plugin/skills/'));
     } finally {
       process.chdir(origCwd);
     }
