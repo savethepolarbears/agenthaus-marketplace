@@ -2,6 +2,7 @@
 
 const util = require('node:util');
 const { discoverPlugins } = require('./catalog.js');
+const { runDoctor } = require('./doctor.js');
 const ui = require('./ui.js');
 
 function parseCliArgs(rawArgs) {
@@ -50,16 +51,27 @@ function runCli(rawArgs) {
   switch (command) {
     case 'list':
       const plugins = discoverPlugins();
+      ui.renderPluginList(plugins, { json: values.json, verbose: values.verbose });
+      break;
+    case 'doctor':
+      const docRes = runDoctor({ verbose: values.verbose, json: values.json });
       if (values.json) {
-        console.log(JSON.stringify(plugins, null, 2));
+        console.log(JSON.stringify(docRes, null, 2));
       } else {
-        console.log(plugins);
+        ui.info('Doctor Diagnostics');
+        for (const check of docRes.checks) {
+          if (check.severity === 'FAIL') ui.error(check.message);
+          else if (check.severity === 'WARN') ui.warn(check.message);
+          else ui.success(check.message);
+        }
+        console.log('');
+        ui.info(`Summary: ${docRes.pass_count} Pass, ${docRes.warn_count} Warn, ${docRes.fail_count} Fail`);
       }
+      process.exit(docRes.fail_count > 0 ? 1 : 0);
       break;
     case 'install':
     case 'update':
     case 'sync':
-    case 'doctor':
       break;
     default:
       if (command) {
