@@ -291,3 +291,74 @@ test('installPlugin reruns provider postInstall on already existing plugin', (t)
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+test('updatePlugin updates hybrid item-level symlink installations when version bumps or artifacts change', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(path.join(source, '.claude-plugin'), { recursive: true });
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ name: 'src-plugin', version: '1.0.0' }));
+
+  // Simulate hybrid installation in target: directory with item-level symlinks and gemini-extension.json
+  const destPath = path.join(target, 'src-plugin');
+  fs.mkdirSync(destPath, { recursive: true });
+  fs.symlinkSync(path.join(source, '.claude-plugin'), path.join(destPath, '.claude-plugin'), 'dir');
+  fs.writeFileSync(path.join(destPath, 'gemini-extension.json'), JSON.stringify({ name: 'src-plugin', version: '1.0.0' }));
+
+  // 1. Initially, identical version and artifacts -> should skip
+  let postInstallCount = 0;
+  const mockProvider = {
+    postInstall(src, tgt) {
+      postInstallCount++;
+      fs.writeFileSync(path.join(tgt, 'src-plugin', 'gemini-extension.json'), JSON.stringify({ name: 'src-plugin', version: '1.1.0' }));
+    }
+  };
+
+  let res = updatePlugin(source, target, { provider: mockProvider });
+  assert.strictEqual(res.status, 'skipped');
+  assert.strictEqual(postInstallCount, 0);
+
+  // 2. Now bump version in sourceDir and add a new top-level directory
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ name: 'src-plugin', version: '1.1.0' }));
+  fs.mkdirSync(path.join(source, 'commands'), { recursive: true });
+  fs.writeFileSync(path.join(source, 'commands', 'cmd.md'), '# Command');
+
+  res = updatePlugin(source, target, { provider: mockProvider });
+  assert.strictEqual(res.status, 'updated');
+  assert.strictEqual(res.fromVersion, '1.0.0');
+  assert.strictEqual(res.toVersion, '1.1.0');
+  assert.strictEqual(postInstallCount, 1);
+
+  // Verify the new top-level directory was linked
+  assert.strictEqual(fs.existsSync(path.join(destPath, 'commands')), true);
+  assert.strictEqual(fs.lstatSync(path.join(destPath, 'commands')).isSymbolicLink(), true);
+
+  // 3. Second run without changes -> should skip
+  res = updatePlugin(source, target, { provider: mockProvider });
+  assert.strictEqual(res.status, 'skipped');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('updatePlugin preserves foreign item-level symlink installations', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+  const foreignDir = path.join(tmpDir, 'foreign-repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+  fs.mkdirSync(foreignDir, { recursive: true });
+
+  const destPath = path.join(target, 'src-plugin');
+  fs.mkdirSync(destPath, { recursive: true });
+  fs.symlinkSync(foreignDir, path.join(destPath, 'foreign-link'), 'dir');
+
+  const res = updatePlugin(source, target);
+  assert.strictEqual(res.status, 'skipped');
+  assert.strictEqual(res.reason, 'foreign symlink');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+

@@ -33,8 +33,11 @@ module.exports = {
     // symlink into an installation-owned directory containing item-level symlinks
     // to sourceDir entries, plus the installation's own gemini-extension.json manifest.
     let isSymlink = false;
+    let isDir = false;
     try {
-      isSymlink = fs.lstatSync(destPath).isSymbolicLink();
+      const st = fs.lstatSync(destPath);
+      isSymlink = st.isSymbolicLink();
+      isDir = st.isDirectory();
     } catch {}
 
     if (isSymlink && !dryRun) {
@@ -51,6 +54,44 @@ module.exports = {
         }
         const symType = stat.isDirectory() ? (process.platform === 'win32' ? 'junction' : 'dir') : 'file';
         fs.symlinkSync(srcEntry, dstEntry, symType);
+      }
+    } else if (isDir && !dryRun) {
+      const entries = fs.readdirSync(destPath);
+      const srcEntries = new Set(fs.readdirSync(sourceDir));
+      let hasSymlinksToSource = false;
+      for (const entry of entries) {
+        const dstEntry = path.join(destPath, entry);
+        try {
+          const st = fs.lstatSync(dstEntry);
+          if (st.isSymbolicLink()) {
+            const rawTarget = fs.readlinkSync(dstEntry);
+            const resolvedTarget = path.resolve(destPath, rawTarget);
+            if (resolvedTarget === path.join(sourceDir, entry) || resolvedTarget.startsWith(sourceDir + path.sep)) {
+              hasSymlinksToSource = true;
+              if (!srcEntries.has(entry)) {
+                fs.unlinkSync(dstEntry);
+              }
+            }
+          }
+        } catch {}
+      }
+
+      if (hasSymlinksToSource) {
+        for (const entry of srcEntries) {
+          const dstEntry = path.join(destPath, entry);
+          let exists = false;
+          try {
+            fs.lstatSync(dstEntry);
+            exists = true;
+          } catch {}
+          if (!exists) {
+            const srcEntry = path.join(sourceDir, entry);
+            let stat;
+            try { stat = fs.statSync(srcEntry); } catch { continue; }
+            const symType = stat.isDirectory() ? (process.platform === 'win32' ? 'junction' : 'dir') : 'file';
+            fs.symlinkSync(srcEntry, dstEntry, symType);
+          }
+        }
       }
     }
 

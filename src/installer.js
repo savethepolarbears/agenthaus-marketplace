@@ -116,6 +116,58 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = nul
   return { status: 'removed', path: destPath };
 }
 
+function getHybridSymlinkInfo(destPath, sourceDir) {
+  let entries;
+  try {
+    entries = fs.readdirSync(destPath);
+  } catch {
+    return { isHybrid: false, isForeign: false };
+  }
+
+  let linkedToSourceCount = 0;
+  let foreignLinkCount = 0;
+  let realSource;
+  try {
+    realSource = fs.realpathSync(sourceDir);
+  } catch {
+    realSource = path.resolve(sourceDir);
+  }
+
+  for (const entry of entries) {
+    const p = path.join(destPath, entry);
+    try {
+      const st = fs.lstatSync(p);
+      if (st.isSymbolicLink()) {
+        const rawTarget = fs.readlinkSync(p);
+        const resolvedTarget = path.resolve(destPath, rawTarget);
+        let realTarget;
+        try {
+          realTarget = fs.realpathSync(p);
+        } catch {
+          realTarget = resolvedTarget;
+        }
+
+        const isToSource = (realTarget === realSource || realTarget.startsWith(realSource + path.sep) ||
+                            resolvedTarget === path.join(sourceDir, entry) || resolvedTarget.startsWith(sourceDir + path.sep));
+
+        if (isToSource) {
+          linkedToSourceCount++;
+        } else {
+          foreignLinkCount++;
+        }
+      }
+    } catch {}
+  }
+
+  if (foreignLinkCount > 0) {
+    return { isHybrid: false, isForeign: true };
+  }
+  if (linkedToSourceCount > 0) {
+    return { isHybrid: true, isForeign: false };
+  }
+  return { isHybrid: false, isForeign: false };
+}
+
 function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
   const pluginName = path.basename(sourceDir);
@@ -167,6 +219,119 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
     }
     return { status: 'updated', path: destPath };
   } else if (lstat.isDirectory()) {
+    const hybridInfo = getHybridSymlinkInfo(destPath, sourceDir);
+    if (hybridInfo.isForeign) {
+      return { status: 'skipped', reason: 'foreign symlink', path: destPath };
+    }
+
+    if (hybridInfo.isHybrid) {
+      const sourcePkgPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
+      let sourceVersion = '0.0.0';
+      try { sourceVersion = JSON.parse(fs.readFileSync(sourcePkgPath, 'utf8')).version || '0.0.0'; } catch {}
+
+      const geminiExtPath = path.join(destPath, 'gemini-extension.json');
+      let destVersion = '0.0.0';
+      let hasGeminiManifest = false;
+      if (fs.existsSync(geminiExtPath)) {
+        hasGeminiManifest = true;
+        try { destVersion = JSON.parse(fs.readFileSync(geminiExtPath, 'utf8')).version || '0.0.0'; } catch {}
+      }
+
+      const destEntries = fs.readdirSync(destPath);
+      const sourceEntries = new Set(fs.readdirSync(sourceDir));
+
+      let hasMissingEntries = false;
+      for (const entry of sourceEntries) {
+        const dstEntry = path.join(destPath, entry);
+        let exists = false;
+        try {
+          fs.lstatSync(dstEntry);
+          exists = true;
+        } catch {}
+        if (!exists) {
+          hasMissingEntries = true;
+          break;
+        }
+      }
+
+      let hasRemovedEntries = false;
+      for (const entry of destEntries) {
+        const dstEntry = path.join(destPath, entry);
+        try {
+          const st = fs.lstatSync(dstEntry);
+          if (st.isSymbolicLink() && !sourceEntries.has(entry)) {
+            hasRemovedEntries = true;
+            break;
+          }
+        } catch {}
+      }
+
+      let snippetChanged = false;
+      const snippetPath = path.join(sourceDir, 'gemini-settings-snippet.json');
+      if (fs.existsSync(snippetPath)) {
+        try {
+          const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
+          if (snippet.mcpServers && Object.keys(snippet.mcpServers).length > 0) {
+            const settingsPath = path.join(path.dirname(safeTargetDir), 'settings.json');
+            if (!fs.existsSync(settingsPath)) {
+              snippetChanged = true;
+            } else {
+              const currentSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+              const currentServers = currentSettings.mcpServers || {};
+              for (const [k, v] of Object.entries(snippet.mcpServers)) {
+                if (JSON.stringify(currentServers[k]) !== JSON.stringify(v)) {
+                  snippetChanged = true;
+                  break;
+                }
+              }
+            }
+          }
+        } catch {}
+      }
+
+      const needsUpdate = (sourceVersion !== destVersion) || !hasGeminiManifest || hasMissingEntries || hasRemovedEntries || snippetChanged;
+
+      if (!needsUpdate) {
+        return { status: 'skipped', path: destPath };
+      }
+
+      if (!dryRun) {
+        for (const entry of destEntries) {
+          const dstEntry = path.join(destPath, entry);
+          try {
+            const st = fs.lstatSync(dstEntry);
+            if (st.isSymbolicLink() && !sourceEntries.has(entry)) {
+              fs.unlinkSync(dstEntry);
+            }
+          } catch {}
+        }
+
+        for (const entry of sourceEntries) {
+          const dstEntry = path.join(destPath, entry);
+          let exists = false;
+          try {
+            fs.lstatSync(dstEntry);
+            exists = true;
+          } catch {}
+          if (!exists) {
+            const srcEntry = path.join(sourceDir, entry);
+            let stat;
+            try {
+              stat = fs.statSync(srcEntry);
+              const symType = stat.isDirectory() ? (process.platform === 'win32' ? 'junction' : 'dir') : 'file';
+              fs.symlinkSync(srcEntry, dstEntry, symType);
+            } catch {}
+          }
+        }
+      }
+
+      if (provider && typeof provider.postInstall === 'function') {
+        provider.postInstall(sourceDir, safeTargetDir, { dryRun });
+      }
+
+      return { status: 'updated', path: destPath, fromVersion: destVersion, toVersion: sourceVersion };
+    }
+
     const sourcePkgPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
     const destPkgPath = path.join(destPath, '.claude-plugin', 'plugin.json');
     let sourceVersion = '0.0.0';
