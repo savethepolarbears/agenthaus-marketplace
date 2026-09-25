@@ -340,6 +340,33 @@ function hasItemLevelSymlinks(dir) {
   return false;
 }
 
+function validateProviderConfigStructure(parsed, configLabel) {
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return `${configLabel} must be a JSON object`;
+  }
+  if (parsed.mcpServers !== undefined) {
+    if (typeof parsed.mcpServers !== 'object' || parsed.mcpServers === null || Array.isArray(parsed.mcpServers)) {
+      return `'mcpServers' in ${configLabel} must be an object`;
+    }
+    for (const [srvName, srvConf] of Object.entries(parsed.mcpServers)) {
+      if (typeof srvConf !== 'object' || srvConf === null || Array.isArray(srvConf)) {
+        return `MCP server '${srvName}' in ${configLabel} must be an object`;
+      }
+    }
+  }
+  if (parsed._agenthaus_mcp !== undefined) {
+    if (typeof parsed._agenthaus_mcp !== 'object' || parsed._agenthaus_mcp === null || Array.isArray(parsed._agenthaus_mcp)) {
+      return `'_agenthaus_mcp' in ${configLabel} must be an object`;
+    }
+    for (const [pluginName, keys] of Object.entries(parsed._agenthaus_mcp)) {
+      if (!Array.isArray(keys)) {
+        return `Ownership entry for '${pluginName}' in '_agenthaus_mcp' must be an array of keys`;
+      }
+    }
+  }
+  return null;
+}
+
 function checkProviderConfigs(providers, cwd = process.cwd()) {
   const results = [];
   const home = os.homedir();
@@ -353,8 +380,13 @@ function checkProviderConfigs(providers, cwd = process.cwd()) {
       for (const p of candidates) {
         if (fs.existsSync(p)) {
           try {
-            JSON.parse(fs.readFileSync(p, 'utf8'));
-            results.push({ severity: 'PASS', message: `Gemini settings valid (${p})` });
+            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+            const structErr = validateProviderConfigStructure(parsed, 'Gemini settings');
+            if (structErr) {
+              results.push({ severity: 'FAIL', message: `Malformed Gemini settings at ${p}: ${structErr}` });
+            } else {
+              results.push({ severity: 'PASS', message: `Gemini settings valid (${p})` });
+            }
           } catch (err) {
             results.push({ severity: 'FAIL', message: `Malformed Gemini settings at ${p}: ${err.message}` });
           }
@@ -368,8 +400,13 @@ function checkProviderConfigs(providers, cwd = process.cwd()) {
       for (const p of candidates) {
         if (fs.existsSync(p)) {
           try {
-            JSON.parse(fs.readFileSync(p, 'utf8'));
-            results.push({ severity: 'PASS', message: `Cursor MCP config valid (${p})` });
+            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+            const structErr = validateProviderConfigStructure(parsed, 'Cursor MCP config');
+            if (structErr) {
+              results.push({ severity: 'FAIL', message: `Malformed Cursor MCP config at ${p}: ${structErr}` });
+            } else {
+              results.push({ severity: 'PASS', message: `Cursor MCP config valid (${p})` });
+            }
           } catch (err) {
             results.push({ severity: 'FAIL', message: `Malformed Cursor MCP config at ${p}: ${err.message}` });
           }
@@ -384,8 +421,13 @@ function checkProviderConfigs(providers, cwd = process.cwd()) {
       for (const p of candidates) {
         if (fs.existsSync(p)) {
           try {
-            JSON.parse(fs.readFileSync(p, 'utf8'));
-            results.push({ severity: 'PASS', message: `Windsurf MCP config valid (${p})` });
+            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+            const structErr = validateProviderConfigStructure(parsed, 'Windsurf MCP config');
+            if (structErr) {
+              results.push({ severity: 'FAIL', message: `Malformed Windsurf MCP config at ${p}: ${structErr}` });
+            } else {
+              results.push({ severity: 'PASS', message: `Windsurf MCP config valid (${p})` });
+            }
           } catch (err) {
             results.push({ severity: 'FAIL', message: `Malformed Windsurf MCP config at ${p}: ${err.message}` });
           }
@@ -401,8 +443,13 @@ function checkProviderConfigs(providers, cwd = process.cwd()) {
       for (const p of candidates) {
         if (fs.existsSync(p)) {
           try {
-            JSON.parse(fs.readFileSync(p, 'utf8'));
-            results.push({ severity: 'PASS', message: `Claude config valid (${p})` });
+            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+            const structErr = validateProviderConfigStructure(parsed, 'Claude config');
+            if (structErr) {
+              results.push({ severity: 'FAIL', message: `Malformed Claude config at ${p}: ${structErr}` });
+            } else {
+              results.push({ severity: 'PASS', message: `Claude config valid (${p})` });
+            }
           } catch (err) {
             results.push({ severity: 'FAIL', message: `Malformed Claude config at ${p}: ${err.message}` });
           }

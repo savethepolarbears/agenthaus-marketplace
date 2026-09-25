@@ -145,8 +145,6 @@ module.exports = {
       } catch {}
     }
 
-    if (!mcpServers) return;
-
     const settingsDir = path.dirname(targetDir);
     const settingsPath = path.join(settingsDir, 'settings.json');
 
@@ -165,6 +163,13 @@ module.exports = {
       }
     }
 
+    const hasPreviousRegistration = settings._agenthaus_mcp &&
+      Array.isArray(settings._agenthaus_mcp[pluginName]) &&
+      settings._agenthaus_mcp[pluginName].length > 0;
+
+    if (!mcpServers && !hasPreviousRegistration) return;
+    if (!mcpServers) mcpServers = {};
+
     if (!settings.mcpServers) settings.mcpServers = {};
     if (!settings._agenthaus_mcp) settings._agenthaus_mcp = {};
 
@@ -173,8 +178,17 @@ module.exports = {
 
     for (const [key, srvConfig] of Object.entries(mcpServers)) {
       let finalKey = key;
+      const hasOtherOwners = Object.entries(settings._agenthaus_mcp || {}).some(
+        ([otherPlugin, keys]) => otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(key)
+      );
+
       if (registeredKeys.includes(key)) {
-        finalKey = key;
+        if (hasOtherOwners && JSON.stringify(settings.mcpServers[key]) !== JSON.stringify(srvConfig)) {
+          finalKey = `${pluginName}-${key}`;
+          console.log(`[warn] Gemini: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
+        } else {
+          finalKey = key;
+        }
       } else if (registeredKeys.includes(`${pluginName}-${key}`)) {
         finalKey = `${pluginName}-${key}`;
       } else if (settings.mcpServers[key]) {

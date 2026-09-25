@@ -50,22 +50,28 @@ module.exports = {
       } catch {}
     }
 
-    if (mcpServers) {
-      const configPath = path.join(cursorDir, 'mcp.json');
-      let config = {};
-      if (fs.existsSync(configPath)) {
-        try {
-          config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        } catch (err) {
-          let backupMsg = '';
-          if (!dryRun) {
-            const backupPath = `${configPath}.bak.${Date.now()}`;
-            fs.copyFileSync(configPath, backupPath);
-            backupMsg = ` (backed up to ${backupPath})`;
-          }
-          throw new Error(`Malformed Cursor MCP config at ${configPath}${backupMsg}: ${err.message}`);
+    const configPath = path.join(cursorDir, 'mcp.json');
+    let config = {};
+    if (fs.existsSync(configPath)) {
+      try {
+        config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      } catch (err) {
+        let backupMsg = '';
+        if (!dryRun) {
+          const backupPath = `${configPath}.bak.${Date.now()}`;
+          fs.copyFileSync(configPath, backupPath);
+          backupMsg = ` (backed up to ${backupPath})`;
         }
+        throw new Error(`Malformed Cursor MCP config at ${configPath}${backupMsg}: ${err.message}`);
       }
+    }
+
+    const hasPreviousRegistration = config._agenthaus_mcp &&
+      Array.isArray(config._agenthaus_mcp[pluginName]) &&
+      config._agenthaus_mcp[pluginName].length > 0;
+
+    if (mcpServers || hasPreviousRegistration) {
+      if (!mcpServers) mcpServers = {};
 
       if (!config.mcpServers) config.mcpServers = {};
       if (!config._agenthaus_mcp) config._agenthaus_mcp = {};
@@ -75,8 +81,17 @@ module.exports = {
 
       for (const [key, srvConfig] of Object.entries(mcpServers)) {
         let finalKey = key;
+        const hasOtherOwners = Object.entries(config._agenthaus_mcp || {}).some(
+          ([otherPlugin, keys]) => otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(key)
+        );
+
         if (registeredKeys.includes(key)) {
-          finalKey = key;
+          if (hasOtherOwners && JSON.stringify(config.mcpServers[key]) !== JSON.stringify(srvConfig)) {
+            finalKey = `${pluginName}-${key}`;
+            console.log(`[warn] Cursor: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
+          } else {
+            finalKey = key;
+          }
         } else if (registeredKeys.includes(`${pluginName}-${key}`)) {
           finalKey = `${pluginName}-${key}`;
         } else if (config.mcpServers[key]) {

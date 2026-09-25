@@ -476,4 +476,67 @@ test('CLI Providers', async (t) => {
     assert.strictEqual(cursorConfig.mcpServers.srv.command, 'new-cursor');
     assert.strictEqual(cursorConfig.mcpServers['test-plugin-srv'], undefined);
   });
+
+  await t.test('postInstall namespaces diverging MCP configuration when other owners exist', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-shared-diverge-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    const plugin1 = path.join(tmpDir, 'shared-plugin-1');
+    fs.mkdirSync(plugin1, { recursive: true });
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    const plugin2 = path.join(tmpDir, 'shared-plugin-2');
+    fs.mkdirSync(plugin2, { recursive: true });
+    fs.writeFileSync(path.join(plugin2, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    // Install both plugins sharing identical shared_db
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    antigravity.postInstall(plugin2, fakeTargetDir, { dryRun: false });
+
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+    assert.deepStrictEqual(settings._agenthaus_mcp['shared-plugin-1'], ['shared_db']);
+    assert.deepStrictEqual(settings._agenthaus_mcp['shared-plugin-2'], ['shared_db']);
+
+    // Now plugin 1 changes shared_db configuration (diverges)
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'python', args: ['diverged.py'] }
+      }
+    }));
+
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // Original shared_db preserved intact for plugin 2
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+    assert.deepStrictEqual(settings._agenthaus_mcp['shared-plugin-2'], ['shared_db']);
+
+    // Plugin 1's diverging configuration is namespaced safely
+    assert.ok(settings.mcpServers['shared-plugin-1-shared_db']);
+    assert.strictEqual(settings.mcpServers['shared-plugin-1-shared_db'].command, 'python');
+    assert.deepStrictEqual(settings._agenthaus_mcp['shared-plugin-1'], ['shared-plugin-1-shared_db']);
+
+    // Now plugin 1 update removes its MCP snippet entirely: obsolete namespaced server is pruned
+    fs.unlinkSync(path.join(plugin1, 'gemini-settings-snippet.json'));
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['shared-plugin-1-shared_db'], undefined);
+    assert.strictEqual(settings._agenthaus_mcp['shared-plugin-1'], undefined);
+    // Plugin 2's shared server remains intact
+    assert.ok(settings.mcpServers.shared_db);
+    assert.deepStrictEqual(settings._agenthaus_mcp['shared-plugin-2'], ['shared_db']);
+  });
 });

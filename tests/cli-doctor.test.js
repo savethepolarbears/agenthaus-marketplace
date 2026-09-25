@@ -203,4 +203,22 @@ test('CLI Doctor', async (t) => {
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Cursor MCP config')));
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Windsurf MCP config')));
   });
+
+  await t.test('checkProviderConfigs detects structurally invalid provider configurations', () => {
+    const projectDir = path.join(tmpDir, 'provider-struct-project');
+    fs.mkdirSync(path.join(projectDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.cursor', 'mcp.json'), JSON.stringify({ mcpServers: 'bad' }));
+
+    fs.mkdirSync(path.join(projectDir, '.gemini'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.gemini', 'settings.json'), JSON.stringify({ mcpServers: { srv: 'invalid' } }));
+
+    const providers = [
+      { id: 'antigravity', name: 'Gemini' },
+      { id: 'cursor', name: 'Cursor' }
+    ];
+
+    const results = checkProviderConfigs(providers, projectDir);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("'mcpServers' in Cursor MCP config must be an object")));
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("MCP server 'srv' in Gemini settings must be an object")));
+  });
 });
