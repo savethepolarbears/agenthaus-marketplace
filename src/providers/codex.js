@@ -39,13 +39,19 @@ function declaredServerKeys(content) {
 function readPluginServers(sourceDir) {
   const mcpPath = path.join(sourceDir, '.mcp.json');
   if (!fs.existsSync(mcpPath)) return null;
-  try {
-    const parsed = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
-    return isPlainObject(parsed) && isPlainObject(parsed.mcpServers) ? parsed.mcpServers : null;
-  } catch (err) {
-    console.warn(`[warn] Codex: Malformed .mcp.json at ${mcpPath}: ${err.message}. Preserving existing MCP registrations.`);
+  const fail = (reason) => {
+    console.warn(`[warn] Codex: ${reason} at ${mcpPath}. Preserving existing MCP registrations.`);
     return undefined;
+  };
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+  } catch (err) {
+    return fail(`Malformed .mcp.json (${err.message})`);
   }
+  if (!isPlainObject(parsed)) return fail('Malformed .mcp.json: expected JSON object');
+  if (!isPlainObject(parsed.mcpServers)) return fail("Invalid 'mcpServers': expected JSON object");
+  return parsed.mcpServers;
 }
 
 /**
@@ -60,11 +66,9 @@ function planConfig(configPath, pluginName, servers, pluginRoot) {
 
   const rendered = [];
   for (const [key, server] of Object.entries(servers || {})) {
-    const candidates = [key, `${pluginName}-${key}`];
-    const finalKey = candidates.find(k => !taken.has(k));
-    if (!finalKey) {
-      console.warn(`[warn] Codex: MCP server '${key}' already declared in ${configPath}; skipping for ${pluginName}`);
-      continue;
+    let finalKey = key;
+    for (let n = 1; taken.has(finalKey); n++) {
+      finalKey = n === 1 ? `${pluginName}-${key}` : `${pluginName}-${key}-${n}`;
     }
     if (finalKey !== key) console.log(`[warn] Codex: MCP server '${key}' conflicts with an existing entry; registered as '${finalKey}' for ${pluginName}`);
     const r = renderCodexServer(finalKey, server, { pluginRoot });

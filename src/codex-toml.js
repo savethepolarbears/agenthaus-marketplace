@@ -161,4 +161,79 @@ function renderCodexSnippet(servers) {
          blocks.join('\n\n') + '\n';
 }
 
-module.exports = { renderCodexServer, renderServerBlock, renderCodexSnippet };
+/**
+ * Lightweight TOML syntax check (the CLI stays zero-dependency): strings, comments,
+ * bracket balance in values, table headers, and `key = value` statements.
+ * Returns an error message, or null when no syntax problem was found.
+ */
+function findTomlSyntaxError(text) {
+  const KEY = '(?:[A-Za-z0-9_-]+|S)';
+  const keyPath = `${KEY}(?:\\s*\\.\\s*${KEY})*`;
+  const tableRe = new RegExp(`^\\[\\s*${keyPath}\\s*\\]$`);
+  const arrayTableRe = new RegExp(`^\\[\\[\\s*${keyPath}\\s*\\]\\]$`);
+  const keyValueRe = new RegExp(`^${keyPath}\\s*=\\s*\\S`);
+
+  let stmt = '';
+  let stmtLine = 1;
+  let line = 1;
+  let depth = 0;
+  let afterEquals = false;
+
+  const flush = () => {
+    const s = stmt.trim();
+    stmt = '';
+    afterEquals = false;
+    if (!s) return null;
+    if (s.startsWith('[[')) return arrayTableRe.test(s) ? null : `line ${stmtLine}: malformed array-of-tables header`;
+    if (s.startsWith('[')) return tableRe.test(s) ? null : `line ${stmtLine}: malformed table header`;
+    return keyValueRe.test(s) ? null : `line ${stmtLine}: expected 'key = value'`;
+  };
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '#') {
+      while (i + 1 < text.length && text[i + 1] !== '\n') i++;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      const triple = text.startsWith(c.repeat(3), i);
+      const delim = triple ? c.repeat(3) : c;
+      let j = i + delim.length;
+      for (;;) {
+        if (j >= text.length || (!triple && text[j] === '\n')) return `line ${line}: unterminated string`;
+        if (c === '"' && text[j] === '\\') { j += 2; continue; }
+        if (text.startsWith(delim, j)) break;
+        if (text[j] === '\n') line++;
+        j++;
+      }
+      i = j + delim.length - 1;
+      stmt += 'S';
+      continue;
+    }
+    if (c === '\n') {
+      line++;
+      if (depth === 0) {
+        const err = flush();
+        if (err) return err;
+        stmtLine = line;
+      } else {
+        stmt += ' ';
+      }
+      continue;
+    }
+    if (afterEquals) {
+      if (c === '[' || c === '{') depth++;
+      else if (c === ']' || c === '}') {
+        depth--;
+        if (depth < 0) return `line ${line}: unbalanced '${c}'`;
+      }
+    } else if (c === '=') {
+      afterEquals = true;
+    }
+    stmt += c;
+  }
+  if (depth !== 0) return `line ${stmtLine}: unclosed array or inline table`;
+  return flush();
+}
+
+module.exports = { renderCodexServer, renderServerBlock, renderCodexSnippet, findTomlSyntaxError };

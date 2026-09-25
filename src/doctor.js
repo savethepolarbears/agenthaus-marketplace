@@ -5,6 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { detectAll, getProvider } = require('./providers/index.js');
 const { LEGACY_OWNERSHIP_KEYS, getStatePath, validateState } = require('./providers/mcp-ownership.js');
+const { findTomlSyntaxError } = require('./codex-toml.js');
 const { discoverPlugins } = require('./catalog.js');
 const { getPluginHookFiles } = require('./sync.js');
 const { isMarketplaceHybrid } = require('./hybrid.js');
@@ -425,6 +426,8 @@ function describeConfig(providerId, configPath) {
 }
 
 function validateCodexToml(content) {
+  const syntaxError = findTomlSyntaxError(content);
+  if (syntaxError) return { severity: 'FAIL', reason: `invalid TOML (${syntaxError})` };
   if (/^\s*\[\s*mcp\s*\.\s*servers\s*\./m.test(content)) {
     return { severity: 'WARN', reason: "declares '[mcp.servers.*]' tables, which Codex ignores; use '[mcp_servers.<name>]'" };
   }

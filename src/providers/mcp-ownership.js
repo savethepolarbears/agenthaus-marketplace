@@ -153,17 +153,27 @@ function syncPluginServers({ configPath, pluginName, servers, label, serversKey 
   const entries = { ...(config[serversKey] || {}) };
   const entriesBefore = JSON.stringify(entries);
 
-  const keysOwnedByOthers = new Set();
+  // destination key -> managed flag held by other plugins (false if any owner reused a user entry)
+  const otherOwnerManaged = new Map();
   for (const [plugin, record] of Object.entries(records)) {
     if (plugin === pluginName || !isPlainObject(record)) continue;
-    for (const r of Object.values(record)) if (r && typeof r.key === 'string') keysOwnedByOthers.add(r.key);
+    for (const r of Object.values(record)) {
+      if (!r || typeof r.key !== 'string') continue;
+      otherOwnerManaged.set(r.key, (otherOwnerManaged.get(r.key) ?? true) && r.managed !== false);
+    }
   }
+  const keysOwnedByOthers = new Set(otherOwnerManaged.keys());
   const previousByKey = new Map(Object.values(previous).map(r => [r.key, r]));
   const isOurManagedKey = (key) => {
     const r = previousByKey.get(key);
     return Boolean(r && r.managed) && !keysOwnedByOthers.has(key);
   };
-  const managedFlagFor = (key) => keysOwnedByOthers.has(key) || Boolean(previousByKey.get(key)?.managed);
+  // Provenance travels with the destination: an entry agenthaus created stays managed,
+  // a pre-existing user entry stays unmanaged no matter how many plugins share it.
+  const managedFlagFor = (key) => {
+    if (otherOwnerManaged.has(key)) return otherOwnerManaged.get(key);
+    return Boolean(previousByKey.get(key)?.managed);
+  };
 
   const claimed = new Set();
   const next = {};

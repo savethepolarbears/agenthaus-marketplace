@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-const { writeJsonAtomic } = require('../fs-utils.js');
+const { readJsonObject, writeJsonAtomic } = require('../fs-utils.js');
 const { readServersSnippet, syncPluginServers, removePluginServers } = require('./mcp-ownership.js');
 
 const GEMINI_LABEL = 'Gemini settings';
@@ -52,14 +52,18 @@ function syncAll(sourceDir, targetDir, { dryRun }) {
   const pluginName = path.basename(sourceDir);
   const { servers, failed } = loadPluginServers(sourceDir);
   if (failed) return false;
+  const agConfigPath = getAntigravityConfigPath(targetDir);
+  const agPresent = isAntigravityPresent(agConfigPath);
+  // Read both destinations first so a malformed second config aborts before the first is written.
+  readJsonObject(getGeminiSettingsPath(targetDir), GEMINI_LABEL, { dryRun });
+  if (agPresent || fs.existsSync(agConfigPath)) readJsonObject(agConfigPath, ANTIGRAVITY_LABEL, { dryRun });
   const gemini = syncPluginServers({
     configPath: getGeminiSettingsPath(targetDir), pluginName, servers, label: GEMINI_LABEL, dryRun
   });
-  const agConfigPath = getAntigravityConfigPath(targetDir);
   const antigravity = syncPluginServers({
     configPath: agConfigPath,
     pluginName,
-    servers: isAntigravityPresent(agConfigPath) ? toAntigravityServers(servers) : null,
+    servers: agPresent ? toAntigravityServers(servers) : null,
     label: ANTIGRAVITY_LABEL,
     dryRun
   });

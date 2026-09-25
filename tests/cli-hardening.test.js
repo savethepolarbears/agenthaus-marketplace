@@ -366,6 +366,72 @@ if (args.includes('--json')) { console.log(JSON.stringify({ command: args[1], ou
     assert.strictEqual(config.mcpServers['p-src'], undefined);
   });
 
+  await t.test('a reused user server stays unmanaged across every sharing plugin, whatever the uninstall order', () => {
+    const configPath = path.join(tmpDir, 'cursor', 'mcp.json');
+    const shared = { command: 'node', args: ['db.js'] };
+    writeJson(configPath, { mcpServers: { db: shared } });
+    syncPluginServers({ configPath, pluginName: 'a', label: 'x', servers: { db: shared } });
+    syncPluginServers({ configPath, pluginName: 'b', label: 'x', servers: { db: shared } });
+    const state = loadState();
+    const record = state.mcp[Object.keys(state.mcp)[0]];
+    assert.strictEqual(record.a.db.managed, false);
+    assert.strictEqual(record.b.db.managed, false);
+
+    syncPluginServers({ configPath, pluginName: 'a', label: 'x', servers: {} });
+    syncPluginServers({ configPath, pluginName: 'b', label: 'x', servers: {} });
+    assert.deepStrictEqual(readJson(configPath).mcpServers.db, shared, 'user server survives the last owner');
+  });
+
+  await t.test('codex preserves its managed block for invalid sources and keeps suffixing for a free key', () => {
+    const codex = getProvider('codex');
+    const codexDir = path.join(tmpDir, 'home', '.codex');
+    const targetDir = path.join(codexDir, 'agenthaus-skills');
+    const configPath = path.join(codexDir, 'config.toml');
+    fs.mkdirSync(targetDir, { recursive: true });
+    fs.writeFileSync(configPath, '[mcp_servers.db]\ncommand = "a"\n\n[mcp_servers.cx-db]\ncommand = "b"\n');
+    const source = path.join(tmpDir, 'plugins', 'cx');
+    writeJson(path.join(source, '.mcp.json'), { mcpServers: { db: { command: 'mine' } } });
+
+    const origCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      codex.postInstall(source, targetDir, { dryRun: false });
+      let toml = fs.readFileSync(configPath, 'utf8');
+      assert.ok(toml.includes('[mcp_servers.cx-db-2]\ncommand = "mine"'), 'third candidate is used when two are taken');
+
+      for (const bad of [{ mcpServers: 'bad' }, { mcpServers: [1] }, [1, 2], {}]) {
+        writeJson(path.join(source, '.mcp.json'), bad);
+        codex.postInstall(source, targetDir, { dryRun: false });
+        assert.strictEqual(fs.readFileSync(configPath, 'utf8'), toml, `block preserved for ${JSON.stringify(bad)}`);
+      }
+    } finally {
+      process.chdir(origCwd);
+    }
+  });
+
+  await t.test('doctor reports syntactically invalid Codex TOML', () => {
+    const home = path.join(tmpDir, 'home');
+    fs.mkdirSync(path.join(home, '.codex'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.codex', 'config.toml'), 'not = [ valid\n');
+    const results = checkProviderConfigs([{ id: 'codex' }], path.join(tmpDir, 'proj'), home);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('invalid TOML')));
+  });
+
+  await t.test('antigravity writes nothing when its mcp_config.json is malformed', () => {
+    const antigravity = getProvider('antigravity');
+    const workspace = path.join(tmpDir, 'ws');
+    const targetDir = path.join(workspace, '.gemini', 'extensions');
+    fs.mkdirSync(targetDir, { recursive: true });
+    fs.mkdirSync(path.join(workspace, '.agents'), { recursive: true });
+    fs.writeFileSync(path.join(workspace, '.agents', 'mcp_config.json'), '{ broken');
+    const source = path.join(tmpDir, 'plugins', 'agp');
+    writeJson(path.join(source, 'gemini-settings-snippet.json'), { mcpServers: { s: { command: 'node' } } });
+
+    assert.throws(() => antigravity.postInstall(source, targetDir, { dryRun: false }), /Malformed Antigravity MCP config/);
+    assert.strictEqual(fs.existsSync(path.join(workspace, '.gemini', 'settings.json')), false, 'Gemini settings untouched');
+    assert.strictEqual(fs.existsSync(process.env.AGENTHAUS_STATE_FILE), false, 'no ownership recorded');
+  });
+
   await t.test('sync helpers prune stale temp files and orphaned ownership records', () => {
     const configPath = path.join(tmpDir, 'cursor', 'mcp.json');
     syncPluginServers({ configPath, pluginName: 'p', label: 'x', servers: { a: { command: 'a' } } });
