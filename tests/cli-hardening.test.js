@@ -341,6 +341,27 @@ if (args.includes('--json')) { console.log(JSON.stringify({ command: args[1], ou
     assert.strictEqual(checkOwnershipState()[0].severity, 'FAIL');
   });
 
+  await t.test('doctor rejects legacy source maps that point outside the plugin ownership set', () => {
+    const cwd = path.join(tmpDir, 'proj');
+    writeJson(path.join(cwd, '.cursor', 'mcp.json'), {
+      mcpServers: { 'user-server': { command: 'mine' }, 'p-src': { command: 'p' } },
+      _agenthaus_mcp: { p: ['p-src'] },
+      _agenthaus_mcp_map: { p: { src: 'user-server' } }
+    });
+    const results = checkProviderConfigs([{ id: 'cursor' }], cwd, path.join(tmpDir, 'home'));
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("Destination 'user-server' for 'src'")));
+
+    // Runtime migration never trusts that mapping: the user server is left untouched
+    const configPath = path.join(cwd, '.cursor', 'mcp.json');
+    syncPluginServers({ configPath, pluginName: 'p', label: 'Cursor MCP config', servers: { src: { command: 'p-v2' } } });
+    const config = readJson(configPath);
+    assert.deepStrictEqual(config.mcpServers['user-server'], { command: 'mine' });
+    // 'src' is free, so the plugin's server lands on its bare key and the old owned 'p-src' is pruned
+    assert.deepStrictEqual(getPluginMapping(configPath, 'p'), { src: 'src' });
+    assert.deepStrictEqual(config.mcpServers.src, { command: 'p-v2' });
+    assert.strictEqual(config.mcpServers['p-src'], undefined);
+  });
+
   await t.test('sync helpers prune stale temp files and orphaned ownership records', () => {
     const configPath = path.join(tmpDir, 'cursor', 'mcp.json');
     syncPluginServers({ configPath, pluginName: 'p', label: 'x', servers: { a: { command: 'a' } } });

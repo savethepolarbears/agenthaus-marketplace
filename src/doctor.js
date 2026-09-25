@@ -397,6 +397,10 @@ function validateProviderConfigStructure(parsed, configLabel, { serversKey = 'mc
         if (typeof dstKey !== 'string') {
           return `Destination key for '${srcKey}' in '_agenthaus_mcp_map.${pluginName}' must be a string`;
         }
+        const owned = parsed._agenthaus_mcp && parsed._agenthaus_mcp[pluginName];
+        if (!Array.isArray(owned) || !owned.includes(dstKey)) {
+          return `Destination '${dstKey}' for '${srcKey}' in '_agenthaus_mcp_map.${pluginName}' is not owned by '${pluginName}' in '_agenthaus_mcp'`;
+        }
       }
     }
   }
