@@ -377,23 +377,24 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 
 > Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.
 
+## Provider Lifecycle Invariants
+
+1. **Cursor Discovery**: Reads \`.cursor/rules/*.mdc\` and \`.cursor/mcp.json\`. \`postInstall\` mirrors rules and MCP; never rely solely on \`.cursor/plugins/\`.
+2. **MCP Collision Namespacing**: Conflicting server keys are namespaced to \`<plugin>-<key>\` with \`_agenthaus_mcp\` ownership tracking so uninstalls never drop shared servers.
+3. **Symlink Update Hook Refresh**: In \`updatePlugin\`, when symlink target matches source (\`isSame\`), re-run \`postInstall\` to refresh derived provider files.
+4. **Provider-Scoped Sync Coverage**: Provider sync (\`sync --target <p>\`) executes \`repairTargetHooks\` on copied plugin dirs.
+
 ## Gemini Context Caching
 
 Use context caching to retain plugin catalog and \`marketplace.json\` across turns. Use \`@plugins/<name>/.claude-plugin/plugin.json\` to pull in manifests.
 
 ## Antigravity IDE Integration (Memory Bank)
 
-Read \`.agent/memory-bank/\` for persistent context before large tasks:
-
-- \`architecture.md\` — Repo structure, plugin anatomy
-- \`api-contracts.md\` — Schema specs for manifests
-- \`decision-log.md\` — Architectural decisions (ADRs)
-
-Update these docs when making significant changes. For non-trivial tasks, plan before executing and get user approval.
+Read \`.agent/memory-bank/\`: \`architecture.md\`, \`api-contracts.md\`, \`decision-log.md\`. Update on significant changes.
 
 ## Agent Delegation & Parallel Execution
 
-Send all independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when output is chained.
+Send independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when chained.
 
 ## Required Environment Variables
 
