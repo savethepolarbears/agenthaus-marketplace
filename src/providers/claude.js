@@ -11,7 +11,8 @@ module.exports = {
     return fs.existsSync(path.join(os.homedir(), '.claude')) ||
            fs.existsSync(path.join(os.homedir(), '.claude.json')) ||
            fs.existsSync(path.join(cwd, '.claude')) ||
-           fs.existsSync(path.join(cwd, '.claude.json'));
+           fs.existsSync(path.join(cwd, '.claude.json')) ||
+           fs.existsSync(path.join(cwd, '.mcp.json'));
   },
   getTargetDir(cwd, mode) {
     if (mode === 'project') return path.join(cwd, '.claude', 'plugins');

@@ -217,7 +217,7 @@ module.exports = {
     for (const [key, srvConfig] of Object.entries(mcpServers)) {
       let finalKey = key;
 
-      if (registeredKeys.includes(key)) {
+      if (registeredKeys.includes(key) && !newRegisteredKeys.includes(key)) {
         if (hasOtherOwners(key) && JSON.stringify(settings.mcpServers[key]) !== JSON.stringify(srvConfig)) {
           finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
           console.log(`[warn] Gemini: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
@@ -226,7 +226,7 @@ module.exports = {
         }
       } else {
         const baseKey = `${pluginName}-${key}`;
-        const existingNamespaced = registeredKeys.find(k => k === baseKey || k.startsWith(`${baseKey}-`));
+        const existingNamespaced = registeredKeys.find(k => (k === baseKey || k.startsWith(`${baseKey}-`)) && !newRegisteredKeys.includes(k));
         if (existingNamespaced && !hasOtherOwners(existingNamespaced)) {
           finalKey = existingNamespaced;
         } else if (existingNamespaced && hasOtherOwners(existingNamespaced)) {
@@ -236,17 +236,17 @@ module.exports = {
             finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
             console.log(`[warn] Gemini: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
           }
-        } else if (settings.mcpServers[key]) {
-          if (JSON.stringify(settings.mcpServers[key]) === JSON.stringify(srvConfig) && !newRegisteredKeys.includes(key)) {
+        } else if (settings.mcpServers[key] && !newRegisteredKeys.includes(key)) {
+          if (JSON.stringify(settings.mcpServers[key]) === JSON.stringify(srvConfig)) {
             finalKey = key;
           } else {
             finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
             console.log(`[warn] Gemini: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
           }
-        } else if (newRegisteredKeys.includes(key)) {
-          finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
-        } else {
+        } else if (!settings.mcpServers[key] && !newRegisteredKeys.includes(key)) {
           finalKey = key;
+        } else {
+          finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
         }
       }
       settings.mcpServers[finalKey] = srvConfig;

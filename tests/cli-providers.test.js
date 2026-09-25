@@ -720,5 +720,51 @@ test('CLI Providers', async (t) => {
     assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db'].command, 'user-tool');
     assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
   });
+
+  await t.test('postInstall distinguishes source keys from generated namespaced keys and avoids duplicates on update', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-source-vs-dest-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    // Existing server 'foo' occupies 'foo' with an unrelated configuration
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      mcpServers: {
+        foo: { command: 'existing-foo', args: [] }
+      }
+    }));
+
+    // Plugin 'plug' defines both 'foo' and 'plug-foo'
+    const pluginDir = path.join(tmpDir, 'plug');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        foo: { command: 'cmd-foo', args: [] },
+        'plug-foo': { command: 'cmd-plug-foo', args: [] }
+      }
+    }));
+
+    // 1. First install
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // 'foo' conflicts, namespaced to 'plug-foo'
+    // 'plug-foo' from snippet cannot reuse 'plug-foo' claimed in this pass, so namespaced to 'plug-plug-foo'
+    assert.strictEqual(settings.mcpServers.foo.command, 'existing-foo');
+    assert.strictEqual(settings.mcpServers['plug-foo'].command, 'cmd-foo');
+    assert.strictEqual(settings.mcpServers['plug-plug-foo'].command, 'cmd-plug-foo');
+    assert.deepStrictEqual(settings._agenthaus_mcp.plug, ['plug-foo', 'plug-plug-foo']);
+
+    // 2. Update without changing snippets (re-install / update)
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // Both servers must still exist, neither overwritten, and ownership array must contain no duplicates
+    assert.strictEqual(settings.mcpServers.foo.command, 'existing-foo');
+    assert.strictEqual(settings.mcpServers['plug-foo'].command, 'cmd-foo');
+    assert.strictEqual(settings.mcpServers['plug-plug-foo'].command, 'cmd-plug-foo');
+    assert.deepStrictEqual(settings._agenthaus_mcp.plug, ['plug-foo', 'plug-plug-foo']);
+  });
 });
 

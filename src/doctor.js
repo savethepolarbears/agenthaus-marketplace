@@ -439,8 +439,8 @@ function validateProviderConfigStructure(parsed, configLabel) {
       return `'_agenthaus_mcp' in ${configLabel} must be an object`;
     }
     for (const [pluginName, keys] of Object.entries(parsed._agenthaus_mcp)) {
-      if (!Array.isArray(keys)) {
-        return `Ownership entry for '${pluginName}' in '_agenthaus_mcp' must be an array of keys`;
+      if (!Array.isArray(keys) || !keys.every(k => typeof k === 'string')) {
+        return `Ownership entry for '${pluginName}' in '_agenthaus_mcp' must be an array of string keys`;
       }
     }
   }

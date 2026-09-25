@@ -350,4 +350,34 @@ test('CLI Doctor', async (t) => {
     const results = checkProviderConfigs(providers, projectDir);
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Claude MCP config')));
   });
+
+  await t.test('checkProviderConfigs requires string elements in _agenthaus_mcp ownership arrays', () => {
+    const projectDir = path.join(tmpDir, 'agenthaus-mcp-elements-test');
+    fs.mkdirSync(path.join(projectDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.cursor', 'mcp.json'), JSON.stringify({
+      _agenthaus_mcp: {
+        'test-plugin': [null]
+      }
+    }));
+
+    const providers = [{ id: 'cursor', name: 'Cursor' }];
+    const results = checkProviderConfigs(providers, projectDir);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("Ownership entry for 'test-plugin' in '_agenthaus_mcp' must be an array of string keys")));
+  });
+
+  await t.test('Claude provider detects projects identified only by project-scoped .mcp.json', () => {
+    const { getProvider } = require('../src/providers/index.js');
+    const claude = getProvider('claude');
+    const isolatedHome = path.join(tmpDir, 'claude-only-mcp-home');
+    fs.mkdirSync(isolatedHome, { recursive: true });
+    const projectDir = path.join(tmpDir, 'claude-only-mcp-project');
+    fs.mkdirSync(projectDir, { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.mcp.json'), '{ malformed json');
+
+    // Neither home nor project has .claude or .claude.json
+    assert.strictEqual(claude.detect(projectDir), true);
+
+    const results = checkProviderConfigs([claude], projectDir, isolatedHome);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Claude MCP config')));
+  });
 });
