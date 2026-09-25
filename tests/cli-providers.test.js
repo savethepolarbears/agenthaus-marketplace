@@ -766,5 +766,187 @@ test('CLI Providers', async (t) => {
     assert.strictEqual(settings.mcpServers['plug-plug-foo'].command, 'cmd-plug-foo');
     assert.deepStrictEqual(settings._agenthaus_mcp.plug, ['plug-foo', 'plug-plug-foo']);
   });
+
+  await t.test('postInstall preserves reverse-order namespaced destinations using explicit source map on update', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-reverse-order-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    // Scenario:
+    // Existing unowned 'p-a-2' has configuration Z
+    // Existing server 'a-2' conflicts with Z
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Z', args: [] },
+        'a-2': { command: 'server-conflict', args: [] }
+      }
+    }));
+
+    // Plugin 'p' defines 'p-a-2' = Y and 'a-2' = Z
+    const pluginDir = path.join(tmpDir, 'p');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Y', args: [] },
+        'a-2': { command: 'server-Z', args: [] }
+      }
+    }));
+
+    // 1. First install:
+    // 'p-a-2' conflicts with existing 'p-a-2' (Z vs Y), namespaced to 'p-p-a-2'
+    // 'a-2' conflicts with 'a-2', base candidate is 'p-a-2' which matches Z, so reuses 'p-a-2'
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(settings.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(settings.mcpServers['a-2'].command, 'server-conflict');
+    assert.deepStrictEqual(settings._agenthaus_mcp.p, ['p-p-a-2', 'p-a-2']);
+    assert.deepStrictEqual(settings._agenthaus_mcp_map.p, {
+      'p-a-2': 'p-p-a-2',
+      'a-2': 'p-a-2'
+    });
+
+    // 2. Next update:
+    // Must NOT overwrite 'p-a-2' with 'server-Y' when processing source key 'p-a-2'
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(settings.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(settings.mcpServers['a-2'].command, 'server-conflict');
+    assert.deepStrictEqual(settings._agenthaus_mcp.p, ['p-p-a-2', 'p-a-2']);
+    assert.deepStrictEqual(settings._agenthaus_mcp_map.p, {
+      'p-a-2': 'p-p-a-2',
+      'a-2': 'p-a-2'
+    });
+
+    // 3. Uninstall cleans up both servers and deletes ownership/mapping maps
+    antigravity.postUninstall('p', fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['p-p-a-2'], undefined);
+    assert.strictEqual(settings.mcpServers['p-a-2'], undefined);
+    assert.strictEqual(settings.mcpServers['a-2'].command, 'server-conflict');
+    assert.strictEqual(settings._agenthaus_mcp, undefined);
+    assert.strictEqual(settings._agenthaus_mcp_map, undefined);
+  });
+
+  await t.test('Cursor postInstall and postUninstall preserve reverse-order namespaced destinations using explicit source map', () => {
+    const cursor = getProvider('cursor');
+    const fakeCursorDir = path.join(tmpDir, 'cursor-reverse-order-test');
+    const fakeTargetDir = path.join(fakeCursorDir, 'plugins');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const configPath = path.join(fakeCursorDir, 'mcp.json');
+
+    fs.writeFileSync(configPath, JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Z', args: [] },
+        'a-2': { command: 'server-conflict', args: [] }
+      }
+    }));
+
+    const pluginDir = path.join(tmpDir, 'cursor-pkg', 'p');
+    fs.mkdirSync(path.join(pluginDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Y', args: [] },
+        'a-2': { command: 'server-Z', args: [] }
+      }
+    }));
+
+    // 1. First install
+    cursor.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+    assert.deepStrictEqual(config._agenthaus_mcp.p, ['p-p-a-2', 'p-a-2']);
+    assert.deepStrictEqual(config._agenthaus_mcp_map.p, {
+      'p-a-2': 'p-p-a-2',
+      'a-2': 'p-a-2'
+    });
+
+    // 2. Update
+    cursor.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+
+    // 3. Uninstall
+    cursor.postUninstall('p', fakeTargetDir, { dryRun: false });
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    assert.strictEqual(config.mcpServers['p-p-a-2'], undefined);
+    assert.strictEqual(config.mcpServers['p-a-2'], undefined);
+    assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+    assert.strictEqual(config._agenthaus_mcp, undefined);
+    assert.strictEqual(config._agenthaus_mcp_map, undefined);
+  });
+
+  await t.test('Windsurf postInstall and postUninstall preserve reverse-order namespaced destinations using explicit source map', () => {
+    const windsurf = getProvider('windsurf');
+    const fakeHome = path.join(tmpDir, 'windsurf-home');
+    const configDir = path.join(fakeHome, '.codeium', 'windsurf');
+    fs.mkdirSync(configDir, { recursive: true });
+    const configPath = path.join(configDir, 'mcp_config.json');
+
+    fs.writeFileSync(configPath, JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Z', args: [] },
+        'a-2': { command: 'server-conflict', args: [] }
+      }
+    }));
+
+    const pluginDir = path.join(tmpDir, 'windsurf-pkg', 'p');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'windsurf-mcp-snippet.json'), JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Y', args: [] },
+        'a-2': { command: 'server-Z', args: [] }
+      }
+    }));
+
+    const origHome = os.homedir;
+    try {
+      os.homedir = () => fakeHome;
+
+      // 1. First install
+      windsurf.postInstall(pluginDir, path.join(fakeHome, 'plugins'), { dryRun: false });
+      let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+      assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+      assert.deepStrictEqual(config._agenthaus_mcp.p, ['p-p-a-2', 'p-a-2']);
+      assert.deepStrictEqual(config._agenthaus_mcp_map.p, {
+        'p-a-2': 'p-p-a-2',
+        'a-2': 'p-a-2'
+      });
+
+      // 2. Update
+      windsurf.postInstall(pluginDir, path.join(fakeHome, 'plugins'), { dryRun: false });
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+      assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+      assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+
+      // 3. Uninstall
+      windsurf.postUninstall('p', path.join(fakeHome, 'plugins'), { dryRun: false });
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      assert.strictEqual(config.mcpServers['p-p-a-2'], undefined);
+      assert.strictEqual(config.mcpServers['p-a-2'], undefined);
+      assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+      assert.strictEqual(config._agenthaus_mcp, undefined);
+      assert.strictEqual(config._agenthaus_mcp_map, undefined);
+    } finally {
+      os.homedir = origHome;
+    }
+  });
 });
 

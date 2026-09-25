@@ -326,12 +326,16 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
       const snippetPath = path.join(sourceDir, 'gemini-settings-snippet.json');
       const settingsPath = path.join(path.dirname(safeTargetDir), 'settings.json');
       let previouslyRegistered = [];
+      let previousSourceMap = {};
       let currentServers = {};
       if (fs.existsSync(settingsPath)) {
         try {
           const currentSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
           if (currentSettings._agenthaus_mcp && Array.isArray(currentSettings._agenthaus_mcp[pluginName])) {
             previouslyRegistered = currentSettings._agenthaus_mcp[pluginName];
+          }
+          if (currentSettings._agenthaus_mcp_map && typeof currentSettings._agenthaus_mcp_map[pluginName] === 'object' && !Array.isArray(currentSettings._agenthaus_mcp_map[pluginName])) {
+            previousSourceMap = currentSettings._agenthaus_mcp_map[pluginName];
           }
           if (currentSettings.mcpServers && typeof currentSettings.mcpServers === 'object') {
             currentServers = currentSettings.mcpServers;
@@ -349,6 +353,7 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
               if (newKeys.length > 0) snippetChanged = true;
             } else {
               const resolvedNewKeys = newKeys.map(k => {
+                if (previousSourceMap[k]) return previousSourceMap[k];
                 if (previouslyRegistered.includes(`${pluginName}-${k}`)) {
                   return `${pluginName}-${k}`;
                 }
@@ -361,7 +366,7 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
                 snippetChanged = true;
               } else {
                 for (const [k, v] of Object.entries(snippet.mcpServers)) {
-                  const targetKey = previouslyRegistered.includes(`${pluginName}-${k}`) ? `${pluginName}-${k}` : k;
+                  const targetKey = previousSourceMap[k] || (previouslyRegistered.includes(`${pluginName}-${k}`) ? `${pluginName}-${k}` : k);
                   if (JSON.stringify(currentServers[targetKey]) !== JSON.stringify(v)) {
                     snippetChanged = true;
                     break;

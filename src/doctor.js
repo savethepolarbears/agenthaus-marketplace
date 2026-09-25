@@ -444,6 +444,21 @@ function validateProviderConfigStructure(parsed, configLabel) {
       }
     }
   }
+  if (parsed._agenthaus_mcp_map !== undefined) {
+    if (typeof parsed._agenthaus_mcp_map !== 'object' || parsed._agenthaus_mcp_map === null || Array.isArray(parsed._agenthaus_mcp_map)) {
+      return `'_agenthaus_mcp_map' in ${configLabel} must be an object`;
+    }
+    for (const [pluginName, map] of Object.entries(parsed._agenthaus_mcp_map)) {
+      if (typeof map !== 'object' || map === null || Array.isArray(map)) {
+        return `Mapping entry for '${pluginName}' in '_agenthaus_mcp_map' must be an object`;
+      }
+      for (const [srcKey, dstKey] of Object.entries(map)) {
+        if (typeof dstKey !== 'string') {
+          return `Destination key for '${srcKey}' in '_agenthaus_mcp_map.${pluginName}' must be a string`;
+        }
+      }
+    }
+  }
   return null;
 }
 

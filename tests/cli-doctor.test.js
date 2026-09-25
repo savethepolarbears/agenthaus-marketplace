@@ -380,4 +380,20 @@ test('CLI Doctor', async (t) => {
     const results = checkProviderConfigs([claude], projectDir, isolatedHome);
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Claude MCP config')));
   });
+
+  await t.test('checkProviderConfigs validates _agenthaus_mcp_map structure and destination keys', () => {
+    const projectDir = path.join(tmpDir, 'agenthaus-mcp-map-test');
+    fs.mkdirSync(path.join(projectDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.cursor', 'mcp.json'), JSON.stringify({
+      _agenthaus_mcp_map: {
+        'test-plugin': {
+          src1: 123
+        }
+      }
+    }));
+
+    const providers = [{ id: 'cursor', name: 'Cursor' }];
+    const results = checkProviderConfigs(providers, projectDir);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("Destination key for 'src1' in '_agenthaus_mcp_map.test-plugin' must be a string")));
+  });
 });

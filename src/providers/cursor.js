@@ -94,7 +94,9 @@ module.exports = {
       if (!config._agenthaus_mcp) config._agenthaus_mcp = {};
 
       const registeredKeys = config._agenthaus_mcp[pluginName] || [];
+      const previousSourceMap = (config._agenthaus_mcp_map && config._agenthaus_mcp_map[pluginName]) || {};
       const newRegisteredKeys = [];
+      const newSourceMap = {};
 
       const hasOtherOwners = (candidateKey) => Object.entries(config._agenthaus_mcp || {}).some(
         ([otherPlugin, keys]) => otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(candidateKey)
@@ -119,8 +121,16 @@ module.exports = {
 
       for (const [key, srvConfig] of Object.entries(mcpServers)) {
         let finalKey = key;
+        const previousDest = previousSourceMap[key];
 
-        if (registeredKeys.includes(key) && !newRegisteredKeys.includes(key)) {
+        if (previousDest && !newRegisteredKeys.includes(previousDest)) {
+          if (hasOtherOwners(previousDest) && JSON.stringify(config.mcpServers[previousDest]) !== JSON.stringify(srvConfig)) {
+            finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
+            console.log(`[warn] Cursor: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
+          } else {
+            finalKey = previousDest;
+          }
+        } else if (!previousDest && Object.keys(previousSourceMap).length === 0 && registeredKeys.includes(key) && !newRegisteredKeys.includes(key)) {
           if (hasOtherOwners(key) && JSON.stringify(config.mcpServers[key]) !== JSON.stringify(srvConfig)) {
             finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
             console.log(`[warn] Cursor: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
@@ -129,17 +139,7 @@ module.exports = {
           }
         } else {
           const baseKey = `${pluginName}-${key}`;
-          const existingNamespaced = registeredKeys.find(k => (k === baseKey || k.startsWith(`${baseKey}-`)) && !newRegisteredKeys.includes(k));
-          if (existingNamespaced && !hasOtherOwners(existingNamespaced)) {
-            finalKey = existingNamespaced;
-          } else if (existingNamespaced && hasOtherOwners(existingNamespaced)) {
-            if (JSON.stringify(config.mcpServers[existingNamespaced]) === JSON.stringify(srvConfig)) {
-              finalKey = existingNamespaced;
-            } else {
-              finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
-              console.log(`[warn] Cursor: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
-            }
-          } else if (config.mcpServers[key] && !newRegisteredKeys.includes(key)) {
+          if (config.mcpServers[key] && !newRegisteredKeys.includes(key)) {
             if (JSON.stringify(config.mcpServers[key]) === JSON.stringify(srvConfig)) {
               finalKey = key;
             } else {
@@ -154,6 +154,7 @@ module.exports = {
         }
         config.mcpServers[finalKey] = srvConfig;
         newRegisteredKeys.push(finalKey);
+        newSourceMap[key] = finalKey;
       }
 
       for (const oldKey of registeredKeys) {
@@ -175,11 +176,19 @@ module.exports = {
 
       if (newRegisteredKeys.length === 0) {
         delete config._agenthaus_mcp[pluginName];
+        if (config._agenthaus_mcp_map) {
+          delete config._agenthaus_mcp_map[pluginName];
+          if (Object.keys(config._agenthaus_mcp_map).length === 0) {
+            delete config._agenthaus_mcp_map;
+          }
+        }
         if (Object.keys(config._agenthaus_mcp).length === 0) {
           delete config._agenthaus_mcp;
         }
       } else {
         config._agenthaus_mcp[pluginName] = newRegisteredKeys;
+        if (!config._agenthaus_mcp_map) config._agenthaus_mcp_map = {};
+        config._agenthaus_mcp_map[pluginName] = newSourceMap;
       }
       if (config.mcpServers && Object.keys(config.mcpServers).length === 0) {
         delete config.mcpServers;
@@ -213,6 +222,12 @@ module.exports = {
           if (Object.keys(config._agenthaus_mcp).length === 0) {
             delete config._agenthaus_mcp;
           }
+          if (config._agenthaus_mcp_map) {
+            delete config._agenthaus_mcp_map[pluginName];
+            if (Object.keys(config._agenthaus_mcp_map).length === 0) {
+              delete config._agenthaus_mcp_map;
+            }
+          }
           const remainingKeys = new Set();
           if (config._agenthaus_mcp) {
             for (const keys of Object.values(config._agenthaus_mcp)) {
@@ -237,6 +252,12 @@ module.exports = {
           for (const k of Object.keys(config.mcpServers)) {
             if (k.startsWith(`${pluginName}-`)) {
               delete config.mcpServers[k];
+            }
+          }
+          if (config._agenthaus_mcp_map) {
+            delete config._agenthaus_mcp_map[pluginName];
+            if (Object.keys(config._agenthaus_mcp_map).length === 0) {
+              delete config._agenthaus_mcp_map;
             }
           }
           if (!dryRun) {
