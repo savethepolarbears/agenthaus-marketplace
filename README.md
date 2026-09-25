@@ -24,19 +24,35 @@
 
 Requires Claude Code 1.0.33+. Gives full access: commands, agents, skills, hooks, and MCP servers.
 
+### Any provider: `agenthaus` CLI
+
+From a checkout of this repo, the zero-dependency CLI installs a plugin and registers its MCP servers in the provider's own config format:
+
+```bash
+node bin/agenthaus.js install   --target <antigravity|claude|codex|copilot|cursor|windsurf> --plugin neon-db [--mode user|project]
+node bin/agenthaus.js uninstall --target cursor --plugin neon-db
+node bin/agenthaus.js doctor
+```
+
+| Target | Where MCP servers are written |
+| :--- | :--- |
+| `claude` | Installed via `claude plugin marketplace add` + `claude plugin install` |
+| `codex` | `[mcp_servers.<name>]` block in `~/.codex/config.toml` (or trusted-project `.codex/config.toml`) |
+| `antigravity` | `~/.gemini/config/mcp_config.json` / `.agents/mcp_config.json`, plus Gemini CLI `settings.json` |
+| `cursor` | `~/.cursor/mcp.json` or `.cursor/mcp.json` |
+| `windsurf` | `~/.config/devin/mcp_config.json` (legacy `~/.codeium/windsurf/mcp_config.json`) |
+| `copilot` | `.vscode/mcp.json` (`servers`) |
+
+Existing entries are never overwritten: conflicting names are registered as `<plugin>-<name>`, and ownership is tracked in `~/.agenthaus/state.json` so uninstall removes only what agenthaus added. Config writes are atomic and keep a `.agenthaus.bak` copy.
+
 ### Codex CLI
 
-Codex CLI supports prose context files (AGENTS.md) but not MCP servers or hooks.
+Codex reads `AGENTS.md` and runs MCP servers declared in `config.toml`.
 
-1. Copy the plugin's AGENTS.md to your project root:
+1. Run `node bin/agenthaus.js install --target codex --plugin neon-db`, or copy the `[mcp_servers.*]` tables from `plugins/neon-db/codex-mcp-config.toml` into `~/.codex/config.toml`.
+2. Export the variables listed in the snippet's `env_vars` (Codex passes them through by name; it does not expand `${VAR}`).
 
-   ```bash
-   cp plugins/neon-db/AGENTS.md ./AGENTS.md
-   ```
-
-2. Codex reads AGENTS.md automatically on session start.
-
-**Note:** MCP-dependent plugins (neon-db, github-integration, cloudflare-platform, etc.) will document their tools in AGENTS.md but cannot execute them — Codex CLI has no MCP runtime. Hook-dependent plugins list their hooks as prose guidance only.
+**Note:** Hook-dependent plugins list their hooks as prose guidance only.
 
 ### Gemini CLI
 
@@ -60,7 +76,7 @@ Gemini CLI reads GEMINI.md context files and supports MCP servers via `~/.gemini
 
 ### Cursor
 
-> **Manual Config Target:** The universal installer does not currently auto-configure Cursor. You must follow these steps manually.
+> **Tip:** `node bin/agenthaus.js install --target cursor` performs these steps automatically.
 
 Cursor reads `.cursor/rules/*.mdc` files and supports MCP servers via `.cursor/mcp.json`.
 
@@ -82,7 +98,7 @@ Cursor reads `.cursor/rules/*.mdc` files and supports MCP servers via `.cursor/m
 
 ### Windsurf
 
-> **Manual Config Target:** The universal installer does not currently auto-configure Windsurf. You must follow these steps manually.
+> **Tip:** `node bin/agenthaus.js install --target windsurf` merges MCP servers and `.windsurfrules` automatically.
 
 Windsurf reads `.windsurfrules` context files from the project root.
 
@@ -92,7 +108,7 @@ Windsurf reads `.windsurfrules` context files from the project root.
    cp plugins/neon-db/AGENTS.md ./.windsurfrules
    ```
 
-2. For MCP plugins, configure servers in Windsurf's global MCP settings (Windsurf → Preferences → MCP).
+2. For MCP plugins, merge `windsurf-mcp-snippet.json` into `~/.config/devin/mcp_config.json` (legacy Windsurf: `~/.codeium/windsurf/mcp_config.json`).
 
 **Note:** Hooks are not supported on Windsurf.
 

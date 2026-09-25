@@ -3,12 +3,11 @@
 const util = require('node:util');
 const path = require('node:path');
 const { discoverPlugins, PLUGINS_DIR } = require('./catalog.js');
-const { runDoctor, isMarketplaceHybrid } = require('./doctor.js');
+const { runDoctor } = require('./doctor.js');
 const { getProvider, detectAll, getAllProviders } = require('./providers/index.js');
-const { installPlugin, updatePlugin } = require('./installer.js');
-const { cleanOrphanedCache, healDirectorySymlinks, repairHookFile, getPluginHookFiles } = require('./sync.js');
-const fs = require('node:fs');
-const os = require('node:os');
+const { installPlugin, uninstallPlugin, updatePlugin, isInstalled } = require('./installer.js');
+const { cleanOrphanedCache, cleanStaleTempFiles, healDirectorySymlinks, repairInstalledHooks } = require('./sync.js');
+const { pruneStaleOwnership } = require('./providers/mcp-ownership.js');
 const ui = require('./ui.js');
 
 function parseCliArgs(rawArgs) {
@@ -31,16 +30,37 @@ function parseCliArgs(rawArgs) {
   });
 }
 
-async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user' }) {
+const VALID_MODES = ['user', 'project'];
+const VALID_METHODS = ['symlink', 'copy'];
+
+function assertMode(mode) {
+  if (mode !== undefined && !VALID_MODES.includes(mode)) {
+    throw new Error(`Invalid --mode '${mode}'. Expected one of: ${VALID_MODES.join(', ')}`);
+  }
+}
+
+async function resolveProviderTarget(target, mode = 'user') {
+  assertMode(mode);
   if (!target) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
-    const providers = getAllProviders().map(p => p.id);
-    target = await ui.promptSelect('Select target provider:', providers);
+    target = await ui.promptSelect('Select target provider:', getAllProviders().map(p => p.id));
   }
-  
   const provider = getProvider(target);
-  if (!provider) throw new Error(`Unknown provider: ${target}`);
-  const targetDir = provider.getTargetDir(process.cwd(), mode);
+  if (!provider) throw new Error(`Unknown provider: ${target}. Expected one of: ${getAllProviders().map(p => p.id).join(', ')}`);
+  return { provider, targetDir: provider.getTargetDir(process.cwd(), mode) };
+}
+
+function findPlugin(name) {
+  const p = discoverPlugins().find(x => x.name === name);
+  if (!p) throw new Error(`Plugin not found: ${name}`);
+  return p;
+}
+
+async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user' }) {
+  if (!VALID_METHODS.includes(method)) {
+    throw new Error(`Invalid --method '${method}'. Expected one of: ${VALID_METHODS.join(', ')}`);
+  }
+  const { provider, targetDir } = await resolveProviderTarget(target, mode);
 
   if (all) {
     const plugins = discoverPlugins();
@@ -49,9 +69,7 @@ async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user
       ui.info(`Plugin ${p.name}: ${res.status}`);
     }
   } else if (plugin) {
-    const plugins = discoverPlugins();
-    const p = plugins.find(x => x.name === plugin);
-    if (!p) throw new Error(`Plugin not found: ${plugin}`);
+    const p = findPlugin(plugin);
     const res = installPlugin(p.path, targetDir, { method, dryRun, provider });
     ui.info(`Plugin ${p.name}: ${res.status}`);
   } else {
@@ -64,15 +82,7 @@ async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user
 }
 
 async function handleUpdate({ target, plugin, all, dryRun, mode = 'user' }) {
-  if (!target) {
-    if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
-    const providers = getAllProviders().map(p => p.id);
-    target = await ui.promptSelect('Select target provider:', providers);
-  }
-
-  const provider = getProvider(target);
-  if (!provider) throw new Error(`Unknown provider: ${target}`);
-  const targetDir = provider.getTargetDir(process.cwd(), mode);
+  const { provider, targetDir } = await resolveProviderTarget(target, mode);
 
   if (!all && !plugin) {
     if (!process.stdin.isTTY) throw new Error('Missing required --plugin or --all flag');
@@ -86,90 +96,92 @@ async function handleUpdate({ target, plugin, all, dryRun, mode = 'user' }) {
   }
 
   if (all) {
-    const plugins = discoverPlugins();
-    for (const p of plugins) {
+    const installed = discoverPlugins().filter(p => isInstalled(p.path, targetDir, provider));
+    if (installed.length === 0) ui.info(`No installed plugins found for ${provider.name}`);
+    for (const p of installed) {
       const res = updatePlugin(p.path, targetDir, { dryRun, provider });
       ui.info(`Plugin ${p.name}: ${res.status} ${res.fromVersion ? `(${res.fromVersion} -> ${res.toVersion})` : ''}`);
     }
   } else if (plugin) {
-    const plugins = discoverPlugins();
-    const p = plugins.find(x => x.name === plugin);
-    if (!p) throw new Error(`Plugin not found: ${plugin}`);
+    const p = findPlugin(plugin);
     const res = updatePlugin(p.path, targetDir, { dryRun, provider });
     ui.info(`Plugin ${p.name}: ${res.status} ${res.fromVersion ? `(${res.fromVersion} -> ${res.toVersion})` : ''}`);
   }
 }
 
-const hasItemLevelSymlinks = isMarketplaceHybrid;
+async function handleUninstall({ target, plugin, all, dryRun, mode = 'user' }) {
+  const { provider, targetDir } = await resolveProviderTarget(target, mode);
+  let plugins;
+  if (all) {
+    plugins = discoverPlugins().filter(p => isInstalled(p.path, targetDir, provider));
+  } else if (plugin) {
+    plugins = [findPlugin(plugin)];
+  } else {
+    if (!process.stdin.isTTY) throw new Error('Missing required --plugin or --all flag');
+    const installed = discoverPlugins().filter(p => isInstalled(p.path, targetDir, provider));
+    if (installed.length === 0) {
+      ui.info(`No installed plugins found for ${provider.name}`);
+      return;
+    }
+    plugins = [await ui.promptSelect('Select plugin to uninstall:', installed.map(p => ({ name: p.name, value: p })))];
+  }
+  for (const p of plugins) {
+    const res = uninstallPlugin(targetDir, p.name, { dryRun, provider, sourceDir: p.path });
+    ui.info(`Plugin ${p.name}: ${res.status}${res.reason ? ` (${res.reason})` : ''}`);
+  }
+}
+
+function targetDirsFor(provider, mode) {
+  return mode ? [provider.getTargetDir(process.cwd(), mode)] : Array.from(new Set([
+    provider.getTargetDir(process.cwd(), 'user'),
+    provider.getTargetDir(process.cwd(), 'project')
+  ]));
+}
+
+function repairProviderHooks(provider, targetDirs, dryRun) {
+  const catalogNames = new Set(discoverPlugins().map(p => p.name));
+  const repaired = [];
+  for (const targetDir of targetDirs) {
+    repaired.push(...repairInstalledHooks(targetDir, { catalogNames, repoPluginsDir: PLUGINS_DIR, dryRun }));
+  }
+  return repaired;
+}
+
+function syncProvider(provider, mode, dryRun) {
+  const targetDirs = targetDirsFor(provider, mode);
+  for (const targetDir of targetDirs) {
+    const actions = healDirectorySymlinks(targetDir, PLUGINS_DIR, { dryRun });
+    for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
+  }
+  for (const r of repairProviderHooks(provider, targetDirs, dryRun)) {
+    ui.info(`Hook ${r.plugin}: repaired ${path.basename(r.hookFile)} (${r.actions.map(x => x.type).join(', ')})`);
+  }
+  if (typeof provider.getCacheDirs === 'function') {
+    for (const cacheDir of provider.getCacheDirs()) {
+      for (const a of cleanOrphanedCache(cacheDir, { dryRun })) ui.info(`Cache ${provider.name}: ${a.type} ${a.path}`);
+    }
+  }
+  if (typeof provider.getConfigPaths === 'function') {
+    for (const a of cleanStaleTempFiles(provider.getConfigPaths(process.cwd()), { dryRun })) {
+      ui.info(`Temp ${provider.name}: ${a.type} ${a.path}`);
+    }
+  }
+}
 
 async function handleSync({ target, all, dryRun, mode }) {
+  assertMode(mode);
   if (!target && !all) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target or --all flag');
     all = await ui.promptConfirm('Sync all providers?', true);
   }
 
-  const repoPluginsDir = PLUGINS_DIR;
-  const catalogNames = new Set(discoverPlugins().map(p => p.name));
-
-  const repairTargetHooks = (targetDir) => {
-    if (!fs.existsSync(targetDir)) return;
-    for (const entry of fs.readdirSync(targetDir)) {
-      if (!catalogNames.has(entry)) continue;
-      const entryDir = path.join(targetDir, entry);
-      try {
-        if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
-        if (isMarketplaceHybrid(entryDir, entry)) continue;
-        const hookFiles = getPluginHookFiles(entryDir);
-        for (const hookFile of hookFiles) {
-          if (fs.existsSync(hookFile)) {
-            try {
-              const real = fs.realpathSync(hookFile);
-              if (real === repoPluginsDir || real.startsWith(repoPluginsDir + path.sep)) {
-                continue;
-              }
-            } catch {}
-            const res = repairHookFile(hookFile, { dryRun });
-            if (res.repaired) ui.info(`Hook ${entry}: repaired ${path.basename(hookFile)} (${res.actions.map(x=>x.type).join(', ')})`);
-          }
-        }
-      } catch {}
-    }
-  };
-  
   if (all) {
-    // Sweep Claude cache
-    const claudeCache = path.join(os.homedir(), '.claude', 'plugins', 'cache');
-    const cacheActions = cleanOrphanedCache(claudeCache, { dryRun });
-    for (const a of cacheActions) ui.info(`Cache: ${a.type} ${a.path}`);
-
-    const providers = detectAll(process.cwd());
-    for (const p of providers) {
-      const targetDirs = mode ? [p.getTargetDir(process.cwd(), mode)] : Array.from(new Set([
-        p.getTargetDir(process.cwd(), 'user'),
-        p.getTargetDir(process.cwd(), 'project')
-      ]));
-      for (const targetDir of targetDirs) {
-        const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
-        for (const a of actions) ui.info(`Symlink ${p.name}: ${a.type} ${a.path}`);
-
-        // repair hooks scoped to known catalog plugins
-        repairTargetHooks(targetDir);
-      }
-    }
+    for (const p of detectAll(process.cwd())) syncProvider(p, mode, dryRun);
+    for (const a of pruneStaleOwnership({ dryRun })) ui.info(`State: ${a.type} ${a.path}`);
   } else if (target) {
     const provider = getProvider(target);
     if (!provider) throw new Error(`Unknown provider: ${target}`);
-    const targetDirs = mode ? [provider.getTargetDir(process.cwd(), mode)] : Array.from(new Set([
-      provider.getTargetDir(process.cwd(), 'user'),
-      provider.getTargetDir(process.cwd(), 'project')
-    ]));
-    for (const targetDir of targetDirs) {
-      const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
-      for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
-
-      // repair hooks scoped to known catalog plugins
-      repairTargetHooks(targetDir);
-    }
+    syncProvider(provider, mode, dryRun);
   }
 }
 
@@ -207,39 +219,9 @@ async function runCli(rawArgs) {
       case 'doctor':
         let docRes = runDoctor({ verbose: values.verbose, json: values.json });
         if (values.fix) {
-          // implement fix scoped to catalog plugins
           let fixCount = 0;
-          const catalogNames = new Set(discoverPlugins().map(p => p.name));
-          const detected = detectAll(process.cwd());
-          for (const p of detected) {
-            const targetDirs = new Set([
-              p.getTargetDir(process.cwd(), 'user'),
-              p.getTargetDir(process.cwd(), 'project')
-            ]);
-            for (const tDir of targetDirs) {
-              if (!fs.existsSync(tDir)) continue;
-              for (const entry of fs.readdirSync(tDir)) {
-                if (!catalogNames.has(entry)) continue;
-                const entryDir = path.join(tDir, entry);
-                try {
-                  if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
-                  if (isMarketplaceHybrid(entryDir, entry)) continue;
-                  const hookFiles = getPluginHookFiles(entryDir);
-                  for (const hFile of hookFiles) {
-                    if (fs.existsSync(hFile)) {
-                      try {
-                        const real = fs.realpathSync(hFile);
-                        if (real === PLUGINS_DIR || real.startsWith(PLUGINS_DIR + path.sep)) {
-                          continue;
-                        }
-                      } catch {}
-                      const res = repairHookFile(hFile, { dryRun });
-                      if (res.repaired) fixCount++;
-                    }
-                  }
-                } catch {}
-              }
-            }
+          for (const p of detectAll(process.cwd())) {
+            fixCount += repairProviderHooks(p, targetDirsFor(p), dryRun).length;
           }
           if (!values.json) {
             if (dryRun) {
@@ -272,6 +254,9 @@ async function runCli(rawArgs) {
       case 'install':
         await handleInstall({ target: values.target, plugin: values.plugin, all: values.all, method: values.method, dryRun, mode: values.mode });
         break;
+      case 'uninstall':
+        await handleUninstall({ target: values.target, plugin: values.plugin, all: values.all, dryRun, mode: values.mode });
+        break;
       case 'update':
         await handleUpdate({ target: values.target, plugin: values.plugin, all: values.all, dryRun, mode: values.mode });
         break;
@@ -300,16 +285,19 @@ Usage: agenthaus <command> [options]
 
 Commands:
   list       List all available plugins
-  install    Install a plugin (experimental)
-  update     Update a plugin (experimental)
-  sync       Sync plugins
+  install    Install a plugin into a provider
+  uninstall  Remove a plugin and its MCP registrations from a provider
+  update     Update installed plugins
+  sync       Heal symlinks, repair hooks, purge stale caches and temp files
   doctor     Run diagnostic engine
+
+Targets: antigravity, claude, codex, copilot, cursor, windsurf
 
 Options:
   -t, --target <target>   Target runtime
   -p, --plugin <plugin>   Plugin name
   -a, --all               All plugins
-  -m, --method <method>   Installation method (default: symlink)
+  -m, --method <method>   Installation method: symlink (default) or copy
   --mode <mode>           Installation scope: user (default) or project
   --json                  Output as JSON
   -v, --verbose           Verbose output

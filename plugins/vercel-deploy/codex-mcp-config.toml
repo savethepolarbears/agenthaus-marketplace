@@ -1,7 +1,7 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.vercel]
+[mcp_servers.vercel]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-vercel"]
-[mcp.servers.vercel.env]
-VERCEL_TOKEN = "${VERCEL_TOKEN}"
+env_vars = ["VERCEL_TOKEN"]

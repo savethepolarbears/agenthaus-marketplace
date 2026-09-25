@@ -8,6 +8,7 @@ State-based task handoff between agents using a shared blackboard protocol.
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | n/a | n/a | full | full |
 | Codex CLI | n/a | n/a | partial | full |
-| Gemini CLI | n/a | n/a | partial | full |
+| Antigravity / Gemini CLI | n/a | n/a | partial | full |
 | Cursor | n/a | n/a | partial | full |
-| Windsurf | n/a | n/a | partial | full |
+| Windsurf / Devin | n/a | n/a | partial | full |
+| GitHub Copilot | n/a | n/a | prompts | full |

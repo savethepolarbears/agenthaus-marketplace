@@ -1,7 +1,8 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.apple-productivity]
+# NOTE: replace ${CLAUDE_PLUGIN_ROOT} with the plugin's install path
+[mcp_servers.apple-productivity]
 command = "uv"
 args = ["run", "--project", "${CLAUDE_PLUGIN_ROOT}/mcp", "apple-productivity-mcp"]
-[mcp.servers.apple-productivity.env]
-APPLE_REMINDERS_BACKEND = "${APPLE_REMINDERS_BACKEND}"
+env_vars = ["APPLE_REMINDERS_BACKEND"]

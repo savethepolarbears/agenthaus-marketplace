@@ -1,10 +1,8 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.encharge]
+# NOTE: replace ${CLAUDE_PLUGIN_ROOT} with the plugin's install path
+[mcp_servers.encharge]
 command = "npx"
 args = ["tsx", "${CLAUDE_PLUGIN_ROOT}/node_modules/encharge-cli/src/mcp/index.ts"]
-[mcp.servers.encharge.env]
-ENCHARGE_API_KEY = "${ENCHARGE_API_KEY}"
-ENCHARGE_ACCOUNTS = "${ENCHARGE_ACCOUNTS}"
-ENCHARGE_WORKSPACE_CONFIG = "${ENCHARGE_WORKSPACE_CONFIG}"
-ENCHARGE_DEFAULT_ACCOUNT = "${ENCHARGE_DEFAULT_ACCOUNT}"
+env_vars = ["ENCHARGE_API_KEY", "ENCHARGE_ACCOUNTS", "ENCHARGE_WORKSPACE_CONFIG", "ENCHARGE_DEFAULT_ACCOUNT"]

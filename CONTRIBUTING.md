@@ -317,8 +317,10 @@ For each plugin, the generator produces:
 | `AGENTS.md` | Codex CLI, Windsurf | Prose context: capabilities, limitations, usage |
 | `GEMINI.md` | Gemini CLI | Prose context with MCP configuration guidance |
 | `.cursor/rules/<name>.mdc` | Cursor | MDC rule file with description, globs, alwaysApply frontmatter |
-| `gemini-settings-snippet.json` | Gemini CLI | mcpServers snippet for `~/.gemini/settings.json` (MCP plugins only) |
-| `.cursor/mcp.json` | Cursor | mcpServers config with `${env:VAR}` syntax (MCP plugins only) |
+| `gemini-settings-snippet.json` | Antigravity / Gemini CLI | mcpServers for Gemini `settings.json` (`httpUrl` for HTTP); mapped to `serverUrl` for Antigravity `mcp_config.json` (MCP plugins only) |
+| `windsurf-mcp-snippet.json` | Windsurf / Devin | mcpServers with `${env:VAR}` syntax for `mcp_config.json` (MCP plugins only) |
+| `codex-mcp-config.toml` | Codex CLI | `[mcp_servers.<name>]` tables using `env_vars` / `bearer_token_env_var` (MCP plugins only) |
+| `.cursor/mcp.json` | Cursor, Copilot | mcpServers config with `${env:VAR}` syntax; the installer also writes it to `.vscode/mcp.json` `servers` for Copilot (MCP plugins only) |
 | `claude-desktop-snippet.json` | Claude Desktop | mcpServers snippet for `claude_desktop_config.json` (MCP plugins only) |
 
 The generator is idempotent: re-running on unchanged sources produces byte-for-byte identical output.

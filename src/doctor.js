@@ -3,9 +3,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-const { detectAll } = require('./providers/index.js');
+const { detectAll, getProvider } = require('./providers/index.js');
+const { LEGACY_OWNERSHIP_KEYS, getStatePath, validateState } = require('./providers/mcp-ownership.js');
 const { discoverPlugins } = require('./catalog.js');
 const { getPluginHookFiles } = require('./sync.js');
+const { isMarketplaceHybrid } = require('./hybrid.js');
 
 function isCommandAccessible(command) {
   const extensions = process.platform === 'win32'
@@ -274,6 +276,7 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   const providers = detectAll(cwd);
   addResult({ severity: 'INFO', message: `Detected providers: ${providers.map(p => p.name).join(', ') || 'None'}` });
   addResults(checkProviderConfigs(providers, cwd));
+  addResults(checkOwnershipState());
   
   addResults(checkMcpCommands(plugins));
 
@@ -327,97 +330,35 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   return { pass_count, warn_count, fail_count, checks };
 }
 
-function isMarketplaceHybrid(dir, pluginName = path.basename(dir), repoRoot = (process.env.AGENTHAUS_REPO_ROOT ? path.resolve(process.env.AGENTHAUS_REPO_ROOT) : path.resolve(__dirname, '..'))) {
-  try {
-    const entries = fs.readdirSync(dir);
-    const repoPlugins = process.env.AGENTHAUS_PLUGINS_DIR
-      ? path.resolve(process.env.AGENTHAUS_PLUGINS_DIR)
-      : path.resolve(repoRoot, 'plugins');
-    let realRepoPlugins;
-    try {
-      realRepoPlugins = fs.realpathSync(repoPlugins);
-    } catch {
-      realRepoPlugins = repoPlugins;
-    }
+const REMOTE_URL_FIELDS = ['url', 'httpUrl', 'serverUrl'];
 
-    const expectedSourceDir = path.join(repoPlugins, pluginName);
-    let realExpectedSource;
-    try {
-      realExpectedSource = fs.realpathSync(expectedSourceDir);
-    } catch {
-      realExpectedSource = expectedSourceDir;
-    }
-
-    const sep = path.sep;
-
-    for (const entry of entries) {
-      const p = path.join(dir, entry);
-      try {
-        const st = fs.lstatSync(p);
-        if (st.isSymbolicLink()) {
-          const rawTarget = fs.readlinkSync(p);
-          const resolvedTarget = path.resolve(dir, rawTarget);
-          let realTarget;
-          try {
-            realTarget = fs.realpathSync(p);
-          } catch {
-            realTarget = resolvedTarget;
-          }
-
-          // Strictly verify if symlink target is within this marketplace checkout
-          let isMarketplaceTarget = false;
-          if (process.platform === 'win32') {
-            const realTargetLower = realTarget.toLowerCase();
-            const resolvedTargetLower = resolvedTarget.toLowerCase();
-            const realRepoPluginsLower = realRepoPlugins.toLowerCase();
-            const repoPluginsLower = repoPlugins.toLowerCase();
-            const realExpectedSourceLower = realExpectedSource.toLowerCase();
-            const expectedSourceDirLower = expectedSourceDir.toLowerCase();
-            isMarketplaceTarget =
-              realTargetLower === realRepoPluginsLower || realTargetLower.startsWith(realRepoPluginsLower + sep) ||
-              resolvedTargetLower === repoPluginsLower || resolvedTargetLower.startsWith(repoPluginsLower + sep) ||
-              realTargetLower === realExpectedSourceLower || realTargetLower.startsWith(realExpectedSourceLower + sep) ||
-              resolvedTargetLower === expectedSourceDirLower || resolvedTargetLower.startsWith(expectedSourceDirLower + sep);
-          } else {
-            isMarketplaceTarget =
-              realTarget === realRepoPlugins || realTarget.startsWith(realRepoPlugins + sep) ||
-              resolvedTarget === repoPlugins || resolvedTarget.startsWith(repoPlugins + sep) ||
-              realTarget === realExpectedSource || realTarget.startsWith(realExpectedSource + sep) ||
-              resolvedTarget === expectedSourceDir || resolvedTarget.startsWith(expectedSourceDir + sep);
-          }
-
-          if (isMarketplaceTarget) {
-            return true;
-          }
-        }
-      } catch {}
-    }
-  } catch {}
-  return false;
-}
-
-const hasItemLevelSymlinks = isMarketplaceHybrid;
-
-function validateProviderConfigStructure(parsed, configLabel) {
+function validateProviderConfigStructure(parsed, configLabel, { serversKey = 'mcpServers', remoteFields = REMOTE_URL_FIELDS } = {}) {
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
     return `${configLabel} must be a JSON object`;
   }
-  if (parsed.mcpServers !== undefined) {
-    if (typeof parsed.mcpServers !== 'object' || parsed.mcpServers === null || Array.isArray(parsed.mcpServers)) {
-      return `'mcpServers' in ${configLabel} must be an object`;
+  const servers = parsed[serversKey];
+  if (servers !== undefined) {
+    if (typeof servers !== 'object' || servers === null || Array.isArray(servers)) {
+      return `'${serversKey}' in ${configLabel} must be an object`;
     }
-    for (const [srvName, srvConf] of Object.entries(parsed.mcpServers)) {
+    for (const [srvName, srvConf] of Object.entries(servers)) {
       if (typeof srvConf !== 'object' || srvConf === null || Array.isArray(srvConf)) {
         return `MCP server '${srvName}' in ${configLabel} must be an object`;
       }
-      if (!srvConf.command && !srvConf.url) {
-        return `MCP server '${srvName}' in ${configLabel} must specify a 'command' or 'url'`;
+      const remoteField = remoteFields.find(f => srvConf[f] !== undefined);
+      if (!srvConf.command && !remoteField) {
+        const expected = remoteFields.length === 1 ? `'${remoteFields[0]}'` : "'url'";
+        const legacy = REMOTE_URL_FIELDS.find(f => srvConf[f] !== undefined);
+        if (legacy) {
+          return `MCP server '${srvName}' in ${configLabel} uses '${legacy}'; ${configLabel} requires ${expected}`;
+        }
+        return `MCP server '${srvName}' in ${configLabel} must specify a 'command' or ${expected}`;
+      }
+      if (remoteField && (typeof srvConf[remoteField] !== 'string' || srvConf[remoteField].trim() === '')) {
+        return `'${remoteField}' in MCP server '${srvName}' (${configLabel}) must be a non-empty string`;
       }
       if (srvConf.command !== undefined && (typeof srvConf.command !== 'string' || srvConf.command.trim() === '')) {
         return `'command' in MCP server '${srvName}' (${configLabel}) must be a non-empty string`;
-      }
-      if (srvConf.url !== undefined && (typeof srvConf.url !== 'string' || srvConf.url.trim() === '')) {
-        return `'url' in MCP server '${srvName}' (${configLabel}) must be a non-empty string`;
       }
       if (srvConf.args !== undefined && (!Array.isArray(srvConf.args) || !srvConf.args.every(a => typeof a === 'string'))) {
         return `'args' in MCP server '${srvName}' (${configLabel}) must be an array of strings`;
@@ -462,98 +403,92 @@ function validateProviderConfigStructure(parsed, configLabel) {
   return null;
 }
 
+// How doctor validates each provider config file. Paths come from provider.getConfigPaths().
+function describeConfig(providerId, configPath) {
+  const base = path.basename(configPath);
+  switch (providerId) {
+    case 'antigravity':
+      return base === 'mcp_config.json'
+        ? { label: 'Antigravity MCP config', remoteFields: ['serverUrl'] }
+        : { label: 'Gemini settings' };
+    case 'cursor': return { label: 'Cursor MCP config' };
+    case 'windsurf': return { label: 'Windsurf MCP config' };
+    case 'copilot': return { label: 'VS Code MCP config', serversKey: 'servers' };
+    case 'codex': return { label: 'Codex config', format: 'toml' };
+    case 'claude': return { label: base === '.mcp.json' ? 'Claude MCP config' : 'Claude config' };
+    default: return null;
+  }
+}
+
+function validateCodexToml(content) {
+  if (/^\s*\[\s*mcp\s*\.\s*servers\s*\./m.test(content)) {
+    return { severity: 'WARN', reason: "declares '[mcp.servers.*]' tables, which Codex ignores; use '[mcp_servers.<name>]'" };
+  }
+  const seen = new Set();
+  for (const m of content.matchAll(/^\s*\[\s*mcp_servers\s*\.\s*("(?:[^"\\]|\\.)*"|[A-Za-z0-9_-]+)\s*\]/gm)) {
+    if (seen.has(m[1])) return { severity: 'FAIL', reason: `duplicate table [mcp_servers.${m[1]}] (invalid TOML)` };
+    seen.add(m[1]);
+  }
+  return null;
+}
+
 function checkProviderConfigs(providers, cwd = process.cwd(), home = os.homedir()) {
   const results = [];
 
-  for (const provider of providers) {
-    if (provider.id === 'antigravity') {
-      const candidates = new Set([
-        path.join(home, '.gemini', 'settings.json'),
-        path.join(cwd, '.gemini', 'settings.json')
-      ]);
-      for (const p of candidates) {
-        if (fs.existsSync(p)) {
-          try {
-            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
-            const structErr = validateProviderConfigStructure(parsed, 'Gemini settings');
-            if (structErr) {
-              results.push({ severity: 'FAIL', message: `Malformed Gemini settings at ${p}: ${structErr}` });
-            } else {
-              results.push({ severity: 'PASS', message: `Gemini settings valid (${p})` });
-            }
-          } catch (err) {
-            results.push({ severity: 'FAIL', message: `Malformed Gemini settings at ${p}: ${err.message}` });
-          }
-        }
+  for (const detected of providers) {
+    const provider = getProvider(detected.id) || detected;
+    if (typeof provider.getConfigPaths !== 'function') continue;
+    for (const configPath of new Set(provider.getConfigPaths(cwd, home))) {
+      const desc = describeConfig(provider.id, configPath);
+      if (!desc || !fs.existsSync(configPath)) continue;
+      const { label } = desc;
+      let content;
+      try {
+        content = fs.readFileSync(configPath, 'utf8');
+      } catch (err) {
+        results.push({ severity: 'FAIL', message: `Unreadable ${label} at ${configPath}: ${err.message}` });
+        continue;
       }
-    } else if (provider.id === 'cursor') {
-      const candidates = new Set([
-        path.join(home, '.cursor', 'mcp.json'),
-        path.join(cwd, '.cursor', 'mcp.json')
-      ]);
-      for (const p of candidates) {
-        if (fs.existsSync(p)) {
-          try {
-            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
-            const structErr = validateProviderConfigStructure(parsed, 'Cursor MCP config');
-            if (structErr) {
-              results.push({ severity: 'FAIL', message: `Malformed Cursor MCP config at ${p}: ${structErr}` });
-            } else {
-              results.push({ severity: 'PASS', message: `Cursor MCP config valid (${p})` });
-            }
-          } catch (err) {
-            results.push({ severity: 'FAIL', message: `Malformed Cursor MCP config at ${p}: ${err.message}` });
-          }
-        }
+
+      if (desc.format === 'toml') {
+        const issue = validateCodexToml(content);
+        if (issue) results.push({ severity: issue.severity, message: `${issue.severity === 'FAIL' ? 'Malformed' : 'Outdated'} ${label} at ${configPath}: ${issue.reason}` });
+        else results.push({ severity: 'PASS', message: `${label} valid (${configPath})` });
+        continue;
       }
-    } else if (provider.id === 'windsurf') {
-      // Windsurf adapter exclusively reads and writes ~/.codeium/windsurf/mcp_config.json
-      const candidates = new Set([
-        path.join(home, '.codeium', 'windsurf', 'mcp_config.json')
-      ]);
-      for (const p of candidates) {
-        if (fs.existsSync(p)) {
-          try {
-            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
-            const structErr = validateProviderConfigStructure(parsed, 'Windsurf MCP config');
-            if (structErr) {
-              results.push({ severity: 'FAIL', message: `Malformed Windsurf MCP config at ${p}: ${structErr}` });
-            } else {
-              results.push({ severity: 'PASS', message: `Windsurf MCP config valid (${p})` });
-            }
-          } catch (err) {
-            results.push({ severity: 'FAIL', message: `Malformed Windsurf MCP config at ${p}: ${err.message}` });
-          }
-        }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(content);
+      } catch (err) {
+        results.push({ severity: 'FAIL', message: `Malformed ${label} at ${configPath}: ${err.message}` });
+        continue;
       }
-    } else if (provider.id === 'claude') {
-      const candidates = new Set([
-        path.join(home, '.claude', 'settings.json'),
-        path.join(home, '.claude.json'),
-        path.join(cwd, '.claude', 'settings.json'),
-        path.join(cwd, '.claude.json'),
-        path.join(cwd, '.mcp.json')
-      ]);
-      for (const p of candidates) {
-        if (fs.existsSync(p)) {
-          const configLabel = path.basename(p) === '.mcp.json' ? 'Claude MCP config' : 'Claude config';
-          try {
-            const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
-            const structErr = validateProviderConfigStructure(parsed, configLabel);
-            if (structErr) {
-              results.push({ severity: 'FAIL', message: `Malformed ${configLabel} at ${p}: ${structErr}` });
-            } else {
-              results.push({ severity: 'PASS', message: `${configLabel} valid (${p})` });
-            }
-          } catch (err) {
-            results.push({ severity: 'FAIL', message: `Malformed ${configLabel} at ${p}: ${err.message}` });
-          }
-        }
+      const structErr = validateProviderConfigStructure(parsed, label, desc);
+      if (structErr) {
+        results.push({ severity: 'FAIL', message: `Malformed ${label} at ${configPath}: ${structErr}` });
+        continue;
+      }
+      results.push({ severity: 'PASS', message: `${label} valid (${configPath})` });
+      if (LEGACY_OWNERSHIP_KEYS.some(k => k in parsed)) {
+        results.push({ severity: 'WARN', message: `${label} at ${configPath} contains legacy agenthaus ownership markers; they move to ${getStatePath()} on the next install/update` });
       }
     }
   }
 
   return results;
+}
+
+function checkOwnershipState() {
+  const statePath = getStatePath();
+  if (!fs.existsSync(statePath)) return [];
+  try {
+    const err = validateState(JSON.parse(fs.readFileSync(statePath, 'utf8')));
+    if (err) return [{ severity: 'FAIL', message: `Malformed AgentHaus state at ${statePath}: ${err}` }];
+    return [{ severity: 'PASS', message: `AgentHaus state valid (${statePath})` }];
+  } catch (e) {
+    return [{ severity: 'FAIL', message: `Malformed AgentHaus state at ${statePath}: ${e.message}` }];
+  }
 }
 
 module.exports = {
@@ -564,8 +499,8 @@ module.exports = {
   checkCredentials,
   checkConfigFreshness,
   checkProviderConfigs,
+  checkOwnershipState,
   validateProviderConfigStructure,
   isMarketplaceHybrid,
-  hasItemLevelSymlinks,
   runDoctor
 };

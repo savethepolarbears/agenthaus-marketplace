@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { validateTargetSafety, installPlugin, uninstallPlugin, updatePlugin } = require('../src/installer');
+const { getOwnedKeys } = require('../src/providers/mcp-ownership.js');
+
+process.env.AGENTHAUS_STATE_FILE = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-state-')), 'state.json');
 
 test('validateTargetSafety throws for dangerous paths', (t) => {
   assert.throws(() => validateTargetSafety(''), /targetDir must be a non-empty string/);
@@ -511,7 +514,9 @@ test('updatePlugin updates hybrid item-level symlink installations when MCP serv
   const updatedSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
   assert.ok(updatedSettings.mcpServers.srvA);
   assert.strictEqual(updatedSettings.mcpServers.srvB, undefined);
-  assert.deepStrictEqual(updatedSettings._agenthaus_mcp['src-plugin'], ['srvA']);
+  // Legacy in-config ownership markers are migrated into the state file
+  assert.strictEqual(updatedSettings._agenthaus_mcp, undefined);
+  assert.deepStrictEqual(getOwnedKeys(settingsPath, 'src-plugin'), ['srvA']);
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });

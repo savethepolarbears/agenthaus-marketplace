@@ -1,6 +1,8 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.postgres]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-postgres", "${NEON_DATABASE_URL}"]
-[mcp.servers.postgres.env]
+# NOTE: POSIX sh wrapper expands variables in args
+[mcp_servers.postgres]
+command = "sh"
+args = ["-c", "exec 'npx' '-y' '@modelcontextprotocol/server-postgres' \"$NEON_DATABASE_URL\""]
+env_vars = ["NEON_DATABASE_URL"]

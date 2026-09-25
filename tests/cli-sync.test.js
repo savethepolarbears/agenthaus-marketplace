@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { cleanOrphanedCache, healDirectorySymlinks } = require('../src/sync');
+// Keep agenthaus ownership state out of the real home directory
+process.env.AGENTHAUS_STATE_FILE = require('node:path').join(require('node:fs').mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'agenthaus-state-')), 'state.json');
 
 test('cleanOrphanedCache identifies and prunes temp_git_ and temp_subdir_ directories', (t) => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));

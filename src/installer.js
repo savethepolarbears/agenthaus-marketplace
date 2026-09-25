@@ -38,6 +38,27 @@ function validateTargetSafety(targetDir) {
   return canonical;
 }
 
+const PLUGIN_NAME_PATTERN = /^[a-z0-9][a-z0-9._-]*$/;
+
+/**
+ * Resolve <targetDir>/<pluginName>, rejecting names that could escape the target
+ * directory (e.g. '../x') before any recursive delete is attempted.
+ */
+function resolvePluginPath(safeTargetDir, pluginName) {
+  if (typeof pluginName !== 'string' || !PLUGIN_NAME_PATTERN.test(pluginName) || pluginName.includes('..')) {
+    throw new Error(`Invalid plugin name: ${JSON.stringify(pluginName)}`);
+  }
+  const destPath = path.join(safeTargetDir, pluginName);
+  if (path.dirname(destPath) !== safeTargetDir) {
+    throw new Error(`Refusing to operate outside ${safeTargetDir}: ${pluginName}`);
+  }
+  return destPath;
+}
+
+function isManagedProvider(provider) {
+  return Boolean(provider && typeof provider.install === 'function');
+}
+
 function getHybridSymlinkInfo(destPath, sourceDir) {
   let entries;
   try {
@@ -138,7 +159,10 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
     throw new Error(`Unsupported method: ${method}`);
   }
   const safeTargetDir = validateTargetSafety(targetDir);
-  const destPath = path.join(safeTargetDir, path.basename(sourceDir));
+  const destPath = resolvePluginPath(safeTargetDir, path.basename(sourceDir));
+  if (isManagedProvider(provider)) {
+    return provider.install(sourceDir, safeTargetDir, { dryRun });
+  }
 
   let exists = false;
   try {
@@ -194,15 +218,23 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
   return { status: 'installed', method, path: destPath };
 }
 
-function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = null } = {}) {
+function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = null, sourceDir = null } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
-  const destPath = path.join(safeTargetDir, pluginName);
+  const destPath = resolvePluginPath(safeTargetDir, pluginName);
+  if (isManagedProvider(provider)) {
+    return provider.uninstall(pluginName, safeTargetDir, { dryRun, sourceDir });
+  }
 
   let lstat;
   try {
     lstat = fs.lstatSync(destPath);
   } catch (e) {
     return { status: 'not_found', path: destPath };
+  }
+
+  if (sourceDir && isForeignInstallation(destPath, sourceDir)) {
+    const reason = lstat.isSymbolicLink() ? 'foreign symlink' : 'user-managed directory';
+    return { status: 'skipped', reason, path: destPath };
   }
 
   if (!dryRun) {
@@ -223,7 +255,10 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = nul
 function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
   const pluginName = path.basename(sourceDir);
-  const destPath = path.join(safeTargetDir, pluginName);
+  const destPath = resolvePluginPath(safeTargetDir, pluginName);
+  if (isManagedProvider(provider)) {
+    return provider.update(sourceDir, safeTargetDir, { dryRun });
+  }
 
   let lstat;
   try {
@@ -322,67 +357,11 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
         } catch {}
       }
 
-      let snippetChanged = false;
-      const snippetPath = path.join(sourceDir, 'gemini-settings-snippet.json');
-      const settingsPath = path.join(path.dirname(safeTargetDir), 'settings.json');
-      let previouslyRegistered = [];
-      let previousSourceMap = {};
-      let currentServers = {};
-      if (fs.existsSync(settingsPath)) {
-        try {
-          const currentSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-          if (currentSettings._agenthaus_mcp && Array.isArray(currentSettings._agenthaus_mcp[pluginName])) {
-            previouslyRegistered = currentSettings._agenthaus_mcp[pluginName];
-          }
-          if (currentSettings._agenthaus_mcp_map && typeof currentSettings._agenthaus_mcp_map[pluginName] === 'object' && !Array.isArray(currentSettings._agenthaus_mcp_map[pluginName])) {
-            previousSourceMap = currentSettings._agenthaus_mcp_map[pluginName];
-          }
-          if (currentSettings.mcpServers && typeof currentSettings.mcpServers === 'object') {
-            currentServers = currentSettings.mcpServers;
-          }
-        } catch {}
-      }
+      // Provider-specific derived config (MCP registrations) may drift independently of files.
+      const mcpDrifted = Boolean(provider && typeof provider.isMcpInSync === 'function' &&
+        !provider.isMcpInSync(sourceDir, safeTargetDir));
 
-      if (fs.existsSync(snippetPath)) {
-        try {
-          const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-          if (snippet && typeof snippet === 'object' && !Array.isArray(snippet) &&
-              snippet.mcpServers && typeof snippet.mcpServers === 'object' && !Array.isArray(snippet.mcpServers)) {
-            const newKeys = Object.keys(snippet.mcpServers);
-            if (!fs.existsSync(settingsPath)) {
-              if (newKeys.length > 0) snippetChanged = true;
-            } else {
-              const resolvedNewKeys = newKeys.map(k => {
-                if (previousSourceMap[k]) return previousSourceMap[k];
-                if (previouslyRegistered.includes(`${pluginName}-${k}`)) {
-                  return `${pluginName}-${k}`;
-                }
-                return k;
-              });
-
-              if (resolvedNewKeys.length !== previouslyRegistered.length ||
-                  !resolvedNewKeys.every(k => previouslyRegistered.includes(k)) ||
-                  !previouslyRegistered.every(k => resolvedNewKeys.includes(k))) {
-                snippetChanged = true;
-              } else {
-                for (const [k, v] of Object.entries(snippet.mcpServers)) {
-                  const targetKey = previousSourceMap[k] || (previouslyRegistered.includes(`${pluginName}-${k}`) ? `${pluginName}-${k}` : k);
-                  if (JSON.stringify(currentServers[targetKey]) !== JSON.stringify(v)) {
-                    snippetChanged = true;
-                    break;
-                  }
-                }
-              }
-            }
-          } else if (previouslyRegistered.length > 0) {
-            snippetChanged = true;
-          }
-        } catch {}
-      } else if (previouslyRegistered.length > 0) {
-        snippetChanged = true;
-      }
-
-      const needsUpdate = (sourceVersion !== destVersion) || !hasGeminiManifest || hasMissingEntries || hasRemovedEntries || snippetChanged;
+      const needsUpdate = (sourceVersion !== destVersion) || !hasGeminiManifest || hasMissingEntries || hasRemovedEntries || mcpDrifted;
 
       if (!needsUpdate) {
         return { status: 'skipped', path: destPath };
@@ -459,8 +438,23 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
   return { status: 'skipped', path: destPath };
 }
 
+function isInstalled(sourceDir, targetDir, provider = null) {
+  const pluginName = path.basename(sourceDir);
+  if (provider && typeof provider.isInstalled === 'function') {
+    return provider.isInstalled(pluginName, targetDir, { sourceDir });
+  }
+  try {
+    fs.lstatSync(path.join(targetDir, pluginName));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 module.exports = {
   validateTargetSafety,
+  resolvePluginPath,
+  isInstalled,
   installPlugin,
   uninstallPlugin,
   updatePlugin

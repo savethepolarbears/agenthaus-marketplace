@@ -10,6 +10,7 @@ Manage Apple Photos libraries using the osxphotos CLI — query, export, import,
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | n/a | full | full | full |
 | Codex CLI | n/a | none | partial | full |
-| Gemini CLI | n/a | none | partial | full |
+| Antigravity / Gemini CLI | n/a | none | partial | full |
 | Cursor | n/a | none | partial | full |
-| Windsurf | n/a | none | partial | full |
+| Windsurf / Devin | n/a | none | partial | full |
+| GitHub Copilot | n/a | none | prompts | full |

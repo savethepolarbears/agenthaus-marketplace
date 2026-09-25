@@ -2,6 +2,34 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { writeFileAtomic } = require('../fs-utils.js');
+const { readServersSnippet, resolvePluginRoot, syncPluginServers, removePluginServers } = require('./mcp-ownership.js');
+
+const LABEL = 'VS Code MCP config';
+
+function getRepoRoot(targetDir) {
+  const githubDir = path.dirname(targetDir);
+  return path.basename(githubDir) === '.github' ? path.dirname(githubDir) : process.cwd();
+}
+
+function getConfigPath(targetDir) {
+  return path.join(getRepoRoot(targetDir), '.vscode', 'mcp.json');
+}
+
+// VS Code shares Cursor's ${env:VAR} / ${workspaceFolder} syntax, so the generated
+// .cursor/mcp.json is reused; VS Code additionally expects an explicit transport type.
+function loadPluginServers(sourceDir, targetDir) {
+  const pluginName = path.basename(sourceDir);
+  const { servers, failed } = readServersSnippet(path.join(sourceDir, '.cursor', 'mcp.json'), 'Copilot');
+  if (failed || !servers) return { servers, failed };
+  const resolved = resolvePluginRoot(servers, [`\${workspaceFolder}/plugins/${pluginName}`], path.join(targetDir, pluginName));
+  const typed = {};
+  for (const [key, srv] of Object.entries(resolved)) {
+    if (srv.type) typed[key] = srv;
+    else typed[key] = { type: srv.command ? 'stdio' : 'http', ...srv };
+  }
+  return { servers: typed, failed: false };
+}
 
 module.exports = {
   id: 'copilot',
@@ -12,13 +40,20 @@ module.exports = {
   getTargetDir(cwd, mode) {
     return path.join(cwd, '.github', 'plugins');
   },
+  getConfigPaths(cwd) {
+    return [path.join(cwd, '.vscode', 'mcp.json')];
+  },
   getCapabilities() {
-    return { mcp: false, hooks: false, commands: 'instructions', skills: true };
+    return { mcp: 'via .vscode/mcp.json', hooks: false, commands: 'instructions', skills: true };
+  },
+  isMcpInSync(sourceDir, targetDir) {
+    const { servers, failed } = loadPluginServers(sourceDir, targetDir);
+    if (failed) return true;
+    return !syncPluginServers({ configPath: getConfigPath(targetDir), pluginName: path.basename(sourceDir), servers, label: LABEL, serversKey: 'servers', dryRun: true }).changed;
   },
   postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
     const pluginName = path.basename(sourceDir);
-    const githubDir = path.dirname(targetDir);
-    const repoRoot = path.basename(githubDir) === '.github' ? path.dirname(githubDir) : process.cwd();
+    const repoRoot = getRepoRoot(targetDir);
     const instructionsPath = path.join(repoRoot, '.github', 'copilot-instructions.md');
 
     const hasSkills = fs.existsSync(path.join(sourceDir, 'skills'));
@@ -46,7 +81,7 @@ module.exports = {
         const updated = content.trimEnd() + `\n\n${refs}`;
         if (!dryRun) {
           fs.mkdirSync(path.dirname(instructionsPath), { recursive: true });
-          fs.writeFileSync(instructionsPath, updated, 'utf8');
+          writeFileAtomic(instructionsPath, updated, { backup: false });
         }
         console.log(`[info] Copilot: Reference plugin in .github/copilot-instructions.md: '${pluginName}'`);
       }
@@ -68,10 +103,16 @@ module.exports = {
         }
       } catch {}
     }
+
+    // Reconcile MCP servers into .vscode/mcp.json (top-level "servers")
+    const { servers, failed } = loadPluginServers(sourceDir, targetDir);
+    if (!failed) {
+      syncPluginServers({ configPath: getConfigPath(targetDir), pluginName, servers, label: LABEL, serversKey: 'servers', dryRun });
+    }
   },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
-    const githubDir = path.dirname(targetDir);
-    const repoRoot = path.basename(githubDir) === '.github' ? path.dirname(githubDir) : process.cwd();
+    removePluginServers({ configPath: getConfigPath(targetDir), pluginName, label: LABEL, serversKey: 'servers', dryRun });
+    const repoRoot = getRepoRoot(targetDir);
     const instructionsPath = path.join(repoRoot, '.github', 'copilot-instructions.md');
 
     if (fs.existsSync(instructionsPath)) {
@@ -98,7 +139,7 @@ module.exports = {
             filtered.push(line);
           }
           if (!dryRun) {
-            fs.writeFileSync(instructionsPath, filtered.join('\n').trimEnd() + '\n', 'utf8');
+            writeFileAtomic(instructionsPath, filtered.join('\n').trimEnd() + '\n', { backup: false });
           }
         }
       } catch {}

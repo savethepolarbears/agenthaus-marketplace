@@ -1,5 +1,5 @@
 {
-  "_comment": "Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json",
+  "_comment": "Add mcpServers entries to ~/.config/devin/mcp_config.json (legacy Windsurf: ~/.codeium/windsurf/mcp_config.json)",
   "mcpServers": {
     "neuronwriter": {
       "args": [

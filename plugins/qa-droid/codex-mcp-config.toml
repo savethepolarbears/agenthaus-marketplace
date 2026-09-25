@@ -1,18 +1,18 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.playwright-local]
+# NOTE: replace ${CLAUDE_PLUGIN_ROOT} with the plugin's install path
+[mcp_servers.playwright-local]
 command = "node"
 args = ["${CLAUDE_PLUGIN_ROOT}/index.js"]
 
-[mcp.servers.slack]
+# NOTE: export SLACK_DEFAULT_CHANNEL="$SLACK_CHANNEL" before starting Codex
+[mcp_servers.slack]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-slack"]
-[mcp.servers.slack.env]
-SLACK_BOT_TOKEN = "${SLACK_BOT_TOKEN}"
-SLACK_DEFAULT_CHANNEL = "${SLACK_CHANNEL}"
+env_vars = ["SLACK_BOT_TOKEN", "SLACK_DEFAULT_CHANNEL"]
 
-[mcp.servers.gmail]
+[mcp_servers.gmail]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-gmail"]
-[mcp.servers.gmail.env]
-GMAIL_CREDENTIALS = "${GMAIL_CREDENTIALS}"
+env_vars = ["GMAIL_CREDENTIALS"]

@@ -1,9 +1,8 @@
 {
   "mcpServers": {
     "vistasocial": {
-      "type": "url",
-      "url": "https://vistasocial.com/api/integration/mcp?api_key=${VISTASOCIAL_API_KEY}",
-      "name": "VistaSocial"
+      "type": "http",
+      "url": "https://vistasocial.com/api/integration/mcp?api_key=${VISTASOCIAL_API_KEY}"
     }
   }
 }

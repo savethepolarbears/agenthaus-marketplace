@@ -7,6 +7,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 const { parseCliArgs } = require('../src/cli.js');
+// Keep agenthaus ownership state out of the real home directory
+process.env.AGENTHAUS_STATE_FILE = require('node:path').join(require('node:fs').mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'agenthaus-state-')), 'state.json');
 
 const BIN_PATH = path.resolve(__dirname, '..', 'bin', 'agenthaus.js');
 

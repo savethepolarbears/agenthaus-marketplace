@@ -3,25 +3,96 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { writeJsonAtomic } = require('../fs-utils.js');
+const { readServersSnippet, syncPluginServers, removePluginServers } = require('./mcp-ownership.js');
+
+const GEMINI_LABEL = 'Gemini settings';
+const ANTIGRAVITY_LABEL = 'Antigravity MCP config';
+
+// Gemini CLI reads mcpServers from <scope>/.gemini/settings.json.
+function getGeminiSettingsPath(targetDir) {
+  return path.join(path.dirname(targetDir), 'settings.json');
+}
+
+// Antigravity reads ~/.gemini/config/mcp_config.json (global) or .agents/mcp_config.json (workspace).
+function getAntigravityConfigPath(targetDir) {
+  const geminiDir = path.dirname(targetDir);
+  if (path.resolve(geminiDir) === path.resolve(os.homedir(), '.gemini')) {
+    return path.join(geminiDir, 'config', 'mcp_config.json');
+  }
+  return path.join(path.dirname(geminiDir), '.agents', 'mcp_config.json');
+}
+
+function isAntigravityPresent(configPath) {
+  return fs.existsSync(path.dirname(configPath)) ||
+         fs.existsSync(path.join(os.homedir(), '.gemini', 'antigravity'));
+}
+
+// Antigravity accepts only `serverUrl` for remote servers ("url"/"httpUrl" are rejected).
+function toAntigravityServers(servers) {
+  if (!servers) return servers;
+  const out = {};
+  for (const [key, srv] of Object.entries(servers)) {
+    const remoteUrl = srv.serverUrl || srv.httpUrl || srv.url;
+    if (!srv.command && remoteUrl) {
+      const { url, httpUrl, type, ...rest } = srv;
+      out[key] = { ...rest, serverUrl: remoteUrl };
+    } else {
+      out[key] = srv;
+    }
+  }
+  return out;
+}
+
+function loadPluginServers(sourceDir) {
+  return readServersSnippet(path.join(sourceDir, 'gemini-settings-snippet.json'), 'Gemini');
+}
+
+function syncAll(sourceDir, targetDir, { dryRun }) {
+  const pluginName = path.basename(sourceDir);
+  const { servers, failed } = loadPluginServers(sourceDir);
+  if (failed) return false;
+  const gemini = syncPluginServers({
+    configPath: getGeminiSettingsPath(targetDir), pluginName, servers, label: GEMINI_LABEL, dryRun
+  });
+  const agConfigPath = getAntigravityConfigPath(targetDir);
+  const antigravity = syncPluginServers({
+    configPath: agConfigPath,
+    pluginName,
+    servers: isAntigravityPresent(agConfigPath) ? toAntigravityServers(servers) : null,
+    label: ANTIGRAVITY_LABEL,
+    dryRun
+  });
+  return gemini.changed || antigravity.changed;
+}
 
 module.exports = {
   id: 'antigravity',
-  name: 'Antigravity (Gemini CLI)',
+  name: 'Antigravity / Gemini CLI',
   detect(cwd) {
     const home = os.homedir();
-    return fs.existsSync(path.join(home, '.gemini', 'extensions')) ||
-           fs.existsSync(path.join(home, '.gemini', 'settings.json')) ||
-           fs.existsSync(path.join(home, '.gemini', 'antigravity')) ||
-           fs.existsSync(path.join(home, '.gemini')) ||
+    return fs.existsSync(path.join(home, '.gemini')) ||
            fs.existsSync(path.join(cwd, '.gemini')) ||
+           fs.existsSync(path.join(cwd, '.agents')) ||
            fs.existsSync(path.join(cwd, '.agent'));
   },
   getTargetDir(cwd, mode) {
     if (mode === 'project') return path.join(cwd, '.gemini', 'extensions');
     return path.join(os.homedir(), '.gemini', 'extensions');
   },
+  getConfigPaths(cwd, home = os.homedir()) {
+    return [
+      path.join(home, '.gemini', 'settings.json'),
+      path.join(cwd, '.gemini', 'settings.json'),
+      path.join(home, '.gemini', 'config', 'mcp_config.json'),
+      path.join(cwd, '.agents', 'mcp_config.json')
+    ];
+  },
   getCapabilities() {
-    return { mcp: 'via gemini-settings', hooks: false, commands: 'partial', skills: true };
+    return { mcp: 'via settings.json / mcp_config.json', hooks: false, commands: 'partial', skills: true };
+  },
+  isMcpInSync(sourceDir, targetDir) {
+    return !syncAll(sourceDir, targetDir, { dryRun: true });
   },
   postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
     const pluginName = path.basename(sourceDir);
@@ -124,233 +195,14 @@ module.exports = {
     };
 
     if (!dryRun) {
-      fs.mkdirSync(destPath, { recursive: true });
-      fs.writeFileSync(
-        path.join(destPath, 'gemini-extension.json'),
-        JSON.stringify(geminiManifest, null, 2) + '\n',
-        'utf8'
-      );
+      writeJsonAtomic(path.join(destPath, 'gemini-extension.json'), geminiManifest, { backup: false });
     }
 
-    // 2. Merge MCP servers into settings.json (preserving existing settings or aborting on malformed JSON)
-    const snippetPath = path.join(sourceDir, 'gemini-settings-snippet.json');
-    let mcpServers = null;
-    let snippetParseFailed = false;
-
-    if (fs.existsSync(snippetPath)) {
-      try {
-        const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-        if (typeof snippet !== 'object' || snippet === null || Array.isArray(snippet)) {
-          snippetParseFailed = true;
-          console.warn(`[warn] Gemini: Malformed snippet at ${snippetPath}: expected JSON object. Preserving existing MCP registrations.`);
-        } else if (snippet.mcpServers !== undefined) {
-          if (typeof snippet.mcpServers === 'object' && snippet.mcpServers !== null && !Array.isArray(snippet.mcpServers)) {
-            mcpServers = snippet.mcpServers;
-          } else {
-            snippetParseFailed = true;
-            console.warn(`[warn] Gemini: Invalid 'mcpServers' in snippet at ${snippetPath}: expected JSON object. Preserving existing MCP registrations.`);
-          }
-        } else {
-          snippetParseFailed = true;
-          console.warn(`[warn] Gemini: Snippet at ${snippetPath} missing 'mcpServers'. Preserving existing MCP registrations.`);
-        }
-      } catch (err) {
-        snippetParseFailed = true;
-        console.warn(`[warn] Gemini: Malformed snippet at ${snippetPath}: ${err.message}. Preserving existing MCP registrations.`);
-      }
-    }
-
-    if (snippetParseFailed) return;
-
-    const settingsDir = path.dirname(targetDir);
-    const settingsPath = path.join(settingsDir, 'settings.json');
-
-    let settings = {};
-    if (fs.existsSync(settingsPath)) {
-      try {
-        settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      } catch (err) {
-        let backupMsg = '';
-        if (!dryRun) {
-          const backupPath = `${settingsPath}.bak.${Date.now()}`;
-          fs.copyFileSync(settingsPath, backupPath);
-          backupMsg = ` (backed up to ${backupPath})`;
-        }
-        throw new Error(`Malformed Gemini settings at ${settingsPath}${backupMsg}: ${err.message}. Aborting to preserve existing configuration.`);
-      }
-    }
-
-    const hasPreviousRegistration = settings._agenthaus_mcp &&
-      Array.isArray(settings._agenthaus_mcp[pluginName]) &&
-      settings._agenthaus_mcp[pluginName].length > 0;
-
-    if (!mcpServers && !hasPreviousRegistration) return;
-    if (!mcpServers) mcpServers = {};
-
-    if (!settings.mcpServers) settings.mcpServers = {};
-    if (!settings._agenthaus_mcp) settings._agenthaus_mcp = {};
-
-    const registeredKeys = settings._agenthaus_mcp[pluginName] || [];
-    const previousSourceMap = (settings._agenthaus_mcp_map && settings._agenthaus_mcp_map[pluginName]) || {};
-    const newRegisteredKeys = [];
-    const newSourceMap = {};
-
-    const hasOtherOwners = (candidateKey) => Object.entries(settings._agenthaus_mcp || {}).some(
-      ([otherPlugin, keys]) => otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(candidateKey)
-    );
-
-    const findAvailableNamespacedKey = (baseKey, srvConfig) => {
-      let candidate = baseKey;
-      let counter = 1;
-      while (true) {
-        const existing = settings.mcpServers[candidate];
-        const isClaimedInThisPass = newRegisteredKeys.includes(candidate);
-        if (!existing && !isClaimedInThisPass) {
-          return candidate;
-        }
-        if (existing && JSON.stringify(existing) === JSON.stringify(srvConfig) && !isClaimedInThisPass) {
-          return candidate;
-        }
-        counter++;
-        candidate = `${baseKey}-${counter}`;
-      }
-    };
-
-    for (const [key, srvConfig] of Object.entries(mcpServers)) {
-      let finalKey = key;
-      const previousDest = previousSourceMap[key];
-
-      if (previousDest && !newRegisteredKeys.includes(previousDest)) {
-        if (hasOtherOwners(previousDest) && JSON.stringify(settings.mcpServers[previousDest]) !== JSON.stringify(srvConfig)) {
-          finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
-          console.log(`[warn] Gemini: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
-        } else {
-          finalKey = previousDest;
-        }
-      } else if (!previousDest && Object.keys(previousSourceMap).length === 0 && registeredKeys.includes(key) && !newRegisteredKeys.includes(key)) {
-        if (hasOtherOwners(key) && JSON.stringify(settings.mcpServers[key]) !== JSON.stringify(srvConfig)) {
-          finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
-          console.log(`[warn] Gemini: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
-        } else {
-          finalKey = key;
-        }
-      } else {
-        const baseKey = `${pluginName}-${key}`;
-        if (settings.mcpServers[key] && !newRegisteredKeys.includes(key)) {
-          if (JSON.stringify(settings.mcpServers[key]) === JSON.stringify(srvConfig)) {
-            finalKey = key;
-          } else {
-            finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
-            console.log(`[warn] Gemini: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
-          }
-        } else if (!settings.mcpServers[key] && !newRegisteredKeys.includes(key)) {
-          finalKey = key;
-        } else {
-          finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
-        }
-      }
-      settings.mcpServers[finalKey] = srvConfig;
-      newRegisteredKeys.push(finalKey);
-      newSourceMap[key] = finalKey;
-    }
-
-    for (const oldKey of registeredKeys) {
-      if (!newRegisteredKeys.includes(oldKey)) {
-        let isShared = false;
-        if (settings._agenthaus_mcp) {
-          for (const [otherPlugin, keys] of Object.entries(settings._agenthaus_mcp)) {
-            if (otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(oldKey)) {
-              isShared = true;
-              break;
-            }
-          }
-        }
-        if (!isShared) {
-          delete settings.mcpServers[oldKey];
-        }
-      }
-    }
-
-    if (newRegisteredKeys.length === 0) {
-      delete settings._agenthaus_mcp[pluginName];
-      if (settings._agenthaus_mcp_map) {
-        delete settings._agenthaus_mcp_map[pluginName];
-        if (Object.keys(settings._agenthaus_mcp_map).length === 0) {
-          delete settings._agenthaus_mcp_map;
-        }
-      }
-      if (Object.keys(settings._agenthaus_mcp).length === 0) {
-        delete settings._agenthaus_mcp;
-      }
-    } else {
-      settings._agenthaus_mcp[pluginName] = newRegisteredKeys;
-      if (!settings._agenthaus_mcp_map) settings._agenthaus_mcp_map = {};
-      settings._agenthaus_mcp_map[pluginName] = newSourceMap;
-    }
-    if (settings.mcpServers && Object.keys(settings.mcpServers).length === 0) {
-      delete settings.mcpServers;
-    }
-
-    if (!dryRun) {
-      fs.mkdirSync(settingsDir, { recursive: true });
-      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
-    }
+    // 2. Reconcile MCP servers into Gemini CLI settings and Antigravity mcp_config.json
+    syncAll(sourceDir, targetDir, { dryRun });
   },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
-    const settingsDir = path.dirname(targetDir);
-    const settingsPath = path.join(settingsDir, 'settings.json');
-    if (!fs.existsSync(settingsPath)) return;
-
-    try {
-      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      if (settings._agenthaus_mcp && settings._agenthaus_mcp[pluginName]) {
-        const keysToRemove = settings._agenthaus_mcp[pluginName];
-        delete settings._agenthaus_mcp[pluginName];
-        if (Object.keys(settings._agenthaus_mcp).length === 0) {
-          delete settings._agenthaus_mcp;
-        }
-        if (settings._agenthaus_mcp_map) {
-          delete settings._agenthaus_mcp_map[pluginName];
-          if (Object.keys(settings._agenthaus_mcp_map).length === 0) {
-            delete settings._agenthaus_mcp_map;
-          }
-        }
-        const remainingKeys = new Set();
-        if (settings._agenthaus_mcp) {
-          for (const keys of Object.values(settings._agenthaus_mcp)) {
-            for (const k of keys) remainingKeys.add(k);
-          }
-        }
-        for (const k of keysToRemove) {
-          if (!remainingKeys.has(k)) {
-            delete settings.mcpServers[k];
-          }
-        }
-        if (settings.mcpServers && Object.keys(settings.mcpServers).length === 0) {
-          delete settings.mcpServers;
-        }
-        if (!dryRun) {
-          fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
-        }
-      } else if (settings.mcpServers) {
-        if (settings.mcpServers[pluginName]) {
-          delete settings.mcpServers[pluginName];
-        }
-        for (const k of Object.keys(settings.mcpServers)) {
-          if (k.startsWith(`${pluginName}-`)) {
-            delete settings.mcpServers[k];
-          }
-        }
-        if (settings._agenthaus_mcp_map) {
-          delete settings._agenthaus_mcp_map[pluginName];
-          if (Object.keys(settings._agenthaus_mcp_map).length === 0) {
-            delete settings._agenthaus_mcp_map;
-          }
-        }
-        if (!dryRun) {
-          fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
-        }
-      }
-    } catch {}
+    removePluginServers({ configPath: getGeminiSettingsPath(targetDir), pluginName, label: GEMINI_LABEL, dryRun });
+    removePluginServers({ configPath: getAntigravityConfigPath(targetDir), pluginName, label: ANTIGRAVITY_LABEL, dryRun });
   }
 };

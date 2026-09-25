@@ -8,4 +8,4 @@ Manage Vercel projects and deployments.
 
 ## MCP Setup
 
-Add the MCP server from `gemini-settings-snippet.json` to your Gemini settings.
+Run `agenthaus install --target antigravity` to register the servers from `gemini-settings-snippet.json` in Gemini CLI `settings.json` and Antigravity `mcp_config.json`.

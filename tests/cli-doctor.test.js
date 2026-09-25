@@ -5,6 +5,8 @@ const assert = require('node:assert');
 const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
+// Keep agenthaus ownership state out of the real home directory
+process.env.AGENTHAUS_STATE_FILE = require('node:path').join(require('node:fs').mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'agenthaus-state-')), 'state.json');
 const {
   isCommandAccessible,
   checkMcpCommands,

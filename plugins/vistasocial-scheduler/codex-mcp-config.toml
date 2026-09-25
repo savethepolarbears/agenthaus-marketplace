@@ -1,4 +1,4 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.vistasocial]
-command = "undefined"
+# UNSUPPORTED: 'vistasocial' embeds a variable in its URL, which Codex cannot expand; add it to config.toml manually

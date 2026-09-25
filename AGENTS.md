@@ -4,7 +4,7 @@ This file provides guidance to AI coding assistants working in this repository.
 
 **Note:** `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.clinerules`, and `.windsurfrules` are symlinks to `AGENTS.md` in this project.
 
-A discoverable marketplace of 37 developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
+A discoverable marketplace of 37 developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Antigravity/Gemini CLI, Cursor, Windsurf, and Copilot.
 
 ## Repository Map & Architecture
 
@@ -52,60 +52,61 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 
 | Plugin | Description | MCP | Hooks |
 | :--- | :--- | :--- | :--- |
-| activepieces | Agent plugin... | no | no |
-| agent-handoff | State-based ... | no | no |
-| agent-memory | Shared persi... | yes | no |
-| apple-photos | Manage Apple... | no | yes |
-| apple-workflows | Manage Apple... | yes | no |
-| circuit-breaker | Pre-built sa... | no | no |
-| clickup-tasks | Manage Click... | yes | no |
-| cloudflare-platform | Manage Cloud... | yes | no |
-| context7-docs | Fetch up-to-... | yes | no |
-| data-core | Serverless P... | yes | no |
-| devops-flow | Orchestrate ... | yes | yes |
-| encharge | Encharge.io ... | yes | no |
-| fleet-commander | Visualizatio... | no | no |
-| github-integration | Full GitHub ... | yes | no |
-| gog-workspace | Google Works... | no | no |
-| knowledge-synapse | RAG Agent co... | yes | no |
-| marketplace-cli | Utility comm... | no | no |
-| markupgo | Generate ima... | yes | no |
-| neon-db | Interact wit... | yes | no |
-| neuronwriter | SEO content ... | yes | no |
-| notfair-marketing | Open-source ... | yes | no |
-| notion-workspace | Interact wit... | yes | no |
-| openclaw-bridge | Convert Agen... | no | no |
-| outscraper | Web scraping... | yes | no |
-| playwright-testing | End-to-end b... | yes | no |
-| plugin-auditor | Audit plugin... | no | no |
-| qa-droid | Automated Pl... | yes | no |
-| seo-content-suite | Unified SEO ... | yes | no |
-| seo-geo-rag | Six-phase SE... | no | no |
-| shadow-mode | Agents draft... | no | no |
-| social-media | Generate hig... | no | no |
-| task-commander | ClickUp task... | yes | no |
-| textfocus | SEO keyword ... | yes | no |
-| ux-ui | Polish and i... | no | no |
-| vercel-deploy | Manage Verce... | yes | no |
-| vistasocial-scheduler | Social media... | yes | no |
-| wp-cli-fleet | Agentic WP-C... | no | no |
+| activepieces | Agent p... | no | no |
+| agent-handoff | State-b... | no | no |
+| agent-memory | Shared ... | yes | no |
+| apple-photos | Manage ... | no | yes |
+| apple-workflows | Manage ... | yes | no |
+| circuit-breaker | Pre-bui... | no | no |
+| clickup-tasks | Manage ... | yes | no |
+| cloudflare-platform | Manage ... | yes | no |
+| context7-docs | Fetch u... | yes | no |
+| data-core | Serverl... | yes | no |
+| devops-flow | Orchest... | yes | yes |
+| encharge | Encharg... | yes | no |
+| fleet-commander | Visuali... | no | no |
+| github-integration | Full Gi... | yes | no |
+| gog-workspace | Google ... | no | no |
+| knowledge-synapse | RAG Age... | yes | no |
+| marketplace-cli | Utility... | no | no |
+| markupgo | Generat... | yes | no |
+| neon-db | Interac... | yes | no |
+| neuronwriter | SEO con... | yes | no |
+| notfair-marketing | Open-so... | yes | no |
+| notion-workspace | Interac... | yes | no |
+| openclaw-bridge | Convert... | no | no |
+| outscraper | Web scr... | yes | no |
+| playwright-testing | End-to-... | yes | no |
+| plugin-auditor | Audit p... | no | no |
+| qa-droid | Automat... | yes | no |
+| seo-content-suite | Unified... | yes | no |
+| seo-geo-rag | Six-pha... | no | no |
+| shadow-mode | Agents ... | no | no |
+| social-media | Generat... | no | no |
+| task-commander | ClickUp... | yes | no |
+| textfocus | SEO key... | yes | no |
+| ux-ui | Polish ... | no | no |
+| vercel-deploy | Manage ... | yes | no |
+| vistasocial-scheduler | Social ... | yes | no |
+| wp-cli-fleet | Agentic... | no | no |
 
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands | Skills |
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | full | full | full |
-| Codex CLI | none | none | partial | full |
-| Gemini CLI | via gemini-settings | none | partial | full |
-| Cursor | via .cursor/mcp.json | none | partial | full |
-| Windsurf | global config | none | partial | full |
+| Codex CLI | config.toml | none | partial | full |
+| Antigravity / Gemini | mcp_config.json / settings.json | none | partial | full |
+| Cursor | .cursor/mcp.json | none | partial | full |
+| Windsurf / Devin | mcp_config.json | none | partial | full |
+| Copilot | .vscode/mcp.json | none | prompts | full |
 
-> Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.
+> Hooks are Claude Code-exclusive. `agenthaus install` writes each provider's MCP config.
 
 ## Provider Lifecycle Invariants
 
 1. **Cursor Discovery**: Reads `.cursor/rules/*.mdc` and `.cursor/mcp.json`. `postInstall` mirrors rules and MCP; never rely solely on `.cursor/plugins/`.
-2. **MCP Collision Namespacing**: Conflicting server keys are namespaced to `<plugin>-<key>` with `_agenthaus_mcp` ownership tracking so uninstalls never drop shared servers.
+2. **MCP Collision Namespacing**: Conflicting keys become `<plugin>-<key>`; ownership lives in `~/.agenthaus/state.json` (legacy `_agenthaus_mcp` markers migrate) so uninstalls never drop shared or user servers.
 3. **Symlink Update Hook Refresh**: In `updatePlugin`, when symlink target matches source (`isSame`), re-run `postInstall` to refresh derived provider files.
 4. **Provider-Scoped Sync Coverage**: Provider sync (`sync --target <p>`) executes `repairTargetHooks` on copied plugin dirs.
 

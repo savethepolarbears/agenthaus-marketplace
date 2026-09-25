@@ -65,3 +65,12 @@ Architectural decisions and their rationale. Agents should consult this before p
 **Decision:** Persistent project context lives in `.agent/memory-bank/` as structured Markdown files.
 
 **Rationale:** Agents lose context between sessions. Rather than re-analyzing the codebase each time, the memory bank provides a pre-built understanding of architecture, API contracts, and past decisions. This reduces token waste and prevents hallucinations about project structure.
+
+---
+
+## ADR-009: Provider-Native MCP Registration with External Ownership State
+
+**Decision:** `agenthaus install` writes MCP servers in each provider's documented format (Codex `[mcp_servers.*]` TOML, Antigravity `serverUrl`, VS Code `servers`, Devin/Windsurf `mcp_config.json`) and installs Claude Code plugins through `claude plugin` rather than copying folders. Ownership of merged entries lives in `~/.agenthaus/state.json`, not in the provider configs.
+
+**Rationale:** Provider docs (verified 2026-09-25) show Claude Code loads plugins only via its marketplace registry, Codex ignores `[mcp.servers.*]` and does not expand `${VAR}`, and Antigravity rejects `url`. Keeping ownership out of provider configs avoids undocumented top-level keys, lets one shared module (`src/providers/mcp-ownership.js`) own the merge/namespace/prune rules for every JSON provider, and keeps user-owned entries safe on uninstall. All config writes are atomic with a rolling `.agenthaus.bak`.
+

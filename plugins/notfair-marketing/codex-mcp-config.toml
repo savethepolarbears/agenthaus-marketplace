@@ -1,18 +1,12 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.google-ads]
+[mcp_servers.google-ads]
 command = "npx"
 args = ["-y", "@nowork-studio/google-ads-mcp"]
-[mcp.servers.google-ads.env]
-GOOGLE_ADS_DEVELOPER_TOKEN = "${GOOGLE_ADS_DEVELOPER_TOKEN}"
-GOOGLE_ADS_CLIENT_ID = "${GOOGLE_ADS_CLIENT_ID}"
-GOOGLE_ADS_CLIENT_SECRET = "${GOOGLE_ADS_CLIENT_SECRET}"
-GOOGLE_ADS_REFRESH_TOKEN = "${GOOGLE_ADS_REFRESH_TOKEN}"
-GOOGLE_ADS_LOGIN_CUSTOMER_ID = "${GOOGLE_ADS_LOGIN_CUSTOMER_ID}"
+env_vars = ["GOOGLE_ADS_DEVELOPER_TOKEN", "GOOGLE_ADS_CLIENT_ID", "GOOGLE_ADS_CLIENT_SECRET", "GOOGLE_ADS_REFRESH_TOKEN", "GOOGLE_ADS_LOGIN_CUSTOMER_ID"]
 
-[mcp.servers.meta-ads]
+[mcp_servers.meta-ads]
 command = "npx"
 args = ["-y", "@nowork-studio/meta-ads-mcp"]
-[mcp.servers.meta-ads.env]
-META_ACCESS_TOKEN = "${META_ACCESS_TOKEN}"
-META_AD_ACCOUNT_ID = "${META_AD_ACCOUNT_ID}"
+env_vars = ["META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID"]

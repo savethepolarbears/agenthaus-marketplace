@@ -8,4 +8,4 @@ Open-source Claude Code agent skills for SEO, GEO, Google Ads, and Meta Ads. Con
 
 ## MCP Setup
 
-Add the MCP server from `gemini-settings-snippet.json` to your Gemini settings.
+Run `agenthaus install --target antigravity` to register the servers from `gemini-settings-snippet.json` in Gemini CLI `settings.json` and Antigravity `mcp_config.json`.

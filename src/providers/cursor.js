@@ -3,6 +3,24 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { readServersSnippet, resolvePluginRoot, syncPluginServers, removePluginServers } = require('./mcp-ownership.js');
+
+const LABEL = 'Cursor MCP config';
+
+function getConfigPath(targetDir) {
+  return path.join(path.dirname(targetDir), 'mcp.json');
+}
+
+function loadPluginServers(sourceDir, targetDir) {
+  const pluginName = path.basename(sourceDir);
+  const { servers, failed } = readServersSnippet(path.join(sourceDir, '.cursor', 'mcp.json'), 'Cursor');
+  if (failed || !servers) return { servers, failed };
+  const installedRoot = path.join(targetDir, pluginName);
+  return {
+    servers: resolvePluginRoot(servers, [`\${workspaceFolder}/plugins/${pluginName}`], installedRoot),
+    failed: false
+  };
+}
 
 module.exports = {
   id: 'cursor',
@@ -14,257 +32,45 @@ module.exports = {
   getTargetDir(cwd, mode) {
     return path.join(mode === 'project' ? cwd : os.homedir(), '.cursor', 'plugins');
   },
+  getConfigPaths(cwd, home = os.homedir()) {
+    return [path.join(home, '.cursor', 'mcp.json'), path.join(cwd, '.cursor', 'mcp.json')];
+  },
   getCapabilities() {
     return { mcp: 'via .cursor/mcp.json', hooks: false, commands: 'partial', skills: true };
+  },
+  isMcpInSync(sourceDir, targetDir) {
+    const { servers, failed } = loadPluginServers(sourceDir, targetDir);
+    if (failed) return true;
+    const pluginName = path.basename(sourceDir);
+    return !syncPluginServers({ configPath: getConfigPath(targetDir), pluginName, servers, label: LABEL, dryRun: true }).changed;
   },
   postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
     const pluginName = path.basename(sourceDir);
     const cursorDir = path.dirname(targetDir);
 
-    // 1. Copy rules/*.mdc if present
+    // 1. Mirror rules/*.mdc — Cursor discovers rules only under .cursor/rules/
     const sourceRulesDir = path.join(sourceDir, '.cursor', 'rules');
     if (fs.existsSync(sourceRulesDir)) {
-      try {
-        const files = fs.readdirSync(sourceRulesDir);
-        for (const file of files) {
-          if (!file.endsWith('.mdc')) continue;
-          const targetRulesDir = path.join(cursorDir, 'rules');
-          const targetFile = path.join(targetRulesDir, file);
-          if (!dryRun) {
-            fs.mkdirSync(targetRulesDir, { recursive: true });
-            fs.copyFileSync(path.join(sourceRulesDir, file), targetFile);
-          }
-        }
-      } catch {}
-    }
-
-    // 2. Merge .cursor/mcp.json if present
-    let mcpServers = null;
-    let snippetParseFailed = false;
-    const sourceMcpPath = path.join(sourceDir, '.cursor', 'mcp.json');
-    if (fs.existsSync(sourceMcpPath)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(sourceMcpPath, 'utf8'));
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-          snippetParseFailed = true;
-          console.warn(`[warn] Cursor: Malformed MCP config at ${sourceMcpPath}: expected JSON object. Preserving existing MCP registrations.`);
-        } else if (parsed.mcpServers !== undefined) {
-          if (typeof parsed.mcpServers === 'object' && parsed.mcpServers !== null && !Array.isArray(parsed.mcpServers)) {
-            mcpServers = parsed.mcpServers;
-          } else {
-            snippetParseFailed = true;
-            console.warn(`[warn] Cursor: Invalid 'mcpServers' in ${sourceMcpPath}: expected JSON object. Preserving existing MCP registrations.`);
-          }
-        } else {
-          snippetParseFailed = true;
-          console.warn(`[warn] Cursor: Config at ${sourceMcpPath} missing 'mcpServers'. Preserving existing MCP registrations.`);
-        }
-      } catch (err) {
-        snippetParseFailed = true;
-        console.warn(`[warn] Cursor: Malformed MCP config at ${sourceMcpPath}: ${err.message}. Preserving existing MCP registrations.`);
-      }
-    }
-
-    if (snippetParseFailed) return;
-
-    const configPath = path.join(cursorDir, 'mcp.json');
-    let config = {};
-    if (fs.existsSync(configPath)) {
-      try {
-        config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      } catch (err) {
-        let backupMsg = '';
+      for (const file of fs.readdirSync(sourceRulesDir)) {
+        if (!file.endsWith('.mdc')) continue;
+        const targetRulesDir = path.join(cursorDir, 'rules');
         if (!dryRun) {
-          const backupPath = `${configPath}.bak.${Date.now()}`;
-          fs.copyFileSync(configPath, backupPath);
-          backupMsg = ` (backed up to ${backupPath})`;
+          fs.mkdirSync(targetRulesDir, { recursive: true });
+          fs.copyFileSync(path.join(sourceRulesDir, file), path.join(targetRulesDir, file));
         }
-        throw new Error(`Malformed Cursor MCP config at ${configPath}${backupMsg}: ${err.message}`);
       }
     }
 
-    const hasPreviousRegistration = config._agenthaus_mcp &&
-      Array.isArray(config._agenthaus_mcp[pluginName]) &&
-      config._agenthaus_mcp[pluginName].length > 0;
-
-    if (mcpServers || hasPreviousRegistration) {
-      if (!mcpServers) mcpServers = {};
-
-      if (!config.mcpServers) config.mcpServers = {};
-      if (!config._agenthaus_mcp) config._agenthaus_mcp = {};
-
-      const registeredKeys = config._agenthaus_mcp[pluginName] || [];
-      const previousSourceMap = (config._agenthaus_mcp_map && config._agenthaus_mcp_map[pluginName]) || {};
-      const newRegisteredKeys = [];
-      const newSourceMap = {};
-
-      const hasOtherOwners = (candidateKey) => Object.entries(config._agenthaus_mcp || {}).some(
-        ([otherPlugin, keys]) => otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(candidateKey)
-      );
-
-      const findAvailableNamespacedKey = (baseKey, srvConfig) => {
-        let candidate = baseKey;
-        let counter = 1;
-        while (true) {
-          const existing = config.mcpServers[candidate];
-          const isClaimedInThisPass = newRegisteredKeys.includes(candidate);
-          if (!existing && !isClaimedInThisPass) {
-            return candidate;
-          }
-          if (existing && JSON.stringify(existing) === JSON.stringify(srvConfig) && !isClaimedInThisPass) {
-            return candidate;
-          }
-          counter++;
-          candidate = `${baseKey}-${counter}`;
-        }
-      };
-
-      for (const [key, srvConfig] of Object.entries(mcpServers)) {
-        let finalKey = key;
-        const previousDest = previousSourceMap[key];
-
-        if (previousDest && !newRegisteredKeys.includes(previousDest)) {
-          if (hasOtherOwners(previousDest) && JSON.stringify(config.mcpServers[previousDest]) !== JSON.stringify(srvConfig)) {
-            finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
-            console.log(`[warn] Cursor: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
-          } else {
-            finalKey = previousDest;
-          }
-        } else if (!previousDest && Object.keys(previousSourceMap).length === 0 && registeredKeys.includes(key) && !newRegisteredKeys.includes(key)) {
-          if (hasOtherOwners(key) && JSON.stringify(config.mcpServers[key]) !== JSON.stringify(srvConfig)) {
-            finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
-            console.log(`[warn] Cursor: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
-          } else {
-            finalKey = key;
-          }
-        } else {
-          const baseKey = `${pluginName}-${key}`;
-          if (config.mcpServers[key] && !newRegisteredKeys.includes(key)) {
-            if (JSON.stringify(config.mcpServers[key]) === JSON.stringify(srvConfig)) {
-              finalKey = key;
-            } else {
-              finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
-              console.log(`[warn] Cursor: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
-            }
-          } else if (!config.mcpServers[key] && !newRegisteredKeys.includes(key)) {
-            finalKey = key;
-          } else {
-            finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
-          }
-        }
-        config.mcpServers[finalKey] = srvConfig;
-        newRegisteredKeys.push(finalKey);
-        newSourceMap[key] = finalKey;
-      }
-
-      for (const oldKey of registeredKeys) {
-        if (!newRegisteredKeys.includes(oldKey)) {
-          let isShared = false;
-          if (config._agenthaus_mcp) {
-            for (const [otherPlugin, keys] of Object.entries(config._agenthaus_mcp)) {
-              if (otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(oldKey)) {
-                isShared = true;
-                break;
-              }
-            }
-          }
-          if (!isShared) {
-            delete config.mcpServers[oldKey];
-          }
-        }
-      }
-
-      if (newRegisteredKeys.length === 0) {
-        delete config._agenthaus_mcp[pluginName];
-        if (config._agenthaus_mcp_map) {
-          delete config._agenthaus_mcp_map[pluginName];
-          if (Object.keys(config._agenthaus_mcp_map).length === 0) {
-            delete config._agenthaus_mcp_map;
-          }
-        }
-        if (Object.keys(config._agenthaus_mcp).length === 0) {
-          delete config._agenthaus_mcp;
-        }
-      } else {
-        config._agenthaus_mcp[pluginName] = newRegisteredKeys;
-        if (!config._agenthaus_mcp_map) config._agenthaus_mcp_map = {};
-        config._agenthaus_mcp_map[pluginName] = newSourceMap;
-      }
-      if (config.mcpServers && Object.keys(config.mcpServers).length === 0) {
-        delete config.mcpServers;
-      }
-
-      if (!dryRun) {
-        fs.mkdirSync(cursorDir, { recursive: true });
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-      }
-    }
+    // 2. Reconcile MCP servers into .cursor/mcp.json
+    const { servers, failed } = loadPluginServers(sourceDir, targetDir);
+    if (failed) return;
+    syncPluginServers({ configPath: getConfigPath(targetDir), pluginName, servers, label: LABEL, dryRun });
   },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
-    const cursorDir = path.dirname(targetDir);
-
-    // 1. Remove rules/<pluginName>.mdc
-    const mdcFile = path.join(cursorDir, 'rules', `${pluginName}.mdc`);
+    const mdcFile = path.join(path.dirname(targetDir), 'rules', `${pluginName}.mdc`);
     if (fs.existsSync(mdcFile) && !dryRun) {
-      try {
-        fs.unlinkSync(mdcFile);
-      } catch {}
+      try { fs.unlinkSync(mdcFile); } catch {}
     }
-
-    // 2. Clean up MCP servers
-    const configPath = path.join(cursorDir, 'mcp.json');
-    if (fs.existsSync(configPath)) {
-      try {
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        if (config._agenthaus_mcp && config._agenthaus_mcp[pluginName]) {
-          const keysToRemove = config._agenthaus_mcp[pluginName];
-          delete config._agenthaus_mcp[pluginName];
-          if (Object.keys(config._agenthaus_mcp).length === 0) {
-            delete config._agenthaus_mcp;
-          }
-          if (config._agenthaus_mcp_map) {
-            delete config._agenthaus_mcp_map[pluginName];
-            if (Object.keys(config._agenthaus_mcp_map).length === 0) {
-              delete config._agenthaus_mcp_map;
-            }
-          }
-          const remainingKeys = new Set();
-          if (config._agenthaus_mcp) {
-            for (const keys of Object.values(config._agenthaus_mcp)) {
-              for (const k of keys) remainingKeys.add(k);
-            }
-          }
-          for (const k of keysToRemove) {
-            if (!remainingKeys.has(k)) {
-              delete config.mcpServers[k];
-            }
-          }
-          if (config.mcpServers && Object.keys(config.mcpServers).length === 0) {
-            delete config.mcpServers;
-          }
-          if (!dryRun) {
-            fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-          }
-        } else if (config.mcpServers) {
-          if (config.mcpServers[pluginName]) {
-            delete config.mcpServers[pluginName];
-          }
-          for (const k of Object.keys(config.mcpServers)) {
-            if (k.startsWith(`${pluginName}-`)) {
-              delete config.mcpServers[k];
-            }
-          }
-          if (config._agenthaus_mcp_map) {
-            delete config._agenthaus_mcp_map[pluginName];
-            if (Object.keys(config._agenthaus_mcp_map).length === 0) {
-              delete config._agenthaus_mcp_map;
-            }
-          }
-          if (!dryRun) {
-            fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-          }
-        }
-      } catch {}
-    }
+    removePluginServers({ configPath: getConfigPath(targetDir), pluginName, label: LABEL, dryRun });
   }
 };
