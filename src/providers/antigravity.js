@@ -169,20 +169,54 @@ module.exports = {
     if (!settings._agenthaus_mcp) settings._agenthaus_mcp = {};
 
     const registeredKeys = settings._agenthaus_mcp[pluginName] || [];
+    const newRegisteredKeys = [];
+
     for (const [key, srvConfig] of Object.entries(mcpServers)) {
       let finalKey = key;
-      if (settings.mcpServers[finalKey]) {
-        if (JSON.stringify(settings.mcpServers[finalKey]) === JSON.stringify(srvConfig)) {
-          if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
-          continue;
-        }
+      if (registeredKeys.includes(key)) {
+        finalKey = key;
+      } else if (registeredKeys.includes(`${pluginName}-${key}`)) {
         finalKey = `${pluginName}-${key}`;
-        console.log(`[warn] Gemini: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+      } else if (settings.mcpServers[key]) {
+        if (JSON.stringify(settings.mcpServers[key]) === JSON.stringify(srvConfig)) {
+          finalKey = key;
+        } else {
+          finalKey = `${pluginName}-${key}`;
+          console.log(`[warn] Gemini: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+        }
       }
       settings.mcpServers[finalKey] = srvConfig;
-      if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
+      newRegisteredKeys.push(finalKey);
     }
-    settings._agenthaus_mcp[pluginName] = registeredKeys;
+
+    for (const oldKey of registeredKeys) {
+      if (!newRegisteredKeys.includes(oldKey)) {
+        let isShared = false;
+        if (settings._agenthaus_mcp) {
+          for (const [otherPlugin, keys] of Object.entries(settings._agenthaus_mcp)) {
+            if (otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(oldKey)) {
+              isShared = true;
+              break;
+            }
+          }
+        }
+        if (!isShared) {
+          delete settings.mcpServers[oldKey];
+        }
+      }
+    }
+
+    if (newRegisteredKeys.length === 0) {
+      delete settings._agenthaus_mcp[pluginName];
+      if (Object.keys(settings._agenthaus_mcp).length === 0) {
+        delete settings._agenthaus_mcp;
+      }
+    } else {
+      settings._agenthaus_mcp[pluginName] = newRegisteredKeys;
+    }
+    if (settings.mcpServers && Object.keys(settings.mcpServers).length === 0) {
+      delete settings.mcpServers;
+    }
 
     if (!dryRun) {
       fs.mkdirSync(settingsDir, { recursive: true });

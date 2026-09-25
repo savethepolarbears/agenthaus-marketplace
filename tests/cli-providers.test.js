@@ -412,4 +412,68 @@ test('CLI Providers', async (t) => {
     assert.strictEqual(settings.mcpServers['neon-db-postgres'], undefined);
     assert.ok(settings.mcpServers.postgres);
   });
+
+  await t.test('postInstall replaces owned MCP entries when their configuration changes on update', () => {
+    const antigravity = getProvider('antigravity');
+    const cursor = getProvider('cursor');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-update-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    const pluginDir = path.join(tmpDir, 'test-plugin');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'old-command', args: ['arg1'] }
+      }
+    }));
+
+    // 1. Initial install
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers.srv.command, 'old-command');
+    assert.strictEqual(settings.mcpServers['test-plugin-srv'], undefined);
+
+    // 2. Plugin updates its srv command to new-command
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'new-command', args: ['arg2'] }
+      }
+    }));
+
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    // Replaced in place under owned key without collision namespacing
+    assert.strictEqual(settings.mcpServers.srv.command, 'new-command');
+    assert.strictEqual(settings.mcpServers['test-plugin-srv'], undefined);
+
+    // 3. Same behavior in Cursor
+    const fakeCursorDir = path.join(tmpDir, 'cursor-update-test');
+    const cursorTargetDir = path.join(fakeCursorDir, 'plugins');
+    fs.mkdirSync(cursorTargetDir, { recursive: true });
+    const cursorMcpPath = path.join(fakeCursorDir, 'mcp.json');
+
+    fs.mkdirSync(path.join(pluginDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'old-cursor', args: [] }
+      }
+    }));
+
+    cursor.postInstall(pluginDir, cursorTargetDir, { dryRun: false });
+    let cursorConfig = JSON.parse(fs.readFileSync(cursorMcpPath, 'utf8'));
+    assert.strictEqual(cursorConfig.mcpServers.srv.command, 'old-cursor');
+
+    fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'new-cursor', args: [] }
+      }
+    }));
+
+    cursor.postInstall(pluginDir, cursorTargetDir, { dryRun: false });
+    cursorConfig = JSON.parse(fs.readFileSync(cursorMcpPath, 'utf8'));
+    assert.strictEqual(cursorConfig.mcpServers.srv.command, 'new-cursor');
+    assert.strictEqual(cursorConfig.mcpServers['test-plugin-srv'], undefined);
+  });
 });

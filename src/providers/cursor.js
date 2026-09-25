@@ -71,20 +71,54 @@ module.exports = {
       if (!config._agenthaus_mcp) config._agenthaus_mcp = {};
 
       const registeredKeys = config._agenthaus_mcp[pluginName] || [];
+      const newRegisteredKeys = [];
+
       for (const [key, srvConfig] of Object.entries(mcpServers)) {
         let finalKey = key;
-        if (config.mcpServers[finalKey]) {
-          if (JSON.stringify(config.mcpServers[finalKey]) === JSON.stringify(srvConfig)) {
-            if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
-            continue;
-          }
+        if (registeredKeys.includes(key)) {
+          finalKey = key;
+        } else if (registeredKeys.includes(`${pluginName}-${key}`)) {
           finalKey = `${pluginName}-${key}`;
-          console.log(`[warn] Cursor: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+        } else if (config.mcpServers[key]) {
+          if (JSON.stringify(config.mcpServers[key]) === JSON.stringify(srvConfig)) {
+            finalKey = key;
+          } else {
+            finalKey = `${pluginName}-${key}`;
+            console.log(`[warn] Cursor: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+          }
         }
         config.mcpServers[finalKey] = srvConfig;
-        if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
+        newRegisteredKeys.push(finalKey);
       }
-      config._agenthaus_mcp[pluginName] = registeredKeys;
+
+      for (const oldKey of registeredKeys) {
+        if (!newRegisteredKeys.includes(oldKey)) {
+          let isShared = false;
+          if (config._agenthaus_mcp) {
+            for (const [otherPlugin, keys] of Object.entries(config._agenthaus_mcp)) {
+              if (otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(oldKey)) {
+                isShared = true;
+                break;
+              }
+            }
+          }
+          if (!isShared) {
+            delete config.mcpServers[oldKey];
+          }
+        }
+      }
+
+      if (newRegisteredKeys.length === 0) {
+        delete config._agenthaus_mcp[pluginName];
+        if (Object.keys(config._agenthaus_mcp).length === 0) {
+          delete config._agenthaus_mcp;
+        }
+      } else {
+        config._agenthaus_mcp[pluginName] = newRegisteredKeys;
+      }
+      if (config.mcpServers && Object.keys(config.mcpServers).length === 0) {
+        delete config.mcpServers;
+      }
 
       if (!dryRun) {
         fs.mkdirSync(cursorDir, { recursive: true });
