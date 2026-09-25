@@ -8,7 +8,9 @@ const { spawnSync } = require('node:child_process');
 const REPO_ROOT = path.resolve(__dirname, '..');
 const INSTALLER_SCRIPT = path.join(REPO_ROOT, 'scripts', 'install-plugins.sh');
 
-describe('Universal Plugin Installer Filesystem Safety', () => {
+describe('Universal Plugin Installer Filesystem Safety', {
+    skip: process.platform === 'win32' ? 'Bash installer scripts not supported on native Windows' : false
+}, () => {
     let tmpDir;
 
     beforeEach(() => {

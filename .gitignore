@@ -89,6 +89,7 @@ skills_index.json
 
 # Internal planning / development files
 .planning/
+graphify-out/
 
 # Web storefront (removed — not part of the open-source distribution)
 agenthaus-web/
