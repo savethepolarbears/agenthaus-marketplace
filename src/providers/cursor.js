@@ -40,15 +40,23 @@ module.exports = {
 
     // 2. Merge .cursor/mcp.json if present
     let mcpServers = null;
+    let snippetParseFailed = false;
     const sourceMcpPath = path.join(sourceDir, '.cursor', 'mcp.json');
     if (fs.existsSync(sourceMcpPath)) {
       try {
         const parsed = JSON.parse(fs.readFileSync(sourceMcpPath, 'utf8'));
-        if (parsed.mcpServers && Object.keys(parsed.mcpServers).length > 0) {
+        if (parsed.mcpServers && typeof parsed.mcpServers === 'object') {
           mcpServers = parsed.mcpServers;
+        } else {
+          mcpServers = {};
         }
-      } catch {}
+      } catch (err) {
+        snippetParseFailed = true;
+        console.warn(`[warn] Cursor: Malformed MCP config at ${sourceMcpPath}: ${err.message}. Preserving existing MCP registrations.`);
+      }
     }
+
+    if (snippetParseFailed) return;
 
     const configPath = path.join(cursorDir, 'mcp.json');
     let config = {};

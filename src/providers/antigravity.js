@@ -135,15 +135,23 @@ module.exports = {
     // 2. Merge MCP servers into settings.json (preserving existing settings or aborting on malformed JSON)
     const snippetPath = path.join(sourceDir, 'gemini-settings-snippet.json');
     let mcpServers = null;
+    let snippetParseFailed = false;
 
     if (fs.existsSync(snippetPath)) {
       try {
         const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-        if (snippet.mcpServers && Object.keys(snippet.mcpServers).length > 0) {
+        if (snippet.mcpServers && typeof snippet.mcpServers === 'object') {
           mcpServers = snippet.mcpServers;
+        } else {
+          mcpServers = {};
         }
-      } catch {}
+      } catch (err) {
+        snippetParseFailed = true;
+        console.warn(`[warn] Gemini: Malformed snippet at ${snippetPath}: ${err.message}. Preserving existing MCP registrations.`);
+      }
     }
+
+    if (snippetParseFailed) return;
 
     const settingsDir = path.dirname(targetDir);
     const settingsPath = path.join(settingsDir, 'settings.json');

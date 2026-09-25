@@ -183,14 +183,15 @@ test('CLI Doctor', async (t) => {
 
   await t.test('checkProviderConfigs detects malformed provider configurations', () => {
     const projectDir = path.join(tmpDir, 'provider-conf-project');
+    const fakeHome = path.join(tmpDir, 'fake-home');
     fs.mkdirSync(path.join(projectDir, '.gemini'), { recursive: true });
     fs.writeFileSync(path.join(projectDir, '.gemini', 'settings.json'), '{ malformed json');
 
     fs.mkdirSync(path.join(projectDir, '.cursor'), { recursive: true });
     fs.writeFileSync(path.join(projectDir, '.cursor', 'mcp.json'), '{ invalid cursor json');
 
-    fs.mkdirSync(path.join(projectDir, '.codeium', 'windsurf'), { recursive: true });
-    fs.writeFileSync(path.join(projectDir, '.codeium', 'windsurf', 'mcp_config.json'), '{ invalid windsurf json');
+    fs.mkdirSync(path.join(fakeHome, '.codeium', 'windsurf'), { recursive: true });
+    fs.writeFileSync(path.join(fakeHome, '.codeium', 'windsurf', 'mcp_config.json'), '{ invalid windsurf json');
 
     const providers = [
       { id: 'antigravity', name: 'Gemini' },
@@ -198,10 +199,26 @@ test('CLI Doctor', async (t) => {
       { id: 'windsurf', name: 'Windsurf' }
     ];
 
-    const results = checkProviderConfigs(providers, projectDir);
+    const results = checkProviderConfigs(providers, projectDir, fakeHome);
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Gemini settings')));
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Cursor MCP config')));
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Windsurf MCP config')));
+  });
+
+  await t.test('checkProviderConfigs validates only effective Windsurf config and ignores project-local .codeium configs', () => {
+    const projectDir = path.join(tmpDir, 'project-windsurf-ignore');
+    const fakeHome = path.join(tmpDir, 'fake-home-valid');
+    fs.mkdirSync(path.join(fakeHome, '.codeium', 'windsurf'), { recursive: true });
+    fs.writeFileSync(path.join(fakeHome, '.codeium', 'windsurf', 'mcp_config.json'), JSON.stringify({ mcpServers: {} }));
+
+    fs.mkdirSync(path.join(projectDir, '.codeium', 'windsurf'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.codeium', 'windsurf', 'mcp_config.json'), '{ unused bad json');
+    fs.writeFileSync(path.join(projectDir, '.codeium', 'mcp_config.json'), '{ another bad json');
+
+    const providers = [{ id: 'windsurf', name: 'Windsurf' }];
+    const results = checkProviderConfigs(providers, projectDir, fakeHome);
+    assert.strictEqual(results.some(r => r.severity === 'FAIL'), false);
+    assert.ok(results.some(r => r.severity === 'PASS' && r.message.includes('Windsurf MCP config valid')));
   });
 
   await t.test('checkProviderConfigs detects structurally invalid provider configurations', () => {

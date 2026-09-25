@@ -539,4 +539,35 @@ test('CLI Providers', async (t) => {
     assert.ok(settings.mcpServers.shared_db);
     assert.deepStrictEqual(settings._agenthaus_mcp['shared-plugin-2'], ['shared_db']);
   });
+
+  await t.test('postInstall preserves registrations when plugin source snippet is malformed', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-parse-fail-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    const pluginDir = path.join(tmpDir, 'test-plugin-parse-fail');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        important_srv: { command: 'node', args: ['server.js'] }
+      }
+    }));
+
+    // 1. Initial install succeeds
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(settings._agenthaus_mcp['test-plugin-parse-fail'], ['important_srv']);
+
+    // 2. Plugin snippet becomes corrupted/malformed
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), '{ malformed json');
+
+    // postInstall should not prune or overwrite existing registrations on parse failure
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(settings._agenthaus_mcp['test-plugin-parse-fail'], ['important_srv']);
+  });
 });

@@ -367,9 +367,8 @@ function validateProviderConfigStructure(parsed, configLabel) {
   return null;
 }
 
-function checkProviderConfigs(providers, cwd = process.cwd()) {
+function checkProviderConfigs(providers, cwd = process.cwd(), home = os.homedir()) {
   const results = [];
-  const home = os.homedir();
 
   for (const provider of providers) {
     if (provider.id === 'antigravity') {
@@ -413,10 +412,9 @@ function checkProviderConfigs(providers, cwd = process.cwd()) {
         }
       }
     } else if (provider.id === 'windsurf') {
+      // Windsurf adapter exclusively reads and writes ~/.codeium/windsurf/mcp_config.json
       const candidates = new Set([
-        path.join(home, '.codeium', 'windsurf', 'mcp_config.json'),
-        path.join(cwd, '.codeium', 'windsurf', 'mcp_config.json'),
-        path.join(cwd, '.codeium', 'mcp_config.json')
+        path.join(home, '.codeium', 'windsurf', 'mcp_config.json')
       ]);
       for (const p of candidates) {
         if (fs.existsSync(p)) {

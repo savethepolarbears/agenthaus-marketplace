@@ -21,24 +21,37 @@ module.exports = {
   postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
     // 1. Merge MCP servers into ~/.codeium/windsurf/mcp_config.json
     let mcpServers = null;
+    let snippetParseFailed = false;
     const snippetPath = path.join(sourceDir, 'windsurf-mcp-snippet.json');
     const mcpJsonPath = path.join(sourceDir, '.mcp.json');
 
     if (fs.existsSync(snippetPath)) {
       try {
         const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-        if (snippet.mcpServers && Object.keys(snippet.mcpServers).length > 0) {
+        if (snippet.mcpServers && typeof snippet.mcpServers === 'object') {
           mcpServers = snippet.mcpServers;
+        } else {
+          mcpServers = {};
         }
-      } catch {}
+      } catch (err) {
+        snippetParseFailed = true;
+        console.warn(`[warn] Windsurf: Malformed MCP snippet at ${snippetPath}: ${err.message}. Preserving existing MCP registrations.`);
+      }
     } else if (fs.existsSync(mcpJsonPath)) {
       try {
         const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
-        if (mcpJson.mcpServers && Object.keys(mcpJson.mcpServers).length > 0) {
+        if (mcpJson.mcpServers && typeof mcpJson.mcpServers === 'object') {
           mcpServers = mcpJson.mcpServers;
+        } else {
+          mcpServers = {};
         }
-      } catch {}
+      } catch (err) {
+        snippetParseFailed = true;
+        console.warn(`[warn] Windsurf: Malformed .mcp.json at ${mcpJsonPath}: ${err.message}. Preserving existing MCP registrations.`);
+      }
     }
+
+    if (snippetParseFailed) return;
 
     const pluginName = path.basename(sourceDir);
     const configDir = path.join(os.homedir(), '.codeium', 'windsurf');
