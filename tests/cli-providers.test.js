@@ -655,4 +655,70 @@ test('CLI Providers', async (t) => {
       process.chdir(origCwd);
     }
   });
+
+  await t.test('postInstall avoids overwriting occupied namespaced server key and preserves unowned servers on uninstall', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-occupied-namespace-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    // Pre-existing unowned user server named 'occupied-plugin-1-shared_db'
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      mcpServers: {
+        'occupied-plugin-1-shared_db': { command: 'user-tool', args: ['stay-alive'] }
+      }
+    }));
+
+    const plugin1 = path.join(tmpDir, 'occupied-plugin-1');
+    fs.mkdirSync(plugin1, { recursive: true });
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    const plugin2 = path.join(tmpDir, 'occupied-plugin-2');
+    fs.mkdirSync(plugin2, { recursive: true });
+    fs.writeFileSync(path.join(plugin2, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    // Install both plugins sharing shared_db
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    antigravity.postInstall(plugin2, fakeTargetDir, { dryRun: false });
+
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db'].command, 'user-tool');
+
+    // Plugin 1 diverges
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'python', args: ['diverged.py'] }
+      }
+    }));
+
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // Unowned server must NOT be overwritten
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db'].command, 'user-tool');
+    // Plugin 1 must be registered under unique free key -2
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db-2'].command, 'python');
+    assert.deepStrictEqual(settings._agenthaus_mcp['occupied-plugin-1'], ['occupied-plugin-1-shared_db-2']);
+    // Plugin 2 preserved
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+
+    // Uninstall plugin 1: must delete only occupied-plugin-1-shared_db-2, preserving unowned user server
+    antigravity.postUninstall('occupied-plugin-1', fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db-2'], undefined);
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db'].command, 'user-tool');
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+  });
 });
+

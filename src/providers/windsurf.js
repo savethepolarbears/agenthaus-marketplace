@@ -102,27 +102,60 @@ module.exports = {
       const registeredKeys = config._agenthaus_mcp[pluginName] || [];
       const newRegisteredKeys = [];
 
+      const hasOtherOwners = (candidateKey) => Object.entries(config._agenthaus_mcp || {}).some(
+        ([otherPlugin, keys]) => otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(candidateKey)
+      );
+
+      const findAvailableNamespacedKey = (baseKey, srvConfig) => {
+        let candidate = baseKey;
+        let counter = 1;
+        while (true) {
+          const existing = config.mcpServers[candidate];
+          const isClaimedInThisPass = newRegisteredKeys.includes(candidate);
+          if (!existing && !isClaimedInThisPass) {
+            return candidate;
+          }
+          if (existing && JSON.stringify(existing) === JSON.stringify(srvConfig) && !isClaimedInThisPass) {
+            return candidate;
+          }
+          counter++;
+          candidate = `${baseKey}-${counter}`;
+        }
+      };
+
       for (const [key, srvConfig] of Object.entries(mcpServers)) {
         let finalKey = key;
-        const hasOtherOwners = Object.entries(config._agenthaus_mcp || {}).some(
-          ([otherPlugin, keys]) => otherPlugin !== pluginName && Array.isArray(keys) && keys.includes(key)
-        );
 
         if (registeredKeys.includes(key)) {
-          if (hasOtherOwners && JSON.stringify(config.mcpServers[key]) !== JSON.stringify(srvConfig)) {
-            finalKey = `${pluginName}-${key}`;
+          if (hasOtherOwners(key) && JSON.stringify(config.mcpServers[key]) !== JSON.stringify(srvConfig)) {
+            finalKey = findAvailableNamespacedKey(`${pluginName}-${key}`, srvConfig);
             console.log(`[warn] Windsurf: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
           } else {
             finalKey = key;
           }
-        } else if (registeredKeys.includes(`${pluginName}-${key}`)) {
-          finalKey = `${pluginName}-${key}`;
-        } else if (config.mcpServers[key]) {
-          if (JSON.stringify(config.mcpServers[key]) === JSON.stringify(srvConfig)) {
-            finalKey = key;
+        } else {
+          const baseKey = `${pluginName}-${key}`;
+          const existingNamespaced = registeredKeys.find(k => k === baseKey || k.startsWith(`${baseKey}-`));
+          if (existingNamespaced && !hasOtherOwners(existingNamespaced)) {
+            finalKey = existingNamespaced;
+          } else if (existingNamespaced && hasOtherOwners(existingNamespaced)) {
+            if (JSON.stringify(config.mcpServers[existingNamespaced]) === JSON.stringify(srvConfig)) {
+              finalKey = existingNamespaced;
+            } else {
+              finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
+              console.log(`[warn] Windsurf: MCP server '${key}' diverged from shared configuration; registered as '${finalKey}' for ${pluginName}`);
+            }
+          } else if (config.mcpServers[key]) {
+            if (JSON.stringify(config.mcpServers[key]) === JSON.stringify(srvConfig) && !newRegisteredKeys.includes(key)) {
+              finalKey = key;
+            } else {
+              finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
+              console.log(`[warn] Windsurf: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+            }
+          } else if (newRegisteredKeys.includes(key)) {
+            finalKey = findAvailableNamespacedKey(baseKey, srvConfig);
           } else {
-            finalKey = `${pluginName}-${key}`;
-            console.log(`[warn] Windsurf: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+            finalKey = key;
           }
         }
         config.mcpServers[finalKey] = srvConfig;
