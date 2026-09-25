@@ -308,5 +308,46 @@ test('CLI Doctor', async (t) => {
     const normalDir = path.join(tmpDir, 'normal-install');
     fs.mkdirSync(normalDir, { recursive: true });
     assert.strictEqual(isMarketplaceHybrid(normalDir, 'test-plugin', fakeRepo), false);
+
+    // 4. Foreign fork under conventional path: points into /other-repo/plugins, NOT this marketplace
+    const foreignRepo = path.join(tmpDir, 'other-repo');
+    const foreignPlugin = path.join(foreignRepo, 'plugins', 'test-plugin');
+    fs.mkdirSync(foreignPlugin, { recursive: true });
+    fs.mkdirSync(path.join(foreignPlugin, 'hooks'), { recursive: true });
+    const foreignInstallDir = path.join(tmpDir, 'foreign-fork-install');
+    fs.mkdirSync(foreignInstallDir, { recursive: true });
+    fs.symlinkSync(path.join(foreignPlugin, 'hooks'), path.join(foreignInstallDir, 'hooks'), 'dir');
+    assert.strictEqual(isMarketplaceHybrid(foreignInstallDir, 'test-plugin', fakeRepo), false);
+  });
+
+  await t.test('checkProviderConfigs requires string values in MCP server environment maps', () => {
+    const projectDir = path.join(tmpDir, 'provider-env-types-project');
+    fs.mkdirSync(path.join(projectDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        my_srv: {
+          command: 'node',
+          env: {
+            VALID_VAR: 'hello',
+            NUMERIC_VAR: 123
+          }
+        }
+      }
+    }));
+
+    const providers = [{ id: 'cursor', name: 'Cursor' }];
+    const results = checkProviderConfigs(providers, projectDir);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("Environment variable 'NUMERIC_VAR' in MCP server 'my_srv' (Cursor MCP config) must be a string")));
+  });
+
+  await t.test('checkProviderConfigs validates Claude project-scoped .mcp.json', () => {
+    const projectDir = path.join(tmpDir, 'claude-project-mcp');
+    fs.mkdirSync(path.join(projectDir, '.claude'), { recursive: true });
+    // Write malformed .mcp.json in cwd
+    fs.writeFileSync(path.join(projectDir, '.mcp.json'), '{ malformed json');
+
+    const providers = [{ id: 'claude', name: 'Claude Code' }];
+    const results = checkProviderConfigs(providers, projectDir);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Claude MCP config')));
   });
 });

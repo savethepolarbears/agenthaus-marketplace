@@ -3,7 +3,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const PLUGINS_DIR = path.resolve(__dirname, '..', 'plugins');
+const PLUGINS_DIR = process.env.AGENTHAUS_PLUGINS_DIR
+  ? path.resolve(process.env.AGENTHAUS_PLUGINS_DIR)
+  : path.resolve(__dirname, '..', 'plugins');
 
 let marketplaceMap = null;
 function getMarketplaceMap() {

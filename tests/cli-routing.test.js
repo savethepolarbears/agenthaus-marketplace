@@ -15,11 +15,11 @@ test('CLI Routing and Flag Parsing', async (t) => {
   const isolatedEnv = { ...process.env, HOME: tmpDir, USERPROFILE: tmpDir };
 
   const runBin = (args, opts = {}) => {
-    return spawnSync('node', [BIN_PATH, ...args], {
-      env: { ...isolatedEnv, ...(opts.env || {}) },
-      cwd: opts.cwd || tmpDir,
+    return spawnSync(process.execPath, [BIN_PATH, ...args], {
+      cwd: tmpDir,
       encoding: 'utf8',
-      ...opts
+      ...opts,
+      env: { ...isolatedEnv, ...(opts.env || {}) }
     });
   };
 
@@ -175,8 +175,17 @@ test('CLI Routing and Flag Parsing', async (t) => {
     fs.mkdirSync(geminiDir, { recursive: true });
 
     // Canonical source hook file in tmpDir (simulating marketplace repo)
-    const canonicalHooksDir = path.join(tmpDir, 'source-circuit-breaker', 'hooks');
+    const mockRepoRoot = path.join(tmpDir, 'mock-marketplace');
+    const mockPluginDir = path.join(mockRepoRoot, 'plugins', 'circuit-breaker');
+    const canonicalHooksDir = path.join(mockPluginDir, 'hooks');
     fs.mkdirSync(canonicalHooksDir, { recursive: true });
+    fs.mkdirSync(path.join(mockPluginDir, '.claude-plugin'), { recursive: true });
+    fs.writeFileSync(path.join(mockPluginDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      name: 'circuit-breaker',
+      version: '1.0.0',
+      description: 'Mock plugin'
+    }));
+
     const canonicalHookFile = path.join(canonicalHooksDir, 'hooks.json');
     const originalContent = JSON.stringify({
       hooks: {
@@ -196,15 +205,20 @@ test('CLI Routing and Flag Parsing', async (t) => {
     fs.symlinkSync(canonicalHooksDir, path.join(geminiDir, 'hooks'), symType);
     fs.writeFileSync(path.join(geminiDir, 'gemini-extension.json'), JSON.stringify({ name: 'circuit-breaker' }));
 
+    const mockEnv = {
+      AGENTHAUS_REPO_ROOT: mockRepoRoot,
+      AGENTHAUS_PLUGINS_DIR: path.join(mockRepoRoot, 'plugins')
+    };
+
     // Run sync --target antigravity
-    const syncResult = runBin(['sync', '--target', 'antigravity'], { cwd: projectDir });
+    const syncResult = runBin(['sync', '--target', 'antigravity'], { cwd: projectDir, env: mockEnv });
     assert.strictEqual(syncResult.status, 0);
 
     // Canonical source file must NOT be modified
     assert.strictEqual(fs.readFileSync(canonicalHookFile, 'utf8'), originalContent);
 
     // Run doctor --fix
-    const doctorFixResult = runBin(['doctor', '--fix'], { cwd: projectDir });
+    const doctorFixResult = runBin(['doctor', '--fix'], { cwd: projectDir, env: mockEnv });
     assert.strictEqual(doctorFixResult.status, 0);
 
     // Canonical source file must still NOT be modified

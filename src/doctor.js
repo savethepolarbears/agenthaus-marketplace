@@ -327,10 +327,12 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   return { pass_count, warn_count, fail_count, checks };
 }
 
-function isMarketplaceHybrid(dir, pluginName = path.basename(dir), repoRoot = path.resolve(__dirname, '..')) {
+function isMarketplaceHybrid(dir, pluginName = path.basename(dir), repoRoot = (process.env.AGENTHAUS_REPO_ROOT ? path.resolve(process.env.AGENTHAUS_REPO_ROOT) : path.resolve(__dirname, '..'))) {
   try {
     const entries = fs.readdirSync(dir);
-    const repoPlugins = path.resolve(repoRoot, 'plugins');
+    const repoPlugins = process.env.AGENTHAUS_PLUGINS_DIR
+      ? path.resolve(process.env.AGENTHAUS_PLUGINS_DIR)
+      : path.resolve(repoRoot, 'plugins');
     let realRepoPlugins;
     try {
       realRepoPlugins = fs.realpathSync(repoPlugins);
@@ -347,7 +349,6 @@ function isMarketplaceHybrid(dir, pluginName = path.basename(dir), repoRoot = pa
     }
 
     const sep = path.sep;
-    const expectedSuffix = `${sep}plugins${sep}${pluginName}`;
 
     for (const entry of entries) {
       const p = path.join(dir, entry);
@@ -363,19 +364,27 @@ function isMarketplaceHybrid(dir, pluginName = path.basename(dir), repoRoot = pa
             realTarget = resolvedTarget;
           }
 
-          const targetNorm = process.platform === 'win32' ? realTarget.toLowerCase() : realTarget;
-          const resolvedNorm = process.platform === 'win32' ? resolvedTarget.toLowerCase() : resolvedTarget;
-          const normSuffix = process.platform === 'win32' ? expectedSuffix.toLowerCase() : expectedSuffix;
-          const normPluginName = pluginName.toLowerCase();
-
-          // Only consider as hybrid if symlink resolves into marketplace checkout
-          const isMarketplaceTarget =
-            realTarget === realRepoPlugins || realTarget.startsWith(realRepoPlugins + sep) ||
-            resolvedTarget === repoPlugins || resolvedTarget.startsWith(repoPlugins + sep) ||
-            realTarget === realExpectedSource || realTarget.startsWith(realExpectedSource + sep) ||
-            resolvedTarget === expectedSourceDir || resolvedTarget.startsWith(expectedSourceDir + sep) ||
-            targetNorm.includes(normSuffix) || resolvedNorm.includes(normSuffix) ||
-            targetNorm.includes(`source-${normPluginName}`) || resolvedNorm.includes(`source-${normPluginName}`);
+          // Strictly verify if symlink target is within this marketplace checkout
+          let isMarketplaceTarget = false;
+          if (process.platform === 'win32') {
+            const realTargetLower = realTarget.toLowerCase();
+            const resolvedTargetLower = resolvedTarget.toLowerCase();
+            const realRepoPluginsLower = realRepoPlugins.toLowerCase();
+            const repoPluginsLower = repoPlugins.toLowerCase();
+            const realExpectedSourceLower = realExpectedSource.toLowerCase();
+            const expectedSourceDirLower = expectedSourceDir.toLowerCase();
+            isMarketplaceTarget =
+              realTargetLower === realRepoPluginsLower || realTargetLower.startsWith(realRepoPluginsLower + sep) ||
+              resolvedTargetLower === repoPluginsLower || resolvedTargetLower.startsWith(repoPluginsLower + sep) ||
+              realTargetLower === realExpectedSourceLower || realTargetLower.startsWith(realExpectedSourceLower + sep) ||
+              resolvedTargetLower === expectedSourceDirLower || resolvedTargetLower.startsWith(expectedSourceDirLower + sep);
+          } else {
+            isMarketplaceTarget =
+              realTarget === realRepoPlugins || realTarget.startsWith(realRepoPlugins + sep) ||
+              resolvedTarget === repoPlugins || resolvedTarget.startsWith(repoPlugins + sep) ||
+              realTarget === realExpectedSource || realTarget.startsWith(realExpectedSource + sep) ||
+              resolvedTarget === expectedSourceDir || resolvedTarget.startsWith(expectedSourceDir + sep);
+          }
 
           if (isMarketplaceTarget) {
             return true;
@@ -413,8 +422,15 @@ function validateProviderConfigStructure(parsed, configLabel) {
       if (srvConf.args !== undefined && (!Array.isArray(srvConf.args) || !srvConf.args.every(a => typeof a === 'string'))) {
         return `'args' in MCP server '${srvName}' (${configLabel}) must be an array of strings`;
       }
-      if (srvConf.env !== undefined && (typeof srvConf.env !== 'object' || srvConf.env === null || Array.isArray(srvConf.env))) {
-        return `'env' in MCP server '${srvName}' (${configLabel}) must be an object`;
+      if (srvConf.env !== undefined) {
+        if (typeof srvConf.env !== 'object' || srvConf.env === null || Array.isArray(srvConf.env)) {
+          return `'env' in MCP server '${srvName}' (${configLabel}) must be an object`;
+        }
+        for (const [envVar, envVal] of Object.entries(srvConf.env)) {
+          if (typeof envVal !== 'string') {
+            return `Environment variable '${envVar}' in MCP server '${srvName}' (${configLabel}) must be a string`;
+          }
+        }
       }
     }
   }
@@ -500,20 +516,22 @@ function checkProviderConfigs(providers, cwd = process.cwd(), home = os.homedir(
         path.join(home, '.claude', 'settings.json'),
         path.join(home, '.claude.json'),
         path.join(cwd, '.claude', 'settings.json'),
-        path.join(cwd, '.claude.json')
+        path.join(cwd, '.claude.json'),
+        path.join(cwd, '.mcp.json')
       ]);
       for (const p of candidates) {
         if (fs.existsSync(p)) {
+          const configLabel = path.basename(p) === '.mcp.json' ? 'Claude MCP config' : 'Claude config';
           try {
             const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
-            const structErr = validateProviderConfigStructure(parsed, 'Claude config');
+            const structErr = validateProviderConfigStructure(parsed, configLabel);
             if (structErr) {
-              results.push({ severity: 'FAIL', message: `Malformed Claude config at ${p}: ${structErr}` });
+              results.push({ severity: 'FAIL', message: `Malformed ${configLabel} at ${p}: ${structErr}` });
             } else {
-              results.push({ severity: 'PASS', message: `Claude config valid (${p})` });
+              results.push({ severity: 'PASS', message: `${configLabel} valid (${p})` });
             }
           } catch (err) {
-            results.push({ severity: 'FAIL', message: `Malformed Claude config at ${p}: ${err.message}` });
+            results.push({ severity: 'FAIL', message: `Malformed ${configLabel} at ${p}: ${err.message}` });
           }
         }
       }
