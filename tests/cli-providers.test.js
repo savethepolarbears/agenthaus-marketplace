@@ -14,6 +14,7 @@ test('CLI Providers', async (t) => {
   // Providers resolve user-scope configs from os.homedir(); never let tests touch the real home.
   const realHomedir = os.homedir;
   const realXdg = process.env.XDG_CONFIG_HOME;
+  const realAppData = process.env.APPDATA;
 
   t.beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-test-'));
@@ -22,12 +23,15 @@ test('CLI Providers', async (t) => {
     fs.mkdirSync(fakeHome, { recursive: true });
     os.homedir = () => fakeHome;
     process.env.XDG_CONFIG_HOME = path.join(fakeHome, '.config');
+    process.env.APPDATA = path.join(fakeHome, 'AppData', 'Roaming');
   });
 
   t.afterEach(() => {
     os.homedir = realHomedir;
     if (realXdg === undefined) delete process.env.XDG_CONFIG_HOME;
     else process.env.XDG_CONFIG_HOME = realXdg;
+    if (realAppData === undefined) delete process.env.APPDATA;
+    else process.env.APPDATA = realAppData;
     if (tmpDir) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -264,8 +268,9 @@ test('CLI Providers', async (t) => {
       const cleaned = JSON.parse(fs.readFileSync(configPath, 'utf8'));
       assert.strictEqual(cleaned.mcpServers, undefined);
 
-      // Devin Desktop present: ~/.config/devin/mcp_config.json takes precedence
-      const devinConfig = path.join(fakeHome, '.config', 'devin', 'mcp_config.json');
+      // Devin Desktop present: its config (~/.config/devin, or %APPDATA%\devin on Windows) takes precedence
+      process.env.APPDATA = path.join(fakeHome, 'AppData', 'Roaming');
+      const devinConfig = windsurf.getConfigPaths(process.cwd(), fakeHome)[0];
       fs.mkdirSync(path.dirname(devinConfig), { recursive: true });
       windsurf.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
       assert.ok(JSON.parse(fs.readFileSync(devinConfig, 'utf8')).mcpServers['windsurf-server']);

@@ -171,15 +171,19 @@ test('Provider lifecycle hardening', async (t) => {
     writeJson(path.join(source, '.mcp.json'), { mcpServers: { s: { command: 'x', env: { K: '${K}' } } } });
     const origHome = os.homedir;
     const origXdg = process.env.XDG_CONFIG_HOME;
+    const origAppData = process.env.APPDATA;
     try {
       os.homedir = () => fakeHome;
       delete process.env.XDG_CONFIG_HOME;
+      process.env.APPDATA = path.join(fakeHome, 'AppData', 'Roaming');
       windsurf.postInstall(source, path.join(fakeHome, '.codeium', 'windsurf', 'plugins'), { dryRun: false });
       assert.strictEqual(fs.existsSync(path.join(fakeHome, '.codeium', 'windsurf', 'mcp_config.json')), false);
     } finally {
       os.homedir = origHome;
       if (origXdg === undefined) delete process.env.XDG_CONFIG_HOME;
       else process.env.XDG_CONFIG_HOME = origXdg;
+      if (origAppData === undefined) delete process.env.APPDATA;
+      else process.env.APPDATA = origAppData;
     }
   });
 
