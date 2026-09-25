@@ -2,87 +2,76 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { writeFileAtomic } = require('../fs-utils.js');
 const os = require('node:os');
+const { readServersSnippet, resolvePluginRoot, syncPluginServers, removePluginServers } = require('./mcp-ownership.js');
+
+const LABEL = 'Windsurf MCP config';
+
+// Windsurf is now Devin Desktop; its docs place MCP config under the user config dir.
+// The legacy ~/.codeium/windsurf path is still used when no Devin install exists.
+function getDevinConfigDir(home = os.homedir()) {
+  if (process.platform === 'win32') {
+    return path.join(process.env.APPDATA || path.join(home, 'AppData', 'Roaming'), 'devin');
+  }
+  return path.join(process.env.XDG_CONFIG_HOME || path.join(home, '.config'), 'devin');
+}
+
+function getLegacyConfigDir(home = os.homedir()) {
+  return path.join(home, '.codeium', 'windsurf');
+}
+
+// The config the adapter reads and writes: Devin when installed, else legacy Windsurf.
+function getConfigPath(home = os.homedir()) {
+  const dir = fs.existsSync(getDevinConfigDir(home)) ? getDevinConfigDir(home) : getLegacyConfigDir(home);
+  return path.join(dir, 'mcp_config.json');
+}
+
+function getAllConfigPaths(home = os.homedir()) {
+  return [path.join(getDevinConfigDir(home), 'mcp_config.json'), path.join(getLegacyConfigDir(home), 'mcp_config.json')];
+}
+
+function loadPluginServers(sourceDir, targetDir) {
+  const pluginName = path.basename(sourceDir);
+  // Only the generated snippet is merged: raw .mcp.json uses Claude-style ${VAR}
+  // interpolation, which Windsurf/Devin does not expand.
+  const { servers, failed } = readServersSnippet(path.join(sourceDir, 'windsurf-mcp-snippet.json'), 'Windsurf');
+  if (failed || !servers) return { servers, failed };
+  return {
+    servers: resolvePluginRoot(servers, [`./plugins/${pluginName}`], path.join(targetDir, pluginName)),
+    failed: false
+  };
+}
 
 module.exports = {
   id: 'windsurf',
-  name: 'Windsurf (Codeium)',
+  name: 'Windsurf / Devin Desktop',
   detect(cwd) {
-    return fs.existsSync(path.join(os.homedir(), '.codeium', 'windsurf')) ||
-           fs.existsSync(path.join(cwd, '.codeium'));
+    return fs.existsSync(getDevinConfigDir()) ||
+           fs.existsSync(getLegacyConfigDir()) ||
+           fs.existsSync(path.join(cwd, '.codeium')) ||
+           fs.existsSync(path.join(cwd, '.windsurf'));
   },
   getTargetDir(cwd, mode) {
     if (mode === 'project') return path.join(cwd, '.codeium', 'plugins');
     return path.join(os.homedir(), '.codeium', 'windsurf', 'plugins');
   },
+  getConfigPaths(cwd, home = os.homedir()) {
+    return [getConfigPath(home)];
+  },
   getCapabilities() {
     return { mcp: 'via mcp_config.json', hooks: false, commands: 'partial', skills: true };
   },
+  isMcpInSync(sourceDir, targetDir) {
+    const { servers, failed } = loadPluginServers(sourceDir, targetDir);
+    if (failed) return true;
+    return !syncPluginServers({ configPath: getConfigPath(), pluginName: path.basename(sourceDir), servers, label: LABEL, dryRun: true }).changed;
+  },
   postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
-    // 1. Merge MCP servers into ~/.codeium/windsurf/mcp_config.json
-    let mcpServers = null;
-    const snippetPath = path.join(sourceDir, 'windsurf-mcp-snippet.json');
-    const mcpJsonPath = path.join(sourceDir, '.mcp.json');
-
-    if (fs.existsSync(snippetPath)) {
-      try {
-        const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-        if (snippet.mcpServers && Object.keys(snippet.mcpServers).length > 0) {
-          mcpServers = snippet.mcpServers;
-        }
-      } catch {}
-    } else if (fs.existsSync(mcpJsonPath)) {
-      try {
-        const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
-        if (mcpJson.mcpServers && Object.keys(mcpJson.mcpServers).length > 0) {
-          mcpServers = mcpJson.mcpServers;
-        }
-      } catch {}
-    }
-
-    if (mcpServers) {
-      const configDir = path.join(os.homedir(), '.codeium', 'windsurf');
-      const configPath = path.join(configDir, 'mcp_config.json');
-
-      let config = {};
-      if (fs.existsSync(configPath)) {
-        try {
-          config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        } catch (err) {
-          let backupMsg = '';
-          if (!dryRun) {
-            const backupPath = `${configPath}.bak.${Date.now()}`;
-            fs.copyFileSync(configPath, backupPath);
-            backupMsg = ` (backed up to ${backupPath})`;
-          }
-          throw new Error(`Malformed Windsurf MCP config at ${configPath}${backupMsg}: ${err.message}`);
-        }
-      }
-
-      if (!config.mcpServers) config.mcpServers = {};
-      if (!config._agenthaus_mcp) config._agenthaus_mcp = {};
-
-      const pluginName = path.basename(sourceDir);
-      const registeredKeys = config._agenthaus_mcp[pluginName] || [];
-      for (const [key, srvConfig] of Object.entries(mcpServers)) {
-        let finalKey = key;
-        if (config.mcpServers[finalKey]) {
-          if (JSON.stringify(config.mcpServers[finalKey]) === JSON.stringify(srvConfig)) {
-            if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
-            continue;
-          }
-          finalKey = `${pluginName}-${key}`;
-          console.log(`[warn] Windsurf: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
-        }
-        config.mcpServers[finalKey] = srvConfig;
-        if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
-      }
-      config._agenthaus_mcp[pluginName] = registeredKeys;
-
-      if (!dryRun) {
-        fs.mkdirSync(configDir, { recursive: true });
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-      }
+    // 1. Reconcile MCP servers into the Windsurf/Devin mcp_config.json
+    const { servers, failed } = loadPluginServers(sourceDir, targetDir);
+    if (!failed) {
+      syncPluginServers({ configPath: getConfigPath(), pluginName: path.basename(sourceDir), servers, label: LABEL, dryRun });
     }
 
     // 2. Install project context rules (.windsurfrules) if running in a project workspace
@@ -117,54 +106,16 @@ module.exports = {
           }
 
           if (!dryRun) {
-            fs.writeFileSync(projectRules, updated, 'utf8');
+            writeFileAtomic(projectRules, updated, { backup: false });
           }
         } catch {}
       }
     }
   },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
-    const configPath = path.join(os.homedir(), '.codeium', 'windsurf', 'mcp_config.json');
-    if (fs.existsSync(configPath)) {
-      try {
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        if (config._agenthaus_mcp && config._agenthaus_mcp[pluginName]) {
-          const keysToRemove = config._agenthaus_mcp[pluginName];
-          delete config._agenthaus_mcp[pluginName];
-          if (Object.keys(config._agenthaus_mcp).length === 0) {
-            delete config._agenthaus_mcp;
-          }
-          const remainingKeys = new Set();
-          if (config._agenthaus_mcp) {
-            for (const keys of Object.values(config._agenthaus_mcp)) {
-              for (const k of keys) remainingKeys.add(k);
-            }
-          }
-          for (const k of keysToRemove) {
-            if (!remainingKeys.has(k)) {
-              delete config.mcpServers[k];
-            }
-          }
-          if (config.mcpServers && Object.keys(config.mcpServers).length === 0) {
-            delete config.mcpServers;
-          }
-          if (!dryRun) {
-            fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-          }
-        } else if (config.mcpServers) {
-          if (config.mcpServers[pluginName]) {
-            delete config.mcpServers[pluginName];
-          }
-          for (const k of Object.keys(config.mcpServers)) {
-            if (k.startsWith(`${pluginName}-`)) {
-              delete config.mcpServers[k];
-            }
-          }
-          if (!dryRun) {
-            fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
-          }
-        }
-      } catch {}
+    // 1. Remove MCP registrations from both current and legacy config locations
+    for (const configPath of getAllConfigPaths()) {
+      removePluginServers({ configPath, pluginName, label: LABEL, dryRun });
     }
 
     // 2. Remove plugin context section from .windsurfrules
@@ -184,7 +135,7 @@ module.exports = {
           }
           if (!dryRun) {
             if (content.length > 0) {
-              fs.writeFileSync(projectRules, content + '\n', 'utf8');
+              writeFileAtomic(projectRules, content + '\n', { backup: false });
             } else {
               fs.unlinkSync(projectRules);
             }

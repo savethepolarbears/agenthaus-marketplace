@@ -3,6 +3,92 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { isPlainObject, writeFileAtomic } = require('../fs-utils.js');
+const { renderCodexServer, renderServerBlock } = require('../codex-toml.js');
+
+function getConfigPath(targetDir) {
+  return path.join(path.dirname(targetDir), 'config.toml');
+}
+
+function blockMarkers(pluginName) {
+  return {
+    start: `# >>> agenthaus:${pluginName} (managed by agenthaus; edits are overwritten) >>>`,
+    end: `# <<< agenthaus:${pluginName} <<<`
+  };
+}
+
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Remove this plugin's managed block; returns the remaining text.
+function stripBlock(content, pluginName) {
+  const { start, end } = blockMarkers(pluginName);
+  const re = new RegExp(`\\n*${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}\\n?`, 'g');
+  return content.replace(re, '\n');
+}
+
+// Server names declared as [mcp_servers.<name>] / [mcp_servers."<name>"] tables.
+function declaredServerKeys(content) {
+  const keys = new Set();
+  const re = /^\s*\[\s*mcp_servers\s*\.\s*(?:"((?:[^"\\]|\\.)*)"|'([^']*)'|([A-Za-z0-9_-]+))\s*[\].]/gm;
+  for (const m of content.matchAll(re)) keys.add(m[1] !== undefined ? JSON.parse(`"${m[1]}"`) : (m[2] ?? m[3]));
+  return keys;
+}
+
+function readPluginServers(sourceDir) {
+  const mcpPath = path.join(sourceDir, '.mcp.json');
+  if (!fs.existsSync(mcpPath)) return null;
+  const fail = (reason) => {
+    console.warn(`[warn] Codex: ${reason} at ${mcpPath}. Preserving existing MCP registrations.`);
+    return undefined;
+  };
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+  } catch (err) {
+    return fail(`Malformed .mcp.json (${err.message})`);
+  }
+  if (!isPlainObject(parsed)) return fail('Malformed .mcp.json: expected JSON object');
+  if (!isPlainObject(parsed.mcpServers)) return fail("Invalid 'mcpServers': expected JSON object");
+  return parsed.mcpServers;
+}
+
+/**
+ * Compute the new config.toml text for a plugin. Returns null when the file
+ * should not be touched (nothing to add and nothing to remove).
+ */
+function planConfig(configPath, pluginName, servers, pluginRoot) {
+  const exists = fs.existsSync(configPath);
+  const original = exists ? fs.readFileSync(configPath, 'utf8') : '';
+  const base = stripBlock(original, pluginName).replace(/\n{3,}/g, '\n\n').trimEnd();
+  const taken = declaredServerKeys(base);
+
+  const rendered = [];
+  for (const [key, server] of Object.entries(servers || {})) {
+    let finalKey = key;
+    for (let n = 1; taken.has(finalKey); n++) {
+      finalKey = n === 1 ? `${pluginName}-${key}` : `${pluginName}-${key}-${n}`;
+    }
+    if (finalKey !== key) console.log(`[warn] Codex: MCP server '${key}' conflicts with an existing entry; registered as '${finalKey}' for ${pluginName}`);
+    const r = renderCodexServer(finalKey, server, { pluginRoot });
+    if (!r.supported) {
+      console.warn(`[warn] Codex: ${r.notes.join('; ')}`);
+      continue;
+    }
+    taken.add(finalKey);
+    rendered.push(renderServerBlock(r));
+  }
+
+  let next = base;
+  if (rendered.length > 0) {
+    const { start, end } = blockMarkers(pluginName);
+    next = `${base}${base ? '\n\n' : ''}${start}\n${rendered.join('\n\n')}\n${end}`;
+  }
+  next = next ? next + '\n' : '';
+  if (next === original || (!exists && next === '')) return null;
+  return next;
+}
 
 function findOrCreateAgentsPath(cwd) {
   let cur = path.resolve(cwd);
@@ -27,6 +113,9 @@ module.exports = {
   },
   getTargetDir(cwd, mode) {
     return path.join(mode === 'project' ? cwd : os.homedir(), '.codex', 'agenthaus-skills');
+  },
+  getConfigPaths(cwd, home = os.homedir()) {
+    return [path.join(home, '.codex', 'config.toml'), path.join(cwd, '.codex', 'config.toml')];
   },
   getCapabilities() {
     return { mcp: 'via config.toml', hooks: false, commands: 'partial', skills: true };
@@ -89,17 +178,37 @@ module.exports = {
       if (!content.includes(skillRef)) {
         const updated = content.trimEnd() + `\n\n<!-- agenthaus:codex-skills -->\n- ${skillRef}\n`;
         if (!dryRun) {
-          fs.writeFileSync(agentsPath, updated, 'utf8');
+          writeFileAtomic(agentsPath, updated, { backup: false });
         }
       }
       console.log(`[info] Codex: Reference skills in AGENTS.md: '${skillRef}'`);
     }
 
-    if (fs.existsSync(path.join(sourceDir, 'codex-mcp-config.toml'))) {
-      console.log(`[info] Codex: For MCP servers, add entries from ${pluginName}/codex-mcp-config.toml to config.toml`);
+    // Register MCP servers as [mcp_servers.<name>] tables in config.toml
+    const servers = readPluginServers(sourceDir);
+    if (servers === undefined) return;
+    const configPath = getConfigPath(targetDir);
+    const next = planConfig(configPath, pluginName, servers, path.join(targetDir, pluginName));
+    if (next !== null && !dryRun) {
+      writeFileAtomic(configPath, next);
+      if (path.resolve(path.dirname(configPath)) !== path.resolve(os.homedir(), '.codex')) {
+        console.log(`[info] Codex: project config ${configPath} is only loaded for trusted projects`);
+      }
     }
   },
+  isMcpInSync(sourceDir, targetDir) {
+    const servers = readPluginServers(sourceDir);
+    if (servers === undefined) return true;
+    const pluginName = path.basename(sourceDir);
+    return planConfig(getConfigPath(targetDir), pluginName, servers, path.join(targetDir, pluginName)) === null;
+  },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
+    const configPath = getConfigPath(targetDir);
+    if (fs.existsSync(configPath)) {
+      const next = planConfig(configPath, pluginName, {}, null);
+      if (next !== null && !dryRun) writeFileAtomic(configPath, next);
+    }
+
     const agentsPath = findOrCreateAgentsPath(process.cwd());
     const skillPattern = `${pluginName}/skills/`;
     if (fs.existsSync(agentsPath)) {
@@ -111,7 +220,7 @@ module.exports = {
             .filter(line => !line.includes(skillPattern))
             .join('\n');
           if (!dryRun) {
-            fs.writeFileSync(agentsPath, updated, 'utf8');
+            writeFileAtomic(agentsPath, updated, { backup: false });
           }
         }
       } catch {}

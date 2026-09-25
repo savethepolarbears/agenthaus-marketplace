@@ -2,9 +2,13 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { detectAll } = require('./providers/index.js');
+const os = require('node:os');
+const { detectAll, getProvider } = require('./providers/index.js');
+const { LEGACY_OWNERSHIP_KEYS, getStatePath, validateState } = require('./providers/mcp-ownership.js');
+const { findTomlSyntaxError } = require('./codex-toml.js');
 const { discoverPlugins } = require('./catalog.js');
 const { getPluginHookFiles } = require('./sync.js');
+const { isMarketplaceHybrid } = require('./hybrid.js');
 
 function isCommandAccessible(command) {
   const extensions = process.platform === 'win32'
@@ -272,6 +276,8 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   
   const providers = detectAll(cwd);
   addResult({ severity: 'INFO', message: `Detected providers: ${providers.map(p => p.name).join(', ') || 'None'}` });
+  addResults(checkProviderConfigs(providers, cwd));
+  addResults(checkOwnershipState());
   
   addResults(checkMcpCommands(plugins));
 
@@ -297,7 +303,7 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
           const pDir = path.join(targetDir, entry);
           try {
             const st = fs.lstatSync(pDir);
-            if (st.isDirectory() && !st.isSymbolicLink()) {
+            if (st.isDirectory() && !st.isSymbolicLink() && !isMarketplaceHybrid(pDir, entry, repoRoot)) {
               addResults(checkHookSchema(pDir));
               const mcpPath = path.join(pDir, '.mcp.json');
               if (fs.existsSync(mcpPath)) {
@@ -325,6 +331,173 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   return { pass_count, warn_count, fail_count, checks };
 }
 
+const REMOTE_URL_FIELDS = ['url', 'httpUrl', 'serverUrl'];
+
+function validateProviderConfigStructure(parsed, configLabel, { serversKey = 'mcpServers', remoteFields = REMOTE_URL_FIELDS } = {}) {
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return `${configLabel} must be a JSON object`;
+  }
+  const servers = parsed[serversKey];
+  if (servers !== undefined) {
+    if (typeof servers !== 'object' || servers === null || Array.isArray(servers)) {
+      return `'${serversKey}' in ${configLabel} must be an object`;
+    }
+    for (const [srvName, srvConf] of Object.entries(servers)) {
+      if (typeof srvConf !== 'object' || srvConf === null || Array.isArray(srvConf)) {
+        return `MCP server '${srvName}' in ${configLabel} must be an object`;
+      }
+      const remoteField = remoteFields.find(f => srvConf[f] !== undefined);
+      if (!srvConf.command && !remoteField) {
+        const expected = remoteFields.length === 1 ? `'${remoteFields[0]}'` : "'url'";
+        const legacy = REMOTE_URL_FIELDS.find(f => srvConf[f] !== undefined);
+        if (legacy) {
+          return `MCP server '${srvName}' in ${configLabel} uses '${legacy}'; ${configLabel} requires ${expected}`;
+        }
+        return `MCP server '${srvName}' in ${configLabel} must specify a 'command' or ${expected}`;
+      }
+      if (remoteField && (typeof srvConf[remoteField] !== 'string' || srvConf[remoteField].trim() === '')) {
+        return `'${remoteField}' in MCP server '${srvName}' (${configLabel}) must be a non-empty string`;
+      }
+      if (srvConf.command !== undefined && (typeof srvConf.command !== 'string' || srvConf.command.trim() === '')) {
+        return `'command' in MCP server '${srvName}' (${configLabel}) must be a non-empty string`;
+      }
+      if (srvConf.args !== undefined && (!Array.isArray(srvConf.args) || !srvConf.args.every(a => typeof a === 'string'))) {
+        return `'args' in MCP server '${srvName}' (${configLabel}) must be an array of strings`;
+      }
+      if (srvConf.env !== undefined) {
+        if (typeof srvConf.env !== 'object' || srvConf.env === null || Array.isArray(srvConf.env)) {
+          return `'env' in MCP server '${srvName}' (${configLabel}) must be an object`;
+        }
+        for (const [envVar, envVal] of Object.entries(srvConf.env)) {
+          if (typeof envVal !== 'string') {
+            return `Environment variable '${envVar}' in MCP server '${srvName}' (${configLabel}) must be a string`;
+          }
+        }
+      }
+    }
+  }
+  if (parsed._agenthaus_mcp !== undefined) {
+    if (typeof parsed._agenthaus_mcp !== 'object' || parsed._agenthaus_mcp === null || Array.isArray(parsed._agenthaus_mcp)) {
+      return `'_agenthaus_mcp' in ${configLabel} must be an object`;
+    }
+    for (const [pluginName, keys] of Object.entries(parsed._agenthaus_mcp)) {
+      if (!Array.isArray(keys) || !keys.every(k => typeof k === 'string')) {
+        return `Ownership entry for '${pluginName}' in '_agenthaus_mcp' must be an array of string keys`;
+      }
+    }
+  }
+  if (parsed._agenthaus_mcp_map !== undefined) {
+    if (typeof parsed._agenthaus_mcp_map !== 'object' || parsed._agenthaus_mcp_map === null || Array.isArray(parsed._agenthaus_mcp_map)) {
+      return `'_agenthaus_mcp_map' in ${configLabel} must be an object`;
+    }
+    for (const [pluginName, map] of Object.entries(parsed._agenthaus_mcp_map)) {
+      if (typeof map !== 'object' || map === null || Array.isArray(map)) {
+        return `Mapping entry for '${pluginName}' in '_agenthaus_mcp_map' must be an object`;
+      }
+      for (const [srcKey, dstKey] of Object.entries(map)) {
+        if (typeof dstKey !== 'string') {
+          return `Destination key for '${srcKey}' in '_agenthaus_mcp_map.${pluginName}' must be a string`;
+        }
+        const owned = parsed._agenthaus_mcp && parsed._agenthaus_mcp[pluginName];
+        if (!Array.isArray(owned) || !owned.includes(dstKey)) {
+          return `Destination '${dstKey}' for '${srcKey}' in '_agenthaus_mcp_map.${pluginName}' is not owned by '${pluginName}' in '_agenthaus_mcp'`;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// How doctor validates each provider config file. Paths come from provider.getConfigPaths().
+function describeConfig(providerId, configPath) {
+  const base = path.basename(configPath);
+  switch (providerId) {
+    case 'antigravity':
+      return base === 'mcp_config.json'
+        ? { label: 'Antigravity MCP config', remoteFields: ['serverUrl'] }
+        : { label: 'Gemini settings' };
+    case 'cursor': return { label: 'Cursor MCP config' };
+    case 'windsurf': return { label: 'Windsurf MCP config' };
+    case 'copilot': return { label: 'VS Code MCP config', serversKey: 'servers' };
+    case 'codex': return { label: 'Codex config', format: 'toml' };
+    case 'claude': return { label: base === '.mcp.json' ? 'Claude MCP config' : 'Claude config' };
+    default: return null;
+  }
+}
+
+function validateCodexToml(content) {
+  const syntaxError = findTomlSyntaxError(content);
+  if (syntaxError) return { severity: 'FAIL', reason: `invalid TOML (${syntaxError})` };
+  if (/^\s*\[\s*mcp\s*\.\s*servers\s*\./m.test(content)) {
+    return { severity: 'WARN', reason: "declares '[mcp.servers.*]' tables, which Codex ignores; use '[mcp_servers.<name>]'" };
+  }
+  const seen = new Set();
+  for (const m of content.matchAll(/^\s*\[\s*mcp_servers\s*\.\s*("(?:[^"\\]|\\.)*"|[A-Za-z0-9_-]+)\s*\]/gm)) {
+    if (seen.has(m[1])) return { severity: 'FAIL', reason: `duplicate table [mcp_servers.${m[1]}] (invalid TOML)` };
+    seen.add(m[1]);
+  }
+  return null;
+}
+
+function checkProviderConfigs(providers, cwd = process.cwd(), home = os.homedir()) {
+  const results = [];
+
+  for (const detected of providers) {
+    const provider = getProvider(detected.id) || detected;
+    if (typeof provider.getConfigPaths !== 'function') continue;
+    for (const configPath of new Set(provider.getConfigPaths(cwd, home))) {
+      const desc = describeConfig(provider.id, configPath);
+      if (!desc || !fs.existsSync(configPath)) continue;
+      const { label } = desc;
+      let content;
+      try {
+        content = fs.readFileSync(configPath, 'utf8');
+      } catch (err) {
+        results.push({ severity: 'FAIL', message: `Unreadable ${label} at ${configPath}: ${err.message}` });
+        continue;
+      }
+
+      if (desc.format === 'toml') {
+        const issue = validateCodexToml(content);
+        if (issue) results.push({ severity: issue.severity, message: `${issue.severity === 'FAIL' ? 'Malformed' : 'Outdated'} ${label} at ${configPath}: ${issue.reason}` });
+        else results.push({ severity: 'PASS', message: `${label} valid (${configPath})` });
+        continue;
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(content);
+      } catch (err) {
+        results.push({ severity: 'FAIL', message: `Malformed ${label} at ${configPath}: ${err.message}` });
+        continue;
+      }
+      const structErr = validateProviderConfigStructure(parsed, label, desc);
+      if (structErr) {
+        results.push({ severity: 'FAIL', message: `Malformed ${label} at ${configPath}: ${structErr}` });
+        continue;
+      }
+      results.push({ severity: 'PASS', message: `${label} valid (${configPath})` });
+      if (LEGACY_OWNERSHIP_KEYS.some(k => k in parsed)) {
+        results.push({ severity: 'WARN', message: `${label} at ${configPath} contains legacy agenthaus ownership markers; they move to ${getStatePath()} on the next install/update` });
+      }
+    }
+  }
+
+  return results;
+}
+
+function checkOwnershipState() {
+  const statePath = getStatePath();
+  if (!fs.existsSync(statePath)) return [];
+  try {
+    const err = validateState(JSON.parse(fs.readFileSync(statePath, 'utf8')));
+    if (err) return [{ severity: 'FAIL', message: `Malformed AgentHaus state at ${statePath}: ${err}` }];
+    return [{ severity: 'PASS', message: `AgentHaus state valid (${statePath})` }];
+  } catch (e) {
+    return [{ severity: 'FAIL', message: `Malformed AgentHaus state at ${statePath}: ${e.message}` }];
+  }
+}
+
 module.exports = {
   isCommandAccessible,
   checkMcpCommands,
@@ -332,5 +505,9 @@ module.exports = {
   checkHookSchema,
   checkCredentials,
   checkConfigFreshness,
+  checkProviderConfigs,
+  checkOwnershipState,
+  validateProviderConfigStructure,
+  isMarketplaceHybrid,
   runDoctor
 };

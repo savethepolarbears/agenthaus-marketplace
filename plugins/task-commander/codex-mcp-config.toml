@@ -1,26 +1,23 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.clickup]
+[mcp_servers.clickup]
 command = "npx"
 args = ["-y", "@taazkareem/clickup-mcp-server"]
-[mcp.servers.clickup.env]
-CLICKUP_API_KEY = "${CLICKUP_API_KEY}"
+env_vars = ["CLICKUP_API_KEY"]
 
-[mcp.servers.slack]
+# NOTE: export SLACK_DEFAULT_CHANNEL="$SLACK_CHANNEL" before starting Codex
+[mcp_servers.slack]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-slack"]
-[mcp.servers.slack.env]
-SLACK_BOT_TOKEN = "${SLACK_BOT_TOKEN}"
-SLACK_DEFAULT_CHANNEL = "${SLACK_CHANNEL}"
+env_vars = ["SLACK_BOT_TOKEN", "SLACK_DEFAULT_CHANNEL"]
 
-[mcp.servers.gmail]
+[mcp_servers.gmail]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-gmail"]
-[mcp.servers.gmail.env]
-GMAIL_CREDENTIALS = "${GMAIL_CREDENTIALS}"
+env_vars = ["GMAIL_CREDENTIALS"]
 
-[mcp.servers.google-calendar]
+[mcp_servers.google-calendar]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-google-calendar"]
-[mcp.servers.google-calendar.env]
-GOOGLE_CALENDAR_TOKEN = "${GOOGLE_CALENDAR_TOKEN}"
+env_vars = ["GOOGLE_CALENDAR_TOKEN"]

@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const { spawnSync } = require('node:child_process');
+// Keep agenthaus ownership state out of the real home directory
+process.env.AGENTHAUS_STATE_FILE = require('node:path').join(require('node:fs').mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'agenthaus-state-')), 'state.json');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const INSTALLER_SCRIPT = path.join(REPO_ROOT, 'scripts', 'install-plugins.sh');

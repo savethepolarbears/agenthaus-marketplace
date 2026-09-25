@@ -1,7 +1,7 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.markupgo]
+[mcp_servers.markupgo]
 command = "npx"
 args = ["markupgo-mcp-server"]
-[mcp.servers.markupgo.env]
-MARKUPGO_API_KEY = "${MARKUPGO_API_KEY}"
+env_vars = ["MARKUPGO_API_KEY"]

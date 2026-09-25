@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { renderCodexSnippet } = require('../src/codex-toml.js');
 
 const PLUGINS_DIR = path.resolve(__dirname, '..', 'plugins');
 
@@ -117,7 +118,19 @@ function transformEnvVars(pluginOrObj, format) {
     });
     return JSON.parse(transformed);
   }
-  // Other formats: passthrough until Phase 3
+  if (format === 'gemini') {
+    // Gemini CLI: `httpUrl` = streamable HTTP, `url` = SSE; it has no `type` field.
+    const out = {};
+    for (const [key, srv] of Object.entries(obj)) {
+      if (!srv.command && srv.url) {
+        const { type, url, ...rest } = srv;
+        out[key] = type === 'sse' ? { ...rest, url } : { ...rest, httpUrl: url };
+      } else {
+        out[key] = srv;
+      }
+    }
+    return out;
+  }
   return obj;
 }
 
@@ -151,7 +164,7 @@ function renderAgentsMd(plugin) {
   }
 
   if (plugin.hasMcp) {
-    content += '\n\n> **Codex CLI note:** This plugin requires MCP tools. Codex CLI does not implement MCP; configure the MCP server in your platform settings to enable full functionality.';
+    content += '\n\n> **MCP setup:** `agenthaus install --target <provider>` registers these MCP servers in the provider\'s config (Codex: `config.toml` via `codex-mcp-config.toml`).';
   }
 
   // Platform capability matrix
@@ -165,10 +178,11 @@ function renderAgentsMd(plugin) {
   content += '| Platform | MCP | Hooks | Commands/Agents | Skills |\n';
   content += '| :--- | :--- | :--- | :--- | :--- |\n';
   content += `| Claude Code | ${mcpCell('full')} | ${hooksCell('full')} | full | full |\n`;
-  content += `| Codex CLI | ${mcpCell('full')} | ${hooksCell('none')} | partial | full |\n`;
-  content += `| Gemini CLI | ${mcpCell('via gemini-settings')} | ${hooksCell('none')} | partial | full |\n`;
+  content += `| Codex CLI | ${mcpCell('via config.toml')} | ${hooksCell('none')} | partial | full |\n`;
+  content += `| Antigravity / Gemini CLI | ${mcpCell('via mcp_config.json / settings.json')} | ${hooksCell('none')} | partial | full |\n`;
   content += `| Cursor | ${mcpCell('via .cursor/mcp.json')} | ${hooksCell('none')} | partial | full |\n`;
-  content += `| Windsurf | ${mcpCell('via mcp_config.json')} | ${hooksCell('none')} | partial | full |`;
+  content += `| Windsurf / Devin | ${mcpCell('via mcp_config.json')} | ${hooksCell('none')} | partial | full |\n`;
+  content += `| GitHub Copilot | ${mcpCell('via .vscode/mcp.json')} | ${hooksCell('none')} | prompts | full |`;
 
   // Env vars section
   if (plugin.hasMcp) {
@@ -213,7 +227,7 @@ function renderGeminiMd(plugin) {
   content += `\n\n## Plugin Reference\n\n@plugins/${plugin.name}/README.md`;
 
   if (plugin.hasMcp) {
-    content += '\n\n## MCP Setup\n\nAdd the MCP server from `gemini-settings-snippet.json` to your Gemini settings.\n';
+    content += '\n\n## MCP Setup\n\nRun `agenthaus install --target antigravity` to register the servers from `gemini-settings-snippet.json` in Gemini CLI `settings.json` and Antigravity `mcp_config.json`.\n';
   }
 
   if (plugin.hasHooks) {
@@ -280,7 +294,7 @@ function renderWindsurfMcp(plugin) {
   if (!plugin.hasMcp) return null;
   const transformed = transformEnvVars(plugin, 'windsurf');
   return stableStringify({
-    _comment: 'Add mcpServers entries to your ~/.codeium/windsurf/mcp_config.json',
+    _comment: 'Add mcpServers entries to ~/.config/devin/mcp_config.json (legacy Windsurf: ~/.codeium/windsurf/mcp_config.json)',
     mcpServers: transformed
   });
 }
@@ -290,22 +304,7 @@ function renderWindsurfMcp(plugin) {
  */
 function renderCodexToml(plugin) {
   if (!plugin.hasMcp) return null;
-  let toml = `# Add to your Codex config.toml\n`;
-  for (const [key, server] of Object.entries(plugin.mcpServers)) {
-    toml += `\n[mcp.servers.${key}]\n`;
-    toml += `command = "${server.command}"\n`;
-    if (server.args && server.args.length > 0) {
-      const argsStr = server.args.map(a => `"${a}"`).join(", ");
-      toml += `args = [${argsStr}]\n`;
-    }
-    if (server.env) {
-      toml += `[mcp.servers.${key}.env]\n`;
-      for (const [eKey, eVal] of Object.entries(server.env)) {
-        toml += `${eKey} = "${eVal}"\n`;
-      }
-    }
-  }
-  return toml;
+  return renderCodexSnippet(plugin.mcpServers);
 }
 
 /**
@@ -319,7 +318,7 @@ This file provides guidance to AI coding assistants working in this repository.
 
 **Note:** \`CLAUDE.md\`, \`GEMINI.md\`, \`.cursorrules\`, \`.clinerules\`, and \`.windsurfrules\` are symlinks to \`AGENTS.md\` in this project.
 
-A discoverable marketplace of ${plugins.length} developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
+A discoverable marketplace of ${plugins.length} developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Antigravity/Gemini CLI, Cursor, Windsurf, and Copilot.
 
 ## Repository Map & Architecture
 
@@ -370,12 +369,20 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 | Platform | MCP | Hooks | Commands | Skills |
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | full | full | full |
-| Codex CLI | none | none | partial | full |
-| Gemini CLI | via gemini-settings | none | partial | full |
-| Cursor | via .cursor/mcp.json | none | partial | full |
-| Windsurf | global config | none | partial | full |
+| Codex CLI | config.toml | none | partial | full |
+| Antigravity / Gemini | mcp_config.json / settings.json | none | partial | full |
+| Cursor | .cursor/mcp.json | none | partial | full |
+| Windsurf / Devin | mcp_config.json | none | partial | full |
+| Copilot | .vscode/mcp.json | none | prompts | full |
 
-> Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.
+> Hooks are Claude Code-exclusive. \`agenthaus install\` writes each provider's MCP config.
+
+## Provider Lifecycle Invariants
+
+1. **Cursor Discovery**: Reads \`.cursor/rules/*.mdc\` and \`.cursor/mcp.json\`. \`postInstall\` mirrors rules and MCP; never rely solely on \`.cursor/plugins/\`.
+2. **MCP Collision Namespacing**: Conflicting keys become \`<plugin>-<key>\`; ownership lives in \`~/.agenthaus/state.json\` (legacy \`_agenthaus_mcp\` markers migrate) so uninstalls never drop shared or user servers.
+3. **Symlink Update Hook Refresh**: In \`updatePlugin\`, when symlink target matches source (\`isSame\`), re-run \`postInstall\` to refresh derived provider files.
+4. **Provider-Scoped Sync Coverage**: Provider sync (\`sync --target <p>\`) executes \`repairTargetHooks\` on copied plugin dirs.
 
 ## Gemini Context Caching
 
@@ -383,17 +390,11 @@ Use context caching to retain plugin catalog and \`marketplace.json\` across tur
 
 ## Antigravity IDE Integration (Memory Bank)
 
-Read \`.agent/memory-bank/\` for persistent context before large tasks:
-
-- \`architecture.md\` — Repo structure, plugin anatomy
-- \`api-contracts.md\` — Schema specs for manifests
-- \`decision-log.md\` — Architectural decisions (ADRs)
-
-Update these docs when making significant changes. For non-trivial tasks, plan before executing and get user approval.
+Read \`.agent/memory-bank/\`: \`architecture.md\`, \`api-contracts.md\`, \`decision-log.md\`. Update on significant changes.
 
 ## Agent Delegation & Parallel Execution
 
-Send all independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when output is chained.
+Send independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when chained.
 
 ## Required Environment Variables
 

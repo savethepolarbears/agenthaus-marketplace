@@ -1,8 +1,7 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.cloudflare]
+[mcp_servers.cloudflare]
 command = "npx"
 args = ["-y", "@cloudflare/mcp-server-cloudflare"]
-[mcp.servers.cloudflare.env]
-CLOUDFLARE_API_TOKEN = "${CLOUDFLARE_API_TOKEN}"
-CLOUDFLARE_ACCOUNT_ID = "${CLOUDFLARE_ACCOUNT_ID}"
+env_vars = ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]

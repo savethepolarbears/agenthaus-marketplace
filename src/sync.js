@@ -1,5 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const { isMarketplaceHybrid } = require('./hybrid.js');
+const { writeFileAtomic } = require('./fs-utils.js');
+
+const STALE_AGE_MS = 3600000;
+const ATOMIC_TMP_PATTERN = /\.\d+\.[0-9a-f]{8}\.tmp$/;
 
 function isPathUnder(childPath, parentPath) {
   const normChild = process.platform === 'win32' ? path.normalize(childPath).toLowerCase() : path.normalize(childPath);
@@ -28,7 +33,7 @@ function cleanOrphanedCache(cacheDir, { dryRun = false } = {}) {
         // Note: directory mtime only changes when immediate entries are added/removed.
         // For an hour-long cleanup threshold, this is sufficient.
         const stat = fs.statSync(fullPath);
-        if (Date.now() - stat.mtimeMs > 3600000) {
+        if (Date.now() - stat.mtimeMs > STALE_AGE_MS) {
           actions.push({ type: 'prune-temp', path: fullPath });
           
           if (!dryRun) {
@@ -163,7 +168,7 @@ function repairHookFile(filePath, { dryRun = false } = {}) {
   const backupPath = dryRun ? null : `${filePath}.bak.${Date.now()}`;
   if (!dryRun) {
     fs.copyFileSync(filePath, backupPath);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
+    writeFileAtomic(filePath, JSON.stringify(data, null, 2) + '\n', { backup: false });
   }
 
   return { repaired: true, backupPath, actions };
@@ -193,8 +198,60 @@ function getPluginHookFiles(pluginDir) {
   return Array.from(hookFiles);
 }
 
+/**
+ * Remove temp files left behind when an atomic config write was interrupted
+ * (<config>.<pid>.<hex>.tmp next to each provider config), once they are stale.
+ */
+function cleanStaleTempFiles(configPaths, { dryRun = false } = {}) {
+  const actions = [];
+  for (const dir of new Set(configPaths.map(p => path.dirname(p)))) {
+    let entries;
+    try { entries = fs.readdirSync(dir); } catch { continue; }
+    for (const entry of entries) {
+      if (!ATOMIC_TMP_PATTERN.test(entry)) continue;
+      const fullPath = path.join(dir, entry);
+      try {
+        if (Date.now() - fs.statSync(fullPath).mtimeMs <= STALE_AGE_MS) continue;
+        actions.push({ type: 'prune-temp', path: fullPath });
+        if (!dryRun) fs.unlinkSync(fullPath);
+      } catch {}
+    }
+  }
+  return actions;
+}
+
+/**
+ * Strip deprecated approval keys from hook files of copied catalog plugins in a
+ * provider target dir. Symlinked and marketplace-hybrid installs are skipped
+ * because their hook files belong to the marketplace checkout.
+ */
+function repairInstalledHooks(targetDir, { catalogNames, repoPluginsDir, dryRun = false }) {
+  const results = [];
+  if (!fs.existsSync(targetDir)) return results;
+  for (const entry of fs.readdirSync(targetDir)) {
+    if (!catalogNames.has(entry)) continue;
+    const entryDir = path.join(targetDir, entry);
+    try {
+      if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
+      if (isMarketplaceHybrid(entryDir, entry)) continue;
+      for (const hookFile of getPluginHookFiles(entryDir)) {
+        if (!fs.existsSync(hookFile)) continue;
+        try {
+          const real = fs.realpathSync(hookFile);
+          if (real === repoPluginsDir || real.startsWith(repoPluginsDir + path.sep)) continue;
+        } catch {}
+        const res = repairHookFile(hookFile, { dryRun });
+        if (res.repaired) results.push({ plugin: entry, hookFile, actions: res.actions });
+      }
+    } catch {}
+  }
+  return results;
+}
+
 module.exports = {
   cleanOrphanedCache,
+  cleanStaleTempFiles,
+  repairInstalledHooks,
   healDirectorySymlinks,
   repairHookFile,
   getPluginHookFiles

@@ -1,7 +1,7 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.outscraper]
+[mcp_servers.outscraper]
 command = "node"
 args = ["node_modules/@outscraper/mcp-server/dist/index.js"]
-[mcp.servers.outscraper.env]
-OUTSCRAPER_API_KEY = "${OUTSCRAPER_API_KEY}"
+env_vars = ["OUTSCRAPER_API_KEY"]

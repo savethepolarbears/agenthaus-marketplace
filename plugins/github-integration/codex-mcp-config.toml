@@ -1,7 +1,8 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.github]
+# NOTE: export GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_TOKEN" before starting Codex
+[mcp_servers.github]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-github"]
-[mcp.servers.github.env]
-GITHUB_PERSONAL_ACCESS_TOKEN = "${GITHUB_TOKEN}"
+env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]

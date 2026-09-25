@@ -123,6 +123,28 @@ Either inline in plugin.json or in `.mcp.json`:
 
 > **Critical:** Always use `${ENV_VAR}` interpolation — never hardcode credentials.
 
+Remote servers use `"type": "http"` (or `"sse"`) with `url` and optional `headers`; Claude Code rejects other `type` values.
+
+## Installer Ownership State
+
+`agenthaus install` merges plugin MCP servers into provider configs and records ownership in `~/.agenthaus/state.json` (override with `AGENTHAUS_STATE_FILE`); provider configs carry no agenthaus keys:
+
+```json
+{
+  "version": 1,
+  "mcp": {
+    "/abs/path/.cursor/mcp.json": {
+      "<plugin>": { "<sourceKey>": { "key": "<destKey>", "managed": true } }
+    }
+  }
+}
+```
+
+- `key` differs from `sourceKey` when the name was taken (`<plugin>-<name>`, then `-2`, `-3`, ...).
+- `managed: false` marks a pre-existing identical user entry the plugin reuses; it is never deleted.
+- Legacy in-config `_agenthaus_mcp` / `_agenthaus_mcp_map` markers are imported and stripped on the next write; namespaced legacy keys (`<plugin>-…`) import as managed, bare keys as unmanaged (provenance unknown, never deleted).
+- Codex uses a marked `# >>> agenthaus:<plugin> >>>` block in `config.toml` instead of the state file.
+
 ## Environment Variables
 
 See `.env.example` for the complete list. Key variables by plugin are documented in `AGENTS.md` under "Required Environment Variables by Plugin".

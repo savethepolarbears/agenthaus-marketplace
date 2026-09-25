@@ -4,7 +4,7 @@ This file provides guidance to AI coding assistants working in this repository.
 
 **Note:** `CLAUDE.md`, `GEMINI.md`, `.cursorrules`, `.clinerules`, and `.windsurfrules` are symlinks to `AGENTS.md` in this project.
 
-A discoverable marketplace of 37 developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Gemini CLI, Cursor, and Windsurf.
+A discoverable marketplace of 37 developer tools for agentic AI ecosystems, targeting Claude Code and Claude Cowork plugins with cross-platform support for Codex CLI, Antigravity/Gemini CLI, Cursor, Windsurf, and Copilot.
 
 ## Repository Map & Architecture
 
@@ -52,55 +52,63 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 
 | Plugin | Description | MCP | Hooks |
 | :--- | :--- | :--- | :--- |
-| activepieces | Agent plugin pack for ... | no | no |
-| agent-handoff | State-based task hando... | no | no |
-| agent-memory | Shared persistent memo... | yes | no |
-| apple-photos | Manage Apple Photos li... | no | yes |
-| apple-workflows | Manage Apple Notes, Re... | yes | no |
-| circuit-breaker | Pre-built safety guard... | no | no |
-| clickup-tasks | Manage ClickUp tasks, ... | yes | no |
-| cloudflare-platform | Manage Cloudflare Work... | yes | no |
-| context7-docs | Fetch up-to-date, hall... | yes | no |
-| data-core | Serverless Postgres da... | yes | no |
-| devops-flow | Orchestrate Cloudflare... | yes | yes |
-| encharge | Encharge.io marketing ... | yes | no |
-| fleet-commander | Visualization and cont... | no | no |
-| github-integration | Full GitHub management... | yes | no |
-| gog-workspace | Google Workspace CLI i... | no | no |
-| knowledge-synapse | RAG Agent combining Co... | yes | no |
-| marketplace-cli | Utility commands for s... | no | no |
-| markupgo | Generate images, PDFs,... | yes | no |
-| neon-db | Interact with Neon ser... | yes | no |
-| neuronwriter | SEO content analysis a... | yes | no |
-| notfair-marketing | Open-source Claude Cod... | yes | no |
-| notion-workspace | Interact with your Not... | yes | no |
-| openclaw-bridge | Convert AgentHaus plug... | no | no |
-| outscraper | Web scraping and data ... | yes | no |
-| playwright-testing | End-to-end browser aut... | yes | no |
-| plugin-auditor | Audit plugins for secu... | no | no |
-| qa-droid | Automated Playwright t... | yes | no |
-| seo-content-suite | Unified SEO content pi... | yes | no |
-| seo-geo-rag | Six-phase SEO, Generat... | no | no |
-| shadow-mode | Agents draft outputs t... | no | no |
-| social-media | Generate high-engageme... | no | no |
-| task-commander | ClickUp task managemen... | yes | no |
-| textfocus | SEO keyword analysis a... | yes | no |
-| ux-ui | Polish and improve you... | no | no |
-| vercel-deploy | Manage Vercel projects... | yes | no |
-| vistasocial-scheduler | Social media schedulin... | yes | no |
-| wp-cli-fleet | Agentic WP-CLI and Wor... | no | no |
+| activepieces | Agent p... | no | no |
+| agent-handoff | State-b... | no | no |
+| agent-memory | Shared ... | yes | no |
+| apple-photos | Manage ... | no | yes |
+| apple-workflows | Manage ... | yes | no |
+| circuit-breaker | Pre-bui... | no | no |
+| clickup-tasks | Manage ... | yes | no |
+| cloudflare-platform | Manage ... | yes | no |
+| context7-docs | Fetch u... | yes | no |
+| data-core | Serverl... | yes | no |
+| devops-flow | Orchest... | yes | yes |
+| encharge | Encharg... | yes | no |
+| fleet-commander | Visuali... | no | no |
+| github-integration | Full Gi... | yes | no |
+| gog-workspace | Google ... | no | no |
+| knowledge-synapse | RAG Age... | yes | no |
+| marketplace-cli | Utility... | no | no |
+| markupgo | Generat... | yes | no |
+| neon-db | Interac... | yes | no |
+| neuronwriter | SEO con... | yes | no |
+| notfair-marketing | Open-so... | yes | no |
+| notion-workspace | Interac... | yes | no |
+| openclaw-bridge | Convert... | no | no |
+| outscraper | Web scr... | yes | no |
+| playwright-testing | End-to-... | yes | no |
+| plugin-auditor | Audit p... | no | no |
+| qa-droid | Automat... | yes | no |
+| seo-content-suite | Unified... | yes | no |
+| seo-geo-rag | Six-pha... | no | no |
+| shadow-mode | Agents ... | no | no |
+| social-media | Generat... | no | no |
+| task-commander | ClickUp... | yes | no |
+| textfocus | SEO key... | yes | no |
+| ux-ui | Polish ... | no | no |
+| vercel-deploy | Manage ... | yes | no |
+| vistasocial-scheduler | Social ... | yes | no |
+| wp-cli-fleet | Agentic... | no | no |
 
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands | Skills |
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | full | full | full |
-| Codex CLI | none | none | partial | full |
-| Gemini CLI | via gemini-settings | none | partial | full |
-| Cursor | via .cursor/mcp.json | none | partial | full |
-| Windsurf | global config | none | partial | full |
+| Codex CLI | config.toml | none | partial | full |
+| Antigravity / Gemini | mcp_config.json / settings.json | none | partial | full |
+| Cursor | .cursor/mcp.json | none | partial | full |
+| Windsurf / Devin | mcp_config.json | none | partial | full |
+| Copilot | .vscode/mcp.json | none | prompts | full |
 
-> Hooks are Claude Code-exclusive. MCP tool access requires platform-specific configuration.
+> Hooks are Claude Code-exclusive. `agenthaus install` writes each provider's MCP config.
+
+## Provider Lifecycle Invariants
+
+1. **Cursor Discovery**: Reads `.cursor/rules/*.mdc` and `.cursor/mcp.json`. `postInstall` mirrors rules and MCP; never rely solely on `.cursor/plugins/`.
+2. **MCP Collision Namespacing**: Conflicting keys become `<plugin>-<key>`; ownership lives in `~/.agenthaus/state.json` (legacy `_agenthaus_mcp` markers migrate) so uninstalls never drop shared or user servers.
+3. **Symlink Update Hook Refresh**: In `updatePlugin`, when symlink target matches source (`isSame`), re-run `postInstall` to refresh derived provider files.
+4. **Provider-Scoped Sync Coverage**: Provider sync (`sync --target <p>`) executes `repairTargetHooks` on copied plugin dirs.
 
 ## Gemini Context Caching
 
@@ -108,17 +116,11 @@ Use context caching to retain plugin catalog and `marketplace.json` across turns
 
 ## Antigravity IDE Integration (Memory Bank)
 
-Read `.agent/memory-bank/` for persistent context before large tasks:
-
-- `architecture.md` — Repo structure, plugin anatomy
-- `api-contracts.md` — Schema specs for manifests
-- `decision-log.md` — Architectural decisions (ADRs)
-
-Update these docs when making significant changes. For non-trivial tasks, plan before executing and get user approval.
+Read `.agent/memory-bank/`: `architecture.md`, `api-contracts.md`, `decision-log.md`. Update on significant changes.
 
 ## Agent Delegation & Parallel Execution
 
-Send all independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when output is chained.
+Send independent tool calls in a single turn for parallel execution (3-5x faster). Sequential execution only when chained.
 
 ## Required Environment Variables
 

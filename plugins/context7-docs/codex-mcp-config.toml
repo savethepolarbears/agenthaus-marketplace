@@ -1,7 +1,7 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.context7]
+[mcp_servers.context7]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-context7"]
-[mcp.servers.context7.env]
-CONTEXT7_API_KEY = "${CONTEXT7_API_KEY}"
+env_vars = ["CONTEXT7_API_KEY"]

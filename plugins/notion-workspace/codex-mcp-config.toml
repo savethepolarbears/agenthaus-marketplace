@@ -1,7 +1,7 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.notion]
+[mcp_servers.notion]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-notion"]
-[mcp.servers.notion.env]
-NOTION_API_KEY = "${NOTION_API_KEY}"
+env_vars = ["NOTION_API_KEY"]

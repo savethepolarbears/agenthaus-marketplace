@@ -1,7 +1,7 @@
-# Add to your Codex config.toml
+# Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
+# or run: agenthaus install --target codex --plugin <name>
 
-[mcp.servers.textfocus]
+[mcp_servers.textfocus]
 command = "python"
 args = ["-m", "textfocus_server"]
-[mcp.servers.textfocus.env]
-TEXTFOCUS_API_KEY = "${TEXTFOCUS_API_KEY}"
+env_vars = ["TEXTFOCUS_API_KEY"]

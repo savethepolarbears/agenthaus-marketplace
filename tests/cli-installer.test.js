@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { validateTargetSafety, installPlugin, uninstallPlugin, updatePlugin } = require('../src/installer');
+const { getOwnedKeys } = require('../src/providers/mcp-ownership.js');
+
+process.env.AGENTHAUS_STATE_FILE = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-state-')), 'state.json');
 
 test('validateTargetSafety throws for dangerous paths', (t) => {
   assert.throws(() => validateTargetSafety(''), /targetDir must be a non-empty string/);
@@ -465,6 +468,57 @@ test('updatePlugin invokes provider postInstall hook when updating current symli
   // Without provider, it remains skipped
   const resNoProvider = updatePlugin(source, target);
   assert.strictEqual(resNoProvider.status, 'skipped');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('updatePlugin updates hybrid item-level symlink installations when MCP servers are dropped', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const fakeGeminiDir = path.join(tmpDir, 'gemini');
+  const target = path.join(fakeGeminiDir, 'extensions');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+  const antigravity = require('../src/providers/antigravity.js');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(path.join(source, '.claude-plugin'), { recursive: true });
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ name: 'src-plugin', version: '1.0.0' }));
+
+  // Simulate hybrid installation in target
+  const destPath = path.join(target, 'src-plugin');
+  fs.mkdirSync(destPath, { recursive: true });
+  fs.symlinkSync(path.join(source, '.claude-plugin'), path.join(destPath, '.claude-plugin'), 'dir');
+  fs.writeFileSync(path.join(destPath, 'gemini-extension.json'), JSON.stringify({ name: 'src-plugin', version: '1.0.0' }));
+
+  // Settings originally has srvA and srvB registered for src-plugin
+  const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+  fs.writeFileSync(settingsPath, JSON.stringify({
+    mcpServers: {
+      srvA: { command: 'node', args: ['a.js'] },
+      srvB: { command: 'node', args: ['b.js'] }
+    },
+    _agenthaus_mcp: {
+      'src-plugin': ['srvA', 'srvB']
+    }
+  }, null, 2));
+
+  // Source now only defines srvA (srvB was dropped)
+  fs.writeFileSync(path.join(source, 'gemini-settings-snippet.json'), JSON.stringify({
+    mcpServers: {
+      srvA: { command: 'node', args: ['a.js'] }
+    }
+  }));
+
+  const res = updatePlugin(source, target, { provider: antigravity });
+  assert.strictEqual(res.status, 'updated');
+
+  const updatedSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  assert.ok(updatedSettings.mcpServers.srvA);
+  // Legacy markers cannot tell an agenthaus-created bare key from an adopted user entry,
+  // so the dropped bare key is kept (not deleted) and no longer owned by the plugin.
+  assert.deepStrictEqual(updatedSettings.mcpServers.srvB, { command: 'node', args: ['b.js'] });
+  // Legacy in-config ownership markers are migrated into the state file
+  assert.strictEqual(updatedSettings._agenthaus_mcp, undefined);
+  assert.deepStrictEqual(getOwnedKeys(settingsPath, 'src-plugin'), ['srvA']);
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });

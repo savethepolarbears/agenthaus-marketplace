@@ -7,6 +7,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 const { parseCliArgs } = require('../src/cli.js');
+// Keep agenthaus ownership state out of the real home directory
+process.env.AGENTHAUS_STATE_FILE = require('node:path').join(require('node:fs').mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'agenthaus-state-')), 'state.json');
 
 const BIN_PATH = path.resolve(__dirname, '..', 'bin', 'agenthaus.js');
 
@@ -15,11 +17,11 @@ test('CLI Routing and Flag Parsing', async (t) => {
   const isolatedEnv = { ...process.env, HOME: tmpDir, USERPROFILE: tmpDir };
 
   const runBin = (args, opts = {}) => {
-    return spawnSync('node', [BIN_PATH, ...args], {
-      env: { ...isolatedEnv, ...(opts.env || {}) },
-      cwd: opts.cwd || tmpDir,
+    return spawnSync(process.execPath, [BIN_PATH, ...args], {
+      cwd: tmpDir,
       encoding: 'utf8',
-      ...opts
+      ...opts,
+      env: { ...isolatedEnv, ...(opts.env || {}) }
     });
   };
 
@@ -165,6 +167,98 @@ test('CLI Routing and Flag Parsing', async (t) => {
     assert.strictEqual(syncResult.status, 0);
     assert.ok(syncResult.stdout.includes('Hook circuit-breaker: repaired'));
 
+    const repairedContent = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
+    assert.strictEqual(repairedContent.hooks.PreToolUse[0].requires_approval, undefined);
+  });
+
+  await t.test('sync and doctor --fix preserve hybrid item-level symlink installations and do not dirty source files', () => {
+    const projectDir = path.join(tmpDir, 'hybrid-project');
+    const geminiDir = path.join(projectDir, '.gemini', 'extensions', 'circuit-breaker');
+    fs.mkdirSync(geminiDir, { recursive: true });
+
+    // Canonical source hook file in tmpDir (simulating marketplace repo)
+    const mockRepoRoot = path.join(tmpDir, 'mock-marketplace');
+    const mockPluginDir = path.join(mockRepoRoot, 'plugins', 'circuit-breaker');
+    const canonicalHooksDir = path.join(mockPluginDir, 'hooks');
+    fs.mkdirSync(canonicalHooksDir, { recursive: true });
+    fs.mkdirSync(path.join(mockPluginDir, '.claude-plugin'), { recursive: true });
+    fs.writeFileSync(path.join(mockPluginDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      name: 'circuit-breaker',
+      version: '1.0.0',
+      description: 'Mock plugin'
+    }));
+
+    const canonicalHookFile = path.join(canonicalHooksDir, 'hooks.json');
+    const originalContent = JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            requires_approval: true,
+            hooks: [{ command: 'echo 1' }]
+          }
+        ]
+      }
+    });
+    fs.writeFileSync(canonicalHookFile, originalContent);
+
+    // Hybrid installation: real directory containing an item-level symlink to hooks
+    const symType = process.platform === 'win32' ? 'junction' : 'dir';
+    fs.symlinkSync(canonicalHooksDir, path.join(geminiDir, 'hooks'), symType);
+    fs.writeFileSync(path.join(geminiDir, 'gemini-extension.json'), JSON.stringify({ name: 'circuit-breaker' }));
+
+    const mockEnv = {
+      AGENTHAUS_REPO_ROOT: mockRepoRoot,
+      AGENTHAUS_PLUGINS_DIR: path.join(mockRepoRoot, 'plugins')
+    };
+
+    // Run sync --target antigravity
+    const syncResult = runBin(['sync', '--target', 'antigravity'], { cwd: projectDir, env: mockEnv });
+    assert.strictEqual(syncResult.status, 0);
+
+    // Canonical source file must NOT be modified
+    assert.strictEqual(fs.readFileSync(canonicalHookFile, 'utf8'), originalContent);
+
+    // Run doctor --fix
+    const doctorFixResult = runBin(['doctor', '--fix'], { cwd: projectDir, env: mockEnv });
+    assert.strictEqual(doctorFixResult.status, 0);
+
+    // Canonical source file must still NOT be modified
+    assert.strictEqual(fs.readFileSync(canonicalHookFile, 'utf8'), originalContent);
+  });
+
+  await t.test('doctor --fix repairs copied plugin directories that contain internal symlinks', () => {
+    const projectDir = path.join(tmpDir, 'copied-symlink-project');
+    const claudePluginDir = path.join(projectDir, '.claude', 'plugins', 'circuit-breaker');
+    fs.mkdirSync(claudePluginDir, { recursive: true });
+
+    // Copied plugin with invalid hook schema
+    const hooksDir = path.join(claudePluginDir, 'hooks');
+    fs.mkdirSync(hooksDir, { recursive: true });
+    const hookFile = path.join(hooksDir, 'hooks.json');
+    fs.writeFileSync(hookFile, JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            requires_approval: true,
+            hooks: [{ command: 'echo 1' }]
+          }
+        ]
+      }
+    }, null, 2));
+
+    // Internal bundled symlink: docs/readme.md -> README.md (internal, not pointing to marketplace)
+    fs.writeFileSync(path.join(claudePluginDir, 'README.md'), '# Circuit Breaker');
+    const docsDir = path.join(claudePluginDir, 'docs');
+    fs.mkdirSync(docsDir, { recursive: true });
+    fs.symlinkSync(path.join(claudePluginDir, 'README.md'), path.join(docsDir, 'readme.md'));
+
+    // Run doctor --fix
+    const doctorFixResult = runBin(['doctor', '--fix'], { cwd: projectDir });
+    assert.strictEqual(doctorFixResult.status, 0);
+
+    // The copied plugin's hook file should be repaired (requires_approval removed)
     const repairedContent = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
     assert.strictEqual(repairedContent.hooks.PreToolUse[0].requires_approval, undefined);
   });

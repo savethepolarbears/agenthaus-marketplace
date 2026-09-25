@@ -6,15 +6,32 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 const { getAllProviders, detectAll, getProvider } = require('../src/providers/index.js');
+const { getOwnedKeys, getPluginMapping } = require('../src/providers/mcp-ownership.js');
 
 test('CLI Providers', async (t) => {
   let tmpDir;
   
+  // Providers resolve user-scope configs from os.homedir(); never let tests touch the real home.
+  const realHomedir = os.homedir;
+  const realXdg = process.env.XDG_CONFIG_HOME;
+  const realAppData = process.env.APPDATA;
+
   t.beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-test-'));
+    process.env.AGENTHAUS_STATE_FILE = path.join(tmpDir, 'agenthaus-state.json');
+    const fakeHome = path.join(tmpDir, 'home');
+    fs.mkdirSync(fakeHome, { recursive: true });
+    os.homedir = () => fakeHome;
+    process.env.XDG_CONFIG_HOME = path.join(fakeHome, '.config');
+    process.env.APPDATA = path.join(fakeHome, 'AppData', 'Roaming');
   });
 
   t.afterEach(() => {
+    os.homedir = realHomedir;
+    if (realXdg === undefined) delete process.env.XDG_CONFIG_HOME;
+    else process.env.XDG_CONFIG_HOME = realXdg;
+    if (realAppData === undefined) delete process.env.APPDATA;
+    else process.env.APPDATA = realAppData;
     if (tmpDir) {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -85,10 +102,11 @@ test('CLI Providers', async (t) => {
     let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
     assert.ok(settings.mcpServers['test-server']);
 
-    // Test postUninstall removes server
-    antigravity.postUninstall('test-server', fakeTargetDir, { dryRun: false });
+    // Test postUninstall removes the plugin's server
+    antigravity.postUninstall('fake-plugin', fakeTargetDir, { dryRun: false });
     settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    assert.strictEqual(settings.mcpServers['test-server'], undefined);
+    assert.strictEqual(settings.mcpServers, undefined);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'fake-plugin'), []);
   });
 
   await t.test('antigravity postInstall generates gemini-extension.json manifest without dirtying sourceDir', () => {
@@ -220,8 +238,10 @@ test('CLI Providers', async (t) => {
 
   await t.test('windsurf postInstall merges mcp_config.json', () => {
     const windsurf = getProvider('windsurf');
+    const fakeHome = path.join(tmpDir, 'windsurf-merge-home');
     const fakeSource = path.join(tmpDir, 'windsurf-plugin');
-    const fakeTargetDir = path.join(tmpDir, 'codeium', 'windsurf', 'plugins');
+    const fakeTargetDir = path.join(fakeHome, '.codeium', 'windsurf', 'plugins');
+    const configPath = path.join(fakeHome, '.codeium', 'windsurf', 'mcp_config.json');
 
     fs.mkdirSync(fakeSource, { recursive: true });
     fs.writeFileSync(path.join(fakeSource, 'windsurf-mcp-snippet.json'), JSON.stringify({
@@ -233,16 +253,36 @@ test('CLI Providers', async (t) => {
       }
     }));
 
-    windsurf.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
-    const configPath = path.join(os.homedir(), '.codeium', 'windsurf', 'mcp_config.json');
-    if (fs.existsSync(configPath)) {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      assert.ok(config.mcpServers['windsurf-server']);
+    const origHome = os.homedir;
+    const origXdg = process.env.XDG_CONFIG_HOME;
+    try {
+      os.homedir = () => fakeHome;
+      delete process.env.XDG_CONFIG_HOME;
 
-      // Cleanup
-      windsurf.postUninstall('windsurf-server', fakeTargetDir, { dryRun: false });
+      // Legacy Windsurf install (no Devin config dir): legacy mcp_config.json is used
+      windsurf.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      assert.deepStrictEqual(config.mcpServers['windsurf-server'], { command: 'node', args: ['server.js'] });
+
+      windsurf.postUninstall('windsurf-plugin', fakeTargetDir, { dryRun: false });
       const cleaned = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      assert.strictEqual(cleaned.mcpServers['windsurf-server'], undefined);
+      assert.strictEqual(cleaned.mcpServers, undefined);
+
+      // Devin Desktop present: its config (~/.config/devin, or %APPDATA%\devin on Windows) takes precedence
+      process.env.APPDATA = path.join(fakeHome, 'AppData', 'Roaming');
+      const devinConfig = process.platform === 'win32'
+        ? path.join(process.env.APPDATA, 'devin', 'mcp_config.json')
+        : path.join(fakeHome, '.config', 'devin', 'mcp_config.json');
+      fs.mkdirSync(path.dirname(devinConfig), { recursive: true });
+      windsurf.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
+      assert.ok(JSON.parse(fs.readFileSync(devinConfig, 'utf8')).mcpServers['windsurf-server']);
+      assert.strictEqual(JSON.parse(fs.readFileSync(configPath, 'utf8')).mcpServers, undefined);
+      windsurf.postUninstall('windsurf-plugin', fakeTargetDir, { dryRun: false });
+      assert.strictEqual(JSON.parse(fs.readFileSync(devinConfig, 'utf8')).mcpServers, undefined);
+    } finally {
+      os.homedir = origHome;
+      if (origXdg === undefined) delete process.env.XDG_CONFIG_HOME;
+      else process.env.XDG_CONFIG_HOME = origXdg;
     }
   });
 
@@ -412,4 +452,544 @@ test('CLI Providers', async (t) => {
     assert.strictEqual(settings.mcpServers['neon-db-postgres'], undefined);
     assert.ok(settings.mcpServers.postgres);
   });
+
+  await t.test('postInstall replaces owned MCP entries when their configuration changes on update', () => {
+    const antigravity = getProvider('antigravity');
+    const cursor = getProvider('cursor');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-update-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    const pluginDir = path.join(tmpDir, 'test-plugin');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'old-command', args: ['arg1'] }
+      }
+    }));
+
+    // 1. Initial install
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers.srv.command, 'old-command');
+    assert.strictEqual(settings.mcpServers['test-plugin-srv'], undefined);
+
+    // 2. Plugin updates its srv command to new-command
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'new-command', args: ['arg2'] }
+      }
+    }));
+
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    // Replaced in place under owned key without collision namespacing
+    assert.strictEqual(settings.mcpServers.srv.command, 'new-command');
+    assert.strictEqual(settings.mcpServers['test-plugin-srv'], undefined);
+
+    // 3. Same behavior in Cursor
+    const fakeCursorDir = path.join(tmpDir, 'cursor-update-test');
+    const cursorTargetDir = path.join(fakeCursorDir, 'plugins');
+    fs.mkdirSync(cursorTargetDir, { recursive: true });
+    const cursorMcpPath = path.join(fakeCursorDir, 'mcp.json');
+
+    fs.mkdirSync(path.join(pluginDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'old-cursor', args: [] }
+      }
+    }));
+
+    cursor.postInstall(pluginDir, cursorTargetDir, { dryRun: false });
+    let cursorConfig = JSON.parse(fs.readFileSync(cursorMcpPath, 'utf8'));
+    assert.strictEqual(cursorConfig.mcpServers.srv.command, 'old-cursor');
+
+    fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        srv: { command: 'new-cursor', args: [] }
+      }
+    }));
+
+    cursor.postInstall(pluginDir, cursorTargetDir, { dryRun: false });
+    cursorConfig = JSON.parse(fs.readFileSync(cursorMcpPath, 'utf8'));
+    assert.strictEqual(cursorConfig.mcpServers.srv.command, 'new-cursor');
+    assert.strictEqual(cursorConfig.mcpServers['test-plugin-srv'], undefined);
+  });
+
+  await t.test('postInstall namespaces diverging MCP configuration when other owners exist', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-shared-diverge-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    const plugin1 = path.join(tmpDir, 'shared-plugin-1');
+    fs.mkdirSync(plugin1, { recursive: true });
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    const plugin2 = path.join(tmpDir, 'shared-plugin-2');
+    fs.mkdirSync(plugin2, { recursive: true });
+    fs.writeFileSync(path.join(plugin2, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    // Install both plugins sharing identical shared_db
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    antigravity.postInstall(plugin2, fakeTargetDir, { dryRun: false });
+
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'shared-plugin-1'), ['shared_db']);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'shared-plugin-2'), ['shared_db']);
+
+    // Now plugin 1 changes shared_db configuration (diverges)
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'python', args: ['diverged.py'] }
+      }
+    }));
+
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // Original shared_db preserved intact for plugin 2
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'shared-plugin-2'), ['shared_db']);
+
+    // Plugin 1's diverging configuration is namespaced safely
+    assert.ok(settings.mcpServers['shared-plugin-1-shared_db']);
+    assert.strictEqual(settings.mcpServers['shared-plugin-1-shared_db'].command, 'python');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'shared-plugin-1'), ['shared-plugin-1-shared_db']);
+
+    // Now plugin 1 update removes its MCP snippet entirely: obsolete namespaced server is pruned
+    fs.unlinkSync(path.join(plugin1, 'gemini-settings-snippet.json'));
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['shared-plugin-1-shared_db'], undefined);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'shared-plugin-1'), []);
+    // Plugin 2's shared server remains intact
+    assert.ok(settings.mcpServers.shared_db);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'shared-plugin-2'), ['shared_db']);
+  });
+
+  await t.test('postInstall preserves registrations when plugin source snippet is malformed', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-parse-fail-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    const pluginDir = path.join(tmpDir, 'test-plugin-parse-fail');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        important_srv: { command: 'node', args: ['server.js'] }
+      }
+    }));
+
+    // 1. Initial install succeeds
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'test-plugin-parse-fail'), ['important_srv']);
+
+    // 2. Plugin snippet becomes corrupted/malformed
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), '{ malformed json');
+
+    // postInstall should not prune or overwrite existing registrations on parse failure
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'test-plugin-parse-fail'), ['important_srv']);
+
+    // 3. Plugin snippet has string shape: { "mcpServers": "bad" }
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({ mcpServers: 'bad' }));
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'test-plugin-parse-fail'), ['important_srv']);
+
+    // 4. Plugin snippet has array shape: { "mcpServers": [1, 2, 3] }
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({ mcpServers: [1, 2, 3] }));
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'test-plugin-parse-fail'), ['important_srv']);
+  });
+
+  await t.test('cursor postInstall preserves registrations for invalid mcpServers shapes', () => {
+    const cursor = getProvider('cursor');
+    const origCwd = process.cwd();
+    const workDir = path.join(tmpDir, 'cursor-invalid-shape-work');
+    fs.mkdirSync(workDir, { recursive: true });
+    process.chdir(workDir);
+
+    try {
+      const targetDir = path.join(workDir, '.cursor', 'plugins');
+      const pluginDir = path.join(tmpDir, 'cursor-test-plugin');
+      fs.mkdirSync(pluginDir, { recursive: true });
+      fs.mkdirSync(path.join(pluginDir, '.cursor'), { recursive: true });
+
+      // Initial valid install
+      fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+        mcpServers: {
+          my_cursor_srv: { command: 'node', args: ['server.js'] }
+        }
+      }));
+
+      cursor.postInstall(pluginDir, targetDir, { dryRun: false });
+      const mcpConfigPath = path.join(workDir, '.cursor', 'mcp.json');
+      let config = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8'));
+      assert.ok(config.mcpServers.my_cursor_srv);
+
+      // Now set mcpServers to string "bad"
+      fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({ mcpServers: 'bad' }));
+      cursor.postInstall(pluginDir, targetDir, { dryRun: false });
+      config = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8'));
+      assert.ok(config.mcpServers.my_cursor_srv, 'Registration should be preserved on string mcpServers');
+
+      // Now set mcpServers to array
+      fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({ mcpServers: ['bad'] }));
+      cursor.postInstall(pluginDir, targetDir, { dryRun: false });
+      config = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8'));
+      assert.ok(config.mcpServers.my_cursor_srv, 'Registration should be preserved on array mcpServers');
+    } finally {
+      process.chdir(origCwd);
+    }
+  });
+
+  await t.test('windsurf postInstall continues .windsurfrules generation when MCP snippet has invalid shape', () => {
+    const windsurf = getProvider('windsurf');
+    const origCwd = process.cwd();
+    const workDir = path.join(tmpDir, 'windsurf-rules-continue-work');
+    fs.mkdirSync(workDir, { recursive: true });
+    fs.mkdirSync(path.join(workDir, '.codeium'), { recursive: true });
+    process.chdir(workDir);
+
+    try {
+      const targetDir = path.join(workDir, '.codeium', 'plugins');
+      const pluginDir = path.join(tmpDir, 'windsurf-rule-plugin');
+      fs.mkdirSync(pluginDir, { recursive: true });
+      fs.writeFileSync(path.join(pluginDir, 'AGENTS.md'), '# Windsurf Rules\nAlways run tests.');
+
+      // Snippet has invalid shape: { "mcpServers": "bad" }
+      fs.writeFileSync(path.join(pluginDir, 'windsurf-mcp-snippet.json'), JSON.stringify({ mcpServers: 'bad' }));
+
+      windsurf.postInstall(pluginDir, targetDir, { dryRun: false });
+
+      // Despite invalid MCP snippet, .windsurfrules must be created
+      const rulesPath = path.join(workDir, '.windsurfrules');
+      assert.strictEqual(fs.existsSync(rulesPath), true);
+      const rulesContent = fs.readFileSync(rulesPath, 'utf8');
+      assert.ok(rulesContent.includes('# Windsurf Rules'));
+      assert.ok(rulesContent.includes('Always run tests.'));
+    } finally {
+      process.chdir(origCwd);
+    }
+  });
+
+  await t.test('postInstall avoids overwriting occupied namespaced server key and preserves unowned servers on uninstall', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-occupied-namespace-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    // Pre-existing unowned user server named 'occupied-plugin-1-shared_db'
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      mcpServers: {
+        'occupied-plugin-1-shared_db': { command: 'user-tool', args: ['stay-alive'] }
+      }
+    }));
+
+    const plugin1 = path.join(tmpDir, 'occupied-plugin-1');
+    fs.mkdirSync(plugin1, { recursive: true });
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    const plugin2 = path.join(tmpDir, 'occupied-plugin-2');
+    fs.mkdirSync(plugin2, { recursive: true });
+    fs.writeFileSync(path.join(plugin2, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'node', args: ['shared.js'] }
+      }
+    }));
+
+    // Install both plugins sharing shared_db
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    antigravity.postInstall(plugin2, fakeTargetDir, { dryRun: false });
+
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db'].command, 'user-tool');
+
+    // Plugin 1 diverges
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        shared_db: { command: 'python', args: ['diverged.py'] }
+      }
+    }));
+
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // Unowned server must NOT be overwritten
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db'].command, 'user-tool');
+    // Plugin 1 must be registered under unique free key -2
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db-2'].command, 'python');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'occupied-plugin-1'), ['occupied-plugin-1-shared_db-2']);
+    // Plugin 2 preserved
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+
+    // Uninstall plugin 1: must delete only occupied-plugin-1-shared_db-2, preserving unowned user server
+    antigravity.postUninstall('occupied-plugin-1', fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db-2'], undefined);
+    assert.strictEqual(settings.mcpServers['occupied-plugin-1-shared_db'].command, 'user-tool');
+    assert.strictEqual(settings.mcpServers.shared_db.command, 'node');
+  });
+
+  await t.test('postInstall distinguishes source keys from generated namespaced keys and avoids duplicates on update', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-source-vs-dest-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    // Existing server 'foo' occupies 'foo' with an unrelated configuration
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      mcpServers: {
+        foo: { command: 'existing-foo', args: [] }
+      }
+    }));
+
+    // Plugin 'plug' defines both 'foo' and 'plug-foo'
+    const pluginDir = path.join(tmpDir, 'plug');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        foo: { command: 'cmd-foo', args: [] },
+        'plug-foo': { command: 'cmd-plug-foo', args: [] }
+      }
+    }));
+
+    // 1. First install
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // 'foo' conflicts, namespaced to 'plug-foo'
+    // 'plug-foo' from snippet cannot reuse 'plug-foo' claimed in this pass, so namespaced to 'plug-plug-foo'
+    assert.strictEqual(settings.mcpServers.foo.command, 'existing-foo');
+    assert.strictEqual(settings.mcpServers['plug-foo'].command, 'cmd-foo');
+    assert.strictEqual(settings.mcpServers['plug-plug-foo'].command, 'cmd-plug-foo');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'plug'), ['plug-foo', 'plug-plug-foo']);
+
+    // 2. Update without changing snippets (re-install / update)
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    // Both servers must still exist, neither overwritten, and ownership array must contain no duplicates
+    assert.strictEqual(settings.mcpServers.foo.command, 'existing-foo');
+    assert.strictEqual(settings.mcpServers['plug-foo'].command, 'cmd-foo');
+    assert.strictEqual(settings.mcpServers['plug-plug-foo'].command, 'cmd-plug-foo');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'plug'), ['plug-foo', 'plug-plug-foo']);
+  });
+
+  await t.test('postInstall preserves reverse-order namespaced destinations using explicit source map on update', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeGeminiDir = path.join(tmpDir, 'gemini-reverse-order-test');
+    const fakeTargetDir = path.join(fakeGeminiDir, 'extensions');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const settingsPath = path.join(fakeGeminiDir, 'settings.json');
+
+    // Scenario:
+    // Existing unowned 'p-a-2' has configuration Z
+    // Existing server 'a-2' conflicts with Z
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Z', args: [] },
+        'a-2': { command: 'server-conflict', args: [] }
+      }
+    }));
+
+    // Plugin 'p' defines 'p-a-2' = Y and 'a-2' = Z
+    const pluginDir = path.join(tmpDir, 'p');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Y', args: [] },
+        'a-2': { command: 'server-Z', args: [] }
+      }
+    }));
+
+    // 1. First install:
+    // 'p-a-2' conflicts with existing 'p-a-2' (Z vs Y), namespaced to 'p-p-a-2'
+    // 'a-2' conflicts with 'a-2', base candidate is 'p-a-2' which matches Z, so reuses 'p-a-2'
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(settings.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(settings.mcpServers['a-2'].command, 'server-conflict');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'p'), ['p-p-a-2', 'p-a-2']);
+    assert.deepStrictEqual(getPluginMapping(settingsPath, 'p'), {
+      'p-a-2': 'p-p-a-2',
+      'a-2': 'p-a-2'
+    });
+
+    // 2. Next update:
+    // Must NOT overwrite 'p-a-2' with 'server-Y' when processing source key 'p-a-2'
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(settings.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(settings.mcpServers['a-2'].command, 'server-conflict');
+    assert.deepStrictEqual(getOwnedKeys(settingsPath, 'p'), ['p-p-a-2', 'p-a-2']);
+    assert.deepStrictEqual(getPluginMapping(settingsPath, 'p'), {
+      'p-a-2': 'p-p-a-2',
+      'a-2': 'p-a-2'
+    });
+
+    // 3. Uninstall cleans up both servers and deletes ownership/mapping maps
+    antigravity.postUninstall('p', fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+
+    assert.strictEqual(settings.mcpServers['p-p-a-2'], undefined);
+    // 'p-a-2' pre-existed as a user server that the plugin reused (identical config); uninstall keeps it
+    assert.strictEqual(settings.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(settings.mcpServers['a-2'].command, 'server-conflict');
+    assert.strictEqual(settings._agenthaus_mcp, undefined);
+    assert.strictEqual(settings._agenthaus_mcp_map, undefined);
+  });
+
+  await t.test('Cursor postInstall and postUninstall preserve reverse-order namespaced destinations using explicit source map', () => {
+    const cursor = getProvider('cursor');
+    const fakeCursorDir = path.join(tmpDir, 'cursor-reverse-order-test');
+    const fakeTargetDir = path.join(fakeCursorDir, 'plugins');
+    fs.mkdirSync(fakeTargetDir, { recursive: true });
+    const configPath = path.join(fakeCursorDir, 'mcp.json');
+
+    fs.writeFileSync(configPath, JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Z', args: [] },
+        'a-2': { command: 'server-conflict', args: [] }
+      }
+    }));
+
+    const pluginDir = path.join(tmpDir, 'cursor-pkg', 'p');
+    fs.mkdirSync(path.join(pluginDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Y', args: [] },
+        'a-2': { command: 'server-Z', args: [] }
+      }
+    }));
+
+    // 1. First install
+    cursor.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+    assert.deepStrictEqual(getOwnedKeys(configPath, 'p'), ['p-p-a-2', 'p-a-2']);
+    assert.deepStrictEqual(getPluginMapping(configPath, 'p'), {
+      'p-a-2': 'p-p-a-2',
+      'a-2': 'p-a-2'
+    });
+
+    // 2. Update
+    cursor.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+    assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+
+    // 3. Uninstall
+    cursor.postUninstall('p', fakeTargetDir, { dryRun: false });
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    assert.strictEqual(config.mcpServers['p-p-a-2'], undefined);
+    // 'p-a-2' pre-existed as a user server that the plugin reused (identical config); uninstall keeps it
+    assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+    assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+    assert.strictEqual(config._agenthaus_mcp, undefined);
+    assert.strictEqual(config._agenthaus_mcp_map, undefined);
+  });
+
+  await t.test('Windsurf postInstall and postUninstall preserve reverse-order namespaced destinations using explicit source map', () => {
+    const windsurf = getProvider('windsurf');
+    const fakeHome = path.join(tmpDir, 'windsurf-home');
+    const configDir = path.join(fakeHome, '.codeium', 'windsurf');
+    fs.mkdirSync(configDir, { recursive: true });
+    const configPath = path.join(configDir, 'mcp_config.json');
+
+    fs.writeFileSync(configPath, JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Z', args: [] },
+        'a-2': { command: 'server-conflict', args: [] }
+      }
+    }));
+
+    const pluginDir = path.join(tmpDir, 'windsurf-pkg', 'p');
+    fs.mkdirSync(pluginDir, { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'windsurf-mcp-snippet.json'), JSON.stringify({
+      mcpServers: {
+        'p-a-2': { command: 'server-Y', args: [] },
+        'a-2': { command: 'server-Z', args: [] }
+      }
+    }));
+
+    const origHome = os.homedir;
+    try {
+      os.homedir = () => fakeHome;
+
+      // 1. First install
+      windsurf.postInstall(pluginDir, path.join(fakeHome, 'plugins'), { dryRun: false });
+      let config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+      assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+      assert.deepStrictEqual(getOwnedKeys(configPath, 'p'), ['p-p-a-2', 'p-a-2']);
+      assert.deepStrictEqual(getPluginMapping(configPath, 'p'), {
+        'p-a-2': 'p-p-a-2',
+        'a-2': 'p-a-2'
+      });
+
+      // 2. Update
+      windsurf.postInstall(pluginDir, path.join(fakeHome, 'plugins'), { dryRun: false });
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      assert.strictEqual(config.mcpServers['p-p-a-2'].command, 'server-Y');
+      assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+      assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+
+      // 3. Uninstall
+      windsurf.postUninstall('p', path.join(fakeHome, 'plugins'), { dryRun: false });
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+      assert.strictEqual(config.mcpServers['p-p-a-2'], undefined);
+      // 'p-a-2' pre-existed as a user server that the plugin reused (identical config); uninstall keeps it
+    assert.strictEqual(config.mcpServers['p-a-2'].command, 'server-Z');
+      assert.strictEqual(config.mcpServers['a-2'].command, 'server-conflict');
+      assert.strictEqual(config._agenthaus_mcp, undefined);
+      assert.strictEqual(config._agenthaus_mcp_map, undefined);
+    } finally {
+      os.homedir = origHome;
+    }
+  });
 });
+
