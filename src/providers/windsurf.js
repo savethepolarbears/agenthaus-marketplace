@@ -59,7 +59,25 @@ module.exports = {
         }
       }
 
-      config.mcpServers = { ...(config.mcpServers || {}), ...mcpServers };
+      if (!config.mcpServers) config.mcpServers = {};
+      if (!config._agenthaus_mcp) config._agenthaus_mcp = {};
+
+      const pluginName = path.basename(sourceDir);
+      const registeredKeys = config._agenthaus_mcp[pluginName] || [];
+      for (const [key, srvConfig] of Object.entries(mcpServers)) {
+        let finalKey = key;
+        if (config.mcpServers[finalKey]) {
+          if (JSON.stringify(config.mcpServers[finalKey]) === JSON.stringify(srvConfig)) {
+            if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
+            continue;
+          }
+          finalKey = `${pluginName}-${key}`;
+          console.log(`[warn] Windsurf: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+        }
+        config.mcpServers[finalKey] = srvConfig;
+        if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
+      }
+      config._agenthaus_mcp[pluginName] = registeredKeys;
 
       if (!dryRun) {
         fs.mkdirSync(configDir, { recursive: true });
@@ -110,8 +128,38 @@ module.exports = {
     if (fs.existsSync(configPath)) {
       try {
         const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        if (config.mcpServers && config.mcpServers[pluginName]) {
-          delete config.mcpServers[pluginName];
+        if (config._agenthaus_mcp && config._agenthaus_mcp[pluginName]) {
+          const keysToRemove = config._agenthaus_mcp[pluginName];
+          delete config._agenthaus_mcp[pluginName];
+          if (Object.keys(config._agenthaus_mcp).length === 0) {
+            delete config._agenthaus_mcp;
+          }
+          const remainingKeys = new Set();
+          if (config._agenthaus_mcp) {
+            for (const keys of Object.values(config._agenthaus_mcp)) {
+              for (const k of keys) remainingKeys.add(k);
+            }
+          }
+          for (const k of keysToRemove) {
+            if (!remainingKeys.has(k)) {
+              delete config.mcpServers[k];
+            }
+          }
+          if (config.mcpServers && Object.keys(config.mcpServers).length === 0) {
+            delete config.mcpServers;
+          }
+          if (!dryRun) {
+            fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+          }
+        } else if (config.mcpServers) {
+          if (config.mcpServers[pluginName]) {
+            delete config.mcpServers[pluginName];
+          }
+          for (const k of Object.keys(config.mcpServers)) {
+            if (k.startsWith(`${pluginName}-`)) {
+              delete config.mcpServers[k];
+            }
+          }
           if (!dryRun) {
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
           }

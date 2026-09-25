@@ -165,7 +165,24 @@ module.exports = {
       }
     }
 
-    settings.mcpServers = { ...(settings.mcpServers || {}), ...mcpServers };
+    if (!settings.mcpServers) settings.mcpServers = {};
+    if (!settings._agenthaus_mcp) settings._agenthaus_mcp = {};
+
+    const registeredKeys = settings._agenthaus_mcp[pluginName] || [];
+    for (const [key, srvConfig] of Object.entries(mcpServers)) {
+      let finalKey = key;
+      if (settings.mcpServers[finalKey]) {
+        if (JSON.stringify(settings.mcpServers[finalKey]) === JSON.stringify(srvConfig)) {
+          if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
+          continue;
+        }
+        finalKey = `${pluginName}-${key}`;
+        console.log(`[warn] Gemini: MCP server '${key}' conflict detected; registered as '${finalKey}' for ${pluginName}`);
+      }
+      settings.mcpServers[finalKey] = srvConfig;
+      if (!registeredKeys.includes(finalKey)) registeredKeys.push(finalKey);
+    }
+    settings._agenthaus_mcp[pluginName] = registeredKeys;
 
     if (!dryRun) {
       fs.mkdirSync(settingsDir, { recursive: true });
@@ -179,10 +196,38 @@ module.exports = {
 
     try {
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-      if (!settings.mcpServers) return;
-
-      if (settings.mcpServers[pluginName]) {
-        delete settings.mcpServers[pluginName];
+      if (settings._agenthaus_mcp && settings._agenthaus_mcp[pluginName]) {
+        const keysToRemove = settings._agenthaus_mcp[pluginName];
+        delete settings._agenthaus_mcp[pluginName];
+        if (Object.keys(settings._agenthaus_mcp).length === 0) {
+          delete settings._agenthaus_mcp;
+        }
+        const remainingKeys = new Set();
+        if (settings._agenthaus_mcp) {
+          for (const keys of Object.values(settings._agenthaus_mcp)) {
+            for (const k of keys) remainingKeys.add(k);
+          }
+        }
+        for (const k of keysToRemove) {
+          if (!remainingKeys.has(k)) {
+            delete settings.mcpServers[k];
+          }
+        }
+        if (settings.mcpServers && Object.keys(settings.mcpServers).length === 0) {
+          delete settings.mcpServers;
+        }
+        if (!dryRun) {
+          fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+        }
+      } else if (settings.mcpServers) {
+        if (settings.mcpServers[pluginName]) {
+          delete settings.mcpServers[pluginName];
+        }
+        for (const k of Object.keys(settings.mcpServers)) {
+          if (k.startsWith(`${pluginName}-`)) {
+            delete settings.mcpServers[k];
+          }
+        }
         if (!dryRun) {
           fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
         }

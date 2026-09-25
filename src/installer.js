@@ -243,6 +243,10 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
       isSame = (resolvedTarget === sourceDir);
     }
     if (isSame) {
+      if (provider && typeof provider.postInstall === 'function') {
+        provider.postInstall(sourceDir, safeTargetDir, { dryRun });
+        return { status: 'updated', path: destPath };
+      }
       return { status: 'skipped', path: destPath };
     }
 

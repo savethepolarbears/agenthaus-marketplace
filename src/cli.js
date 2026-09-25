@@ -107,6 +107,25 @@ async function handleSync({ target, all, dryRun, mode }) {
   }
 
   const repoPluginsDir = PLUGINS_DIR;
+  const catalogNames = new Set(discoverPlugins().map(p => p.name));
+
+  const repairTargetHooks = (targetDir) => {
+    if (!fs.existsSync(targetDir)) return;
+    for (const entry of fs.readdirSync(targetDir)) {
+      if (!catalogNames.has(entry)) continue;
+      const entryDir = path.join(targetDir, entry);
+      try {
+        if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
+        const hookFiles = getPluginHookFiles(entryDir);
+        for (const hookFile of hookFiles) {
+          if (fs.existsSync(hookFile)) {
+            const res = repairHookFile(hookFile, { dryRun });
+            if (res.repaired) ui.info(`Hook ${entry}: repaired ${path.basename(hookFile)} (${res.actions.map(x=>x.type).join(', ')})`);
+          }
+        }
+      } catch {}
+    }
+  };
   
   if (all) {
     // Sweep Claude cache
@@ -115,7 +134,6 @@ async function handleSync({ target, all, dryRun, mode }) {
     for (const a of cacheActions) ui.info(`Cache: ${a.type} ${a.path}`);
 
     const providers = detectAll(process.cwd());
-    const catalogNames = new Set(discoverPlugins().map(p => p.name));
     for (const p of providers) {
       const targetDirs = mode ? [p.getTargetDir(process.cwd(), mode)] : Array.from(new Set([
         p.getTargetDir(process.cwd(), 'user'),
@@ -126,20 +144,7 @@ async function handleSync({ target, all, dryRun, mode }) {
         for (const a of actions) ui.info(`Symlink ${p.name}: ${a.type} ${a.path}`);
 
         // repair hooks scoped to known catalog plugins
-        if (fs.existsSync(targetDir)) {
-          for (const entry of fs.readdirSync(targetDir)) {
-            if (!catalogNames.has(entry)) continue;
-            const entryDir = path.join(targetDir, entry);
-            if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
-            const hookFiles = getPluginHookFiles(entryDir);
-            for (const hookFile of hookFiles) {
-              if (fs.existsSync(hookFile)) {
-                const res = repairHookFile(hookFile, { dryRun });
-                if (res.repaired) ui.info(`Hook ${entry}: repaired ${path.basename(hookFile)} (${res.actions.map(x=>x.type).join(', ')})`);
-              }
-            }
-          }
-        }
+        repairTargetHooks(targetDir);
       }
     }
   } else if (target) {
@@ -152,6 +157,9 @@ async function handleSync({ target, all, dryRun, mode }) {
     for (const targetDir of targetDirs) {
       const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
       for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
+
+      // repair hooks scoped to known catalog plugins
+      repairTargetHooks(targetDir);
     }
   }
 }

@@ -138,5 +138,36 @@ test('CLI Routing and Flag Parsing', async (t) => {
     assert.ok(fixResult.stdout.includes('Applied 1 fixes automatically'));
     assert.ok(fixResult.stdout.includes('0 Fail'));
   });
+
+  await t.test('sync --target <provider> repairs hooks in provider target directory', () => {
+    const projectDir = path.join(tmpDir, 'sync-target-workspace');
+    const copilotDir = path.join(projectDir, '.github', 'plugins', 'circuit-breaker');
+    fs.mkdirSync(path.join(copilotDir, '.claude-plugin'), { recursive: true });
+    fs.mkdirSync(path.join(copilotDir, 'hooks'), { recursive: true });
+    fs.writeFileSync(path.join(copilotDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      name: 'circuit-breaker',
+      version: '1.0.0'
+    }));
+    const hookFile = path.join(copilotDir, 'hooks', 'hooks.json');
+    fs.writeFileSync(hookFile, JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            requires_approval: true,
+            hooks: [{ command: 'echo 1' }]
+          }
+        ]
+      }
+    }));
+
+    const syncResult = runBin(['sync', '--target', 'copilot'], { cwd: projectDir });
+    assert.strictEqual(syncResult.status, 0);
+    assert.ok(syncResult.stdout.includes('Hook circuit-breaker: repaired'));
+
+    const repairedContent = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
+    assert.strictEqual(repairedContent.hooks.PreToolUse[0].requires_approval, undefined);
+  });
 });
+
 

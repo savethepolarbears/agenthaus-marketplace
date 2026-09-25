@@ -439,4 +439,35 @@ test('updatePlugin preserves user-managed directories without agenthaus ownershi
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+test('updatePlugin invokes provider postInstall hook when updating current symlink', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+
+  const destPath = path.join(target, 'src-plugin');
+  fs.symlinkSync(source, destPath, process.platform === 'win32' ? 'junction' : 'dir');
+
+  let postInstallCalled = false;
+  const mockProvider = {
+    postInstall(src, tgt, opts) {
+      postInstallCalled = true;
+      assert.strictEqual(src, source);
+    }
+  };
+
+  const res = updatePlugin(source, target, { provider: mockProvider });
+  assert.strictEqual(res.status, 'updated');
+  assert.strictEqual(postInstallCalled, true);
+
+  // Without provider, it remains skipped
+  const resNoProvider = updatePlugin(source, target);
+  assert.strictEqual(resNoProvider.status, 'skipped');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+
 

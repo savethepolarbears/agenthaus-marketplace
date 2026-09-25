@@ -326,4 +326,90 @@ test('CLI Providers', async (t) => {
     assert.ok(!updatedContent.includes('copilot-plugin'));
     assert.strictEqual(fs.existsSync(promptPath), false);
   });
+
+  await t.test('cursor postInstall copies rules and merges mcp.json, postUninstall cleans them up', () => {
+    const cursor = getProvider('cursor');
+    const fakeRepo = path.join(tmpDir, 'cursor-repo');
+    const fakeSource = path.join(tmpDir, 'cursor-plugin');
+    const fakeTargetDir = path.join(fakeRepo, '.cursor', 'plugins');
+
+    fs.mkdirSync(path.join(fakeSource, '.cursor', 'rules'), { recursive: true });
+    fs.writeFileSync(path.join(fakeSource, '.cursor', 'rules', 'cursor-plugin.mdc'), '# Rule');
+    fs.writeFileSync(path.join(fakeSource, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: {
+        'my-server': { command: 'node', args: ['server.js'] }
+      }
+    }));
+
+    cursor.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
+
+    // Check .cursor/rules/
+    const mdcPath = path.join(fakeRepo, '.cursor', 'rules', 'cursor-plugin.mdc');
+    assert.strictEqual(fs.existsSync(mdcPath), true);
+    assert.strictEqual(fs.readFileSync(mdcPath, 'utf8'), '# Rule');
+
+    // Check .cursor/mcp.json
+    const mcpPath = path.join(fakeRepo, '.cursor', 'mcp.json');
+    assert.strictEqual(fs.existsSync(mcpPath), true);
+    const mcpConfig = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+    assert.ok(mcpConfig.mcpServers['my-server']);
+
+    // Uninstall
+    cursor.postUninstall('cursor-plugin', fakeTargetDir, { dryRun: false });
+    assert.strictEqual(fs.existsSync(mdcPath), false);
+    const uninstalledMcp = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+    assert.strictEqual(uninstalledMcp.mcpServers, undefined);
+  });
+
+  await t.test('antigravity postInstall preserves conflicting MCP servers via namespacing', () => {
+    const antigravity = getProvider('antigravity');
+    const fakeRepo = path.join(tmpDir, 'gemini-repo');
+    const fakeTargetDir = path.join(fakeRepo, '.gemini', 'extensions');
+    const settingsPath = path.join(fakeRepo, '.gemini', 'settings.json');
+
+    // Existing postgres server (e.g. from user or agent-memory)
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify({
+      mcpServers: {
+        postgres: { command: 'npx', args: ['-y', 'server-postgres'] }
+      }
+    }, null, 2));
+
+    // Plugin 1: identical postgres server (e.g. data-core)
+    const plugin1 = path.join(tmpDir, 'data-core');
+    fs.mkdirSync(plugin1, { recursive: true });
+    fs.writeFileSync(path.join(plugin1, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        postgres: { command: 'npx', args: ['-y', 'server-postgres'] }
+      }
+    }));
+
+    antigravity.postInstall(plugin1, fakeTargetDir, { dryRun: false });
+    let settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers.postgres.command, 'npx');
+    assert.strictEqual(settings.mcpServers['data-core-postgres'], undefined);
+
+    // Plugin 2: conflicting postgres server (e.g. neon-db with different shape)
+    const plugin2 = path.join(tmpDir, 'neon-db');
+    fs.mkdirSync(plugin2, { recursive: true });
+    fs.writeFileSync(path.join(plugin2, 'gemini-settings-snippet.json'), JSON.stringify({
+      mcpServers: {
+        postgres: { command: 'docker', args: ['run', 'neon-proxy'] }
+      }
+    }));
+
+    antigravity.postInstall(plugin2, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    // Original postgres server preserved intact
+    assert.strictEqual(settings.mcpServers.postgres.command, 'npx');
+    // Conflicting server namespaced safely
+    assert.ok(settings.mcpServers['neon-db-postgres']);
+    assert.strictEqual(settings.mcpServers['neon-db-postgres'].command, 'docker');
+
+    // Uninstall plugin 2: neon-db-postgres removed, original postgres preserved
+    antigravity.postUninstall('neon-db', fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.strictEqual(settings.mcpServers['neon-db-postgres'], undefined);
+    assert.ok(settings.mcpServers.postgres);
+  });
 });
