@@ -13,6 +13,7 @@ const {
   checkCredentials,
   checkConfigFreshness,
   checkProviderConfigs,
+  isMarketplaceHybrid,
   runDoctor
 } = require('../src/doctor.js');
 
@@ -280,5 +281,32 @@ test('CLI Doctor', async (t) => {
     } finally {
       os.homedir = origHome;
     }
+  });
+
+  await t.test('isMarketplaceHybrid distinguishes marketplace-backed symlinks from copied plugin symlinks', () => {
+    const fakeRepo = path.join(tmpDir, 'marketplace-repo');
+    const repoPlugins = path.join(fakeRepo, 'plugins');
+    const canonicalPlugin = path.join(repoPlugins, 'test-plugin');
+    fs.mkdirSync(canonicalPlugin, { recursive: true });
+    fs.mkdirSync(path.join(canonicalPlugin, 'hooks'), { recursive: true });
+
+    // 1. Marketplace-backed hybrid installation: top-level symlink points into repoPlugins
+    const hybridDir = path.join(tmpDir, 'hybrid-install');
+    fs.mkdirSync(hybridDir, { recursive: true });
+    fs.symlinkSync(path.join(canonicalPlugin, 'hooks'), path.join(hybridDir, 'hooks'), 'dir');
+    assert.strictEqual(isMarketplaceHybrid(hybridDir, 'test-plugin', fakeRepo), true);
+
+    // 2. Copied plugin with legitimate internal symlink: points inside copied directory, not into marketplace
+    const copiedDir = path.join(tmpDir, 'copied-install');
+    fs.mkdirSync(path.join(copiedDir, 'assets'), { recursive: true });
+    fs.writeFileSync(path.join(copiedDir, 'assets', 'icon.png'), 'fake-png');
+    // Internal symlink: icon-link.png -> assets/icon.png
+    fs.symlinkSync(path.join(copiedDir, 'assets', 'icon.png'), path.join(copiedDir, 'icon-link.png'));
+    assert.strictEqual(isMarketplaceHybrid(copiedDir, 'test-plugin', fakeRepo), false);
+
+    // 3. Normal directory without symlinks
+    const normalDir = path.join(tmpDir, 'normal-install');
+    fs.mkdirSync(normalDir, { recursive: true });
+    assert.strictEqual(isMarketplaceHybrid(normalDir, 'test-plugin', fakeRepo), false);
   });
 });

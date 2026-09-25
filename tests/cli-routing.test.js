@@ -210,6 +210,42 @@ test('CLI Routing and Flag Parsing', async (t) => {
     // Canonical source file must still NOT be modified
     assert.strictEqual(fs.readFileSync(canonicalHookFile, 'utf8'), originalContent);
   });
+
+  await t.test('doctor --fix repairs copied plugin directories that contain internal symlinks', () => {
+    const projectDir = path.join(tmpDir, 'copied-symlink-project');
+    const claudePluginDir = path.join(projectDir, '.claude', 'plugins', 'circuit-breaker');
+    fs.mkdirSync(claudePluginDir, { recursive: true });
+
+    // Copied plugin with invalid hook schema
+    const hooksDir = path.join(claudePluginDir, 'hooks');
+    fs.mkdirSync(hooksDir, { recursive: true });
+    const hookFile = path.join(hooksDir, 'hooks.json');
+    fs.writeFileSync(hookFile, JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            requires_approval: true,
+            hooks: [{ command: 'echo 1' }]
+          }
+        ]
+      }
+    }, null, 2));
+
+    // Internal bundled symlink: docs/readme.md -> README.md (internal, not pointing to marketplace)
+    fs.writeFileSync(path.join(claudePluginDir, 'README.md'), '# Circuit Breaker');
+    const docsDir = path.join(claudePluginDir, 'docs');
+    fs.mkdirSync(docsDir, { recursive: true });
+    fs.symlinkSync(path.join(claudePluginDir, 'README.md'), path.join(docsDir, 'readme.md'));
+
+    // Run doctor --fix
+    const doctorFixResult = runBin(['doctor', '--fix'], { cwd: projectDir });
+    assert.strictEqual(doctorFixResult.status, 0);
+
+    // The copied plugin's hook file should be repaired (requires_approval removed)
+    const repairedContent = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
+    assert.strictEqual(repairedContent.hooks.PreToolUse[0].requires_approval, undefined);
+  });
 });
 
 

@@ -299,7 +299,7 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
           const pDir = path.join(targetDir, entry);
           try {
             const st = fs.lstatSync(pDir);
-            if (st.isDirectory() && !st.isSymbolicLink() && !hasItemLevelSymlinks(pDir)) {
+            if (st.isDirectory() && !st.isSymbolicLink() && !isMarketplaceHybrid(pDir, entry, repoRoot)) {
               addResults(checkHookSchema(pDir));
               const mcpPath = path.join(pDir, '.mcp.json');
               if (fs.existsSync(mcpPath)) {
@@ -327,18 +327,67 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   return { pass_count, warn_count, fail_count, checks };
 }
 
-function hasItemLevelSymlinks(dir) {
+function isMarketplaceHybrid(dir, pluginName = path.basename(dir), repoRoot = path.resolve(__dirname, '..')) {
   try {
     const entries = fs.readdirSync(dir);
+    const repoPlugins = path.resolve(repoRoot, 'plugins');
+    let realRepoPlugins;
+    try {
+      realRepoPlugins = fs.realpathSync(repoPlugins);
+    } catch {
+      realRepoPlugins = repoPlugins;
+    }
+
+    const expectedSourceDir = path.join(repoPlugins, pluginName);
+    let realExpectedSource;
+    try {
+      realExpectedSource = fs.realpathSync(expectedSourceDir);
+    } catch {
+      realExpectedSource = expectedSourceDir;
+    }
+
+    const sep = path.sep;
+    const expectedSuffix = `${sep}plugins${sep}${pluginName}`;
+
     for (const entry of entries) {
       const p = path.join(dir, entry);
       try {
-        if (fs.lstatSync(p).isSymbolicLink()) return true;
+        const st = fs.lstatSync(p);
+        if (st.isSymbolicLink()) {
+          const rawTarget = fs.readlinkSync(p);
+          const resolvedTarget = path.resolve(dir, rawTarget);
+          let realTarget;
+          try {
+            realTarget = fs.realpathSync(p);
+          } catch {
+            realTarget = resolvedTarget;
+          }
+
+          const targetNorm = process.platform === 'win32' ? realTarget.toLowerCase() : realTarget;
+          const resolvedNorm = process.platform === 'win32' ? resolvedTarget.toLowerCase() : resolvedTarget;
+          const normSuffix = process.platform === 'win32' ? expectedSuffix.toLowerCase() : expectedSuffix;
+          const normPluginName = pluginName.toLowerCase();
+
+          // Only consider as hybrid if symlink resolves into marketplace checkout
+          const isMarketplaceTarget =
+            realTarget === realRepoPlugins || realTarget.startsWith(realRepoPlugins + sep) ||
+            resolvedTarget === repoPlugins || resolvedTarget.startsWith(repoPlugins + sep) ||
+            realTarget === realExpectedSource || realTarget.startsWith(realExpectedSource + sep) ||
+            resolvedTarget === expectedSourceDir || resolvedTarget.startsWith(expectedSourceDir + sep) ||
+            targetNorm.includes(normSuffix) || resolvedNorm.includes(normSuffix) ||
+            targetNorm.includes(`source-${normPluginName}`) || resolvedNorm.includes(`source-${normPluginName}`);
+
+          if (isMarketplaceTarget) {
+            return true;
+          }
+        }
       } catch {}
     }
   } catch {}
   return false;
 }
+
+const hasItemLevelSymlinks = isMarketplaceHybrid;
 
 function validateProviderConfigStructure(parsed, configLabel) {
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
@@ -482,6 +531,8 @@ module.exports = {
   checkCredentials,
   checkConfigFreshness,
   checkProviderConfigs,
+  validateProviderConfigStructure,
+  isMarketplaceHybrid,
   hasItemLevelSymlinks,
   runDoctor
 };

@@ -3,7 +3,7 @@
 const util = require('node:util');
 const path = require('node:path');
 const { discoverPlugins, PLUGINS_DIR } = require('./catalog.js');
-const { runDoctor } = require('./doctor.js');
+const { runDoctor, isMarketplaceHybrid } = require('./doctor.js');
 const { getProvider, detectAll, getAllProviders } = require('./providers/index.js');
 const { installPlugin, updatePlugin } = require('./installer.js');
 const { cleanOrphanedCache, healDirectorySymlinks, repairHookFile, getPluginHookFiles } = require('./sync.js');
@@ -100,18 +100,7 @@ async function handleUpdate({ target, plugin, all, dryRun, mode = 'user' }) {
   }
 }
 
-function hasItemLevelSymlinks(dir) {
-  try {
-    const entries = fs.readdirSync(dir);
-    for (const entry of entries) {
-      const p = path.join(dir, entry);
-      try {
-        if (fs.lstatSync(p).isSymbolicLink()) return true;
-      } catch {}
-    }
-  } catch {}
-  return false;
-}
+const hasItemLevelSymlinks = isMarketplaceHybrid;
 
 async function handleSync({ target, all, dryRun, mode }) {
   if (!target && !all) {
@@ -129,7 +118,7 @@ async function handleSync({ target, all, dryRun, mode }) {
       const entryDir = path.join(targetDir, entry);
       try {
         if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
-        if (hasItemLevelSymlinks(entryDir)) continue;
+        if (isMarketplaceHybrid(entryDir, entry)) continue;
         const hookFiles = getPluginHookFiles(entryDir);
         for (const hookFile of hookFiles) {
           if (fs.existsSync(hookFile)) {
@@ -234,7 +223,7 @@ async function runCli(rawArgs) {
                 const entryDir = path.join(tDir, entry);
                 try {
                   if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
-                  if (hasItemLevelSymlinks(entryDir)) continue;
+                  if (isMarketplaceHybrid(entryDir, entry)) continue;
                   const hookFiles = getPluginHookFiles(entryDir);
                   for (const hFile of hookFiles) {
                     if (fs.existsSync(hFile)) {
