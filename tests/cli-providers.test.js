@@ -569,5 +569,90 @@ test('CLI Providers', async (t) => {
     settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
     assert.ok(settings.mcpServers.important_srv);
     assert.deepStrictEqual(settings._agenthaus_mcp['test-plugin-parse-fail'], ['important_srv']);
+
+    // 3. Plugin snippet has string shape: { "mcpServers": "bad" }
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({ mcpServers: 'bad' }));
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(settings._agenthaus_mcp['test-plugin-parse-fail'], ['important_srv']);
+
+    // 4. Plugin snippet has array shape: { "mcpServers": [1, 2, 3] }
+    fs.writeFileSync(path.join(pluginDir, 'gemini-settings-snippet.json'), JSON.stringify({ mcpServers: [1, 2, 3] }));
+    antigravity.postInstall(pluginDir, fakeTargetDir, { dryRun: false });
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    assert.ok(settings.mcpServers.important_srv);
+    assert.deepStrictEqual(settings._agenthaus_mcp['test-plugin-parse-fail'], ['important_srv']);
+  });
+
+  await t.test('cursor postInstall preserves registrations for invalid mcpServers shapes', () => {
+    const cursor = getProvider('cursor');
+    const origCwd = process.cwd();
+    const workDir = path.join(tmpDir, 'cursor-invalid-shape-work');
+    fs.mkdirSync(workDir, { recursive: true });
+    process.chdir(workDir);
+
+    try {
+      const targetDir = path.join(workDir, '.cursor', 'plugins');
+      const pluginDir = path.join(tmpDir, 'cursor-test-plugin');
+      fs.mkdirSync(pluginDir, { recursive: true });
+      fs.mkdirSync(path.join(pluginDir, '.cursor'), { recursive: true });
+
+      // Initial valid install
+      fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({
+        mcpServers: {
+          my_cursor_srv: { command: 'node', args: ['server.js'] }
+        }
+      }));
+
+      cursor.postInstall(pluginDir, targetDir, { dryRun: false });
+      const mcpConfigPath = path.join(workDir, '.cursor', 'mcp.json');
+      let config = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8'));
+      assert.ok(config.mcpServers.my_cursor_srv);
+
+      // Now set mcpServers to string "bad"
+      fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({ mcpServers: 'bad' }));
+      cursor.postInstall(pluginDir, targetDir, { dryRun: false });
+      config = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8'));
+      assert.ok(config.mcpServers.my_cursor_srv, 'Registration should be preserved on string mcpServers');
+
+      // Now set mcpServers to array
+      fs.writeFileSync(path.join(pluginDir, '.cursor', 'mcp.json'), JSON.stringify({ mcpServers: ['bad'] }));
+      cursor.postInstall(pluginDir, targetDir, { dryRun: false });
+      config = JSON.parse(fs.readFileSync(mcpConfigPath, 'utf8'));
+      assert.ok(config.mcpServers.my_cursor_srv, 'Registration should be preserved on array mcpServers');
+    } finally {
+      process.chdir(origCwd);
+    }
+  });
+
+  await t.test('windsurf postInstall continues .windsurfrules generation when MCP snippet has invalid shape', () => {
+    const windsurf = getProvider('windsurf');
+    const origCwd = process.cwd();
+    const workDir = path.join(tmpDir, 'windsurf-rules-continue-work');
+    fs.mkdirSync(workDir, { recursive: true });
+    fs.mkdirSync(path.join(workDir, '.codeium'), { recursive: true });
+    process.chdir(workDir);
+
+    try {
+      const targetDir = path.join(workDir, '.codeium', 'plugins');
+      const pluginDir = path.join(tmpDir, 'windsurf-rule-plugin');
+      fs.mkdirSync(pluginDir, { recursive: true });
+      fs.writeFileSync(path.join(pluginDir, 'AGENTS.md'), '# Windsurf Rules\nAlways run tests.');
+
+      // Snippet has invalid shape: { "mcpServers": "bad" }
+      fs.writeFileSync(path.join(pluginDir, 'windsurf-mcp-snippet.json'), JSON.stringify({ mcpServers: 'bad' }));
+
+      windsurf.postInstall(pluginDir, targetDir, { dryRun: false });
+
+      // Despite invalid MCP snippet, .windsurfrules must be created
+      const rulesPath = path.join(workDir, '.windsurfrules');
+      assert.strictEqual(fs.existsSync(rulesPath), true);
+      const rulesContent = fs.readFileSync(rulesPath, 'utf8');
+      assert.ok(rulesContent.includes('# Windsurf Rules'));
+      assert.ok(rulesContent.includes('Always run tests.'));
+    } finally {
+      process.chdir(origCwd);
+    }
   });
 });

@@ -45,10 +45,19 @@ module.exports = {
     if (fs.existsSync(sourceMcpPath)) {
       try {
         const parsed = JSON.parse(fs.readFileSync(sourceMcpPath, 'utf8'));
-        if (parsed.mcpServers && typeof parsed.mcpServers === 'object') {
-          mcpServers = parsed.mcpServers;
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          snippetParseFailed = true;
+          console.warn(`[warn] Cursor: Malformed MCP config at ${sourceMcpPath}: expected JSON object. Preserving existing MCP registrations.`);
+        } else if (parsed.mcpServers !== undefined) {
+          if (typeof parsed.mcpServers === 'object' && parsed.mcpServers !== null && !Array.isArray(parsed.mcpServers)) {
+            mcpServers = parsed.mcpServers;
+          } else {
+            snippetParseFailed = true;
+            console.warn(`[warn] Cursor: Invalid 'mcpServers' in ${sourceMcpPath}: expected JSON object. Preserving existing MCP registrations.`);
+          }
         } else {
-          mcpServers = {};
+          snippetParseFailed = true;
+          console.warn(`[warn] Cursor: Config at ${sourceMcpPath} missing 'mcpServers'. Preserving existing MCP registrations.`);
         }
       } catch (err) {
         snippetParseFailed = true;

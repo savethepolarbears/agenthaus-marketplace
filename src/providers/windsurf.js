@@ -28,10 +28,19 @@ module.exports = {
     if (fs.existsSync(snippetPath)) {
       try {
         const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-        if (snippet.mcpServers && typeof snippet.mcpServers === 'object') {
-          mcpServers = snippet.mcpServers;
+        if (typeof snippet !== 'object' || snippet === null || Array.isArray(snippet)) {
+          snippetParseFailed = true;
+          console.warn(`[warn] Windsurf: Malformed MCP snippet at ${snippetPath}: expected JSON object. Preserving existing MCP registrations.`);
+        } else if (snippet.mcpServers !== undefined) {
+          if (typeof snippet.mcpServers === 'object' && snippet.mcpServers !== null && !Array.isArray(snippet.mcpServers)) {
+            mcpServers = snippet.mcpServers;
+          } else {
+            snippetParseFailed = true;
+            console.warn(`[warn] Windsurf: Invalid 'mcpServers' in snippet at ${snippetPath}: expected JSON object. Preserving existing MCP registrations.`);
+          }
         } else {
-          mcpServers = {};
+          snippetParseFailed = true;
+          console.warn(`[warn] Windsurf: Snippet at ${snippetPath} missing 'mcpServers'. Preserving existing MCP registrations.`);
         }
       } catch (err) {
         snippetParseFailed = true;
@@ -40,10 +49,19 @@ module.exports = {
     } else if (fs.existsSync(mcpJsonPath)) {
       try {
         const mcpJson = JSON.parse(fs.readFileSync(mcpJsonPath, 'utf8'));
-        if (mcpJson.mcpServers && typeof mcpJson.mcpServers === 'object') {
-          mcpServers = mcpJson.mcpServers;
+        if (typeof mcpJson !== 'object' || mcpJson === null || Array.isArray(mcpJson)) {
+          snippetParseFailed = true;
+          console.warn(`[warn] Windsurf: Malformed .mcp.json at ${mcpJsonPath}: expected JSON object. Preserving existing MCP registrations.`);
+        } else if (mcpJson.mcpServers !== undefined) {
+          if (typeof mcpJson.mcpServers === 'object' && mcpJson.mcpServers !== null && !Array.isArray(mcpJson.mcpServers)) {
+            mcpServers = mcpJson.mcpServers;
+          } else {
+            snippetParseFailed = true;
+            console.warn(`[warn] Windsurf: Invalid 'mcpServers' in .mcp.json at ${mcpJsonPath}: expected JSON object. Preserving existing MCP registrations.`);
+          }
         } else {
-          mcpServers = {};
+          snippetParseFailed = true;
+          console.warn(`[warn] Windsurf: .mcp.json at ${mcpJsonPath} missing 'mcpServers'. Preserving existing MCP registrations.`);
         }
       } catch (err) {
         snippetParseFailed = true;
@@ -51,32 +69,31 @@ module.exports = {
       }
     }
 
-    if (snippetParseFailed) return;
+    if (!snippetParseFailed) {
+      const pluginName = path.basename(sourceDir);
+      const configDir = path.join(os.homedir(), '.codeium', 'windsurf');
+      const configPath = path.join(configDir, 'mcp_config.json');
 
-    const pluginName = path.basename(sourceDir);
-    const configDir = path.join(os.homedir(), '.codeium', 'windsurf');
-    const configPath = path.join(configDir, 'mcp_config.json');
-
-    let config = {};
-    if (fs.existsSync(configPath)) {
-      try {
-        config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      } catch (err) {
-        let backupMsg = '';
-        if (!dryRun) {
-          const backupPath = `${configPath}.bak.${Date.now()}`;
-          fs.copyFileSync(configPath, backupPath);
-          backupMsg = ` (backed up to ${backupPath})`;
+      let config = {};
+      if (fs.existsSync(configPath)) {
+        try {
+          config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        } catch (err) {
+          let backupMsg = '';
+          if (!dryRun) {
+            const backupPath = `${configPath}.bak.${Date.now()}`;
+            fs.copyFileSync(configPath, backupPath);
+            backupMsg = ` (backed up to ${backupPath})`;
+          }
+          throw new Error(`Malformed Windsurf MCP config at ${configPath}${backupMsg}: ${err.message}`);
         }
-        throw new Error(`Malformed Windsurf MCP config at ${configPath}${backupMsg}: ${err.message}`);
       }
-    }
 
-    const hasPreviousRegistration = config._agenthaus_mcp &&
-      Array.isArray(config._agenthaus_mcp[pluginName]) &&
-      config._agenthaus_mcp[pluginName].length > 0;
+      const hasPreviousRegistration = config._agenthaus_mcp &&
+        Array.isArray(config._agenthaus_mcp[pluginName]) &&
+        config._agenthaus_mcp[pluginName].length > 0;
 
-    if (mcpServers || hasPreviousRegistration) {
+      if (mcpServers || hasPreviousRegistration) {
       if (!mcpServers) mcpServers = {};
 
       if (!config.mcpServers) config.mcpServers = {};
@@ -146,6 +163,7 @@ module.exports = {
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf8');
       }
     }
+  }
 
     // 2. Install project context rules (.windsurfrules) if running in a project workspace
     const agentsPath = path.join(sourceDir, 'AGENTS.md');

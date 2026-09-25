@@ -324,25 +324,57 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
 
       let snippetChanged = false;
       const snippetPath = path.join(sourceDir, 'gemini-settings-snippet.json');
+      const settingsPath = path.join(path.dirname(safeTargetDir), 'settings.json');
+      let previouslyRegistered = [];
+      let currentServers = {};
+      if (fs.existsSync(settingsPath)) {
+        try {
+          const currentSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+          if (currentSettings._agenthaus_mcp && Array.isArray(currentSettings._agenthaus_mcp[pluginName])) {
+            previouslyRegistered = currentSettings._agenthaus_mcp[pluginName];
+          }
+          if (currentSettings.mcpServers && typeof currentSettings.mcpServers === 'object') {
+            currentServers = currentSettings.mcpServers;
+          }
+        } catch {}
+      }
+
       if (fs.existsSync(snippetPath)) {
         try {
           const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-          if (snippet.mcpServers && Object.keys(snippet.mcpServers).length > 0) {
-            const settingsPath = path.join(path.dirname(safeTargetDir), 'settings.json');
+          if (snippet && typeof snippet === 'object' && !Array.isArray(snippet) &&
+              snippet.mcpServers && typeof snippet.mcpServers === 'object' && !Array.isArray(snippet.mcpServers)) {
+            const newKeys = Object.keys(snippet.mcpServers);
             if (!fs.existsSync(settingsPath)) {
-              snippetChanged = true;
+              if (newKeys.length > 0) snippetChanged = true;
             } else {
-              const currentSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-              const currentServers = currentSettings.mcpServers || {};
-              for (const [k, v] of Object.entries(snippet.mcpServers)) {
-                if (JSON.stringify(currentServers[k]) !== JSON.stringify(v)) {
-                  snippetChanged = true;
-                  break;
+              const resolvedNewKeys = newKeys.map(k => {
+                if (previouslyRegistered.includes(`${pluginName}-${k}`)) {
+                  return `${pluginName}-${k}`;
+                }
+                return k;
+              });
+
+              if (resolvedNewKeys.length !== previouslyRegistered.length ||
+                  !resolvedNewKeys.every(k => previouslyRegistered.includes(k)) ||
+                  !previouslyRegistered.every(k => resolvedNewKeys.includes(k))) {
+                snippetChanged = true;
+              } else {
+                for (const [k, v] of Object.entries(snippet.mcpServers)) {
+                  const targetKey = previouslyRegistered.includes(`${pluginName}-${k}`) ? `${pluginName}-${k}` : k;
+                  if (JSON.stringify(currentServers[targetKey]) !== JSON.stringify(v)) {
+                    snippetChanged = true;
+                    break;
+                  }
                 }
               }
             }
+          } else if (previouslyRegistered.length > 0) {
+            snippetChanged = true;
           }
         } catch {}
+      } else if (previouslyRegistered.length > 0) {
+        snippetChanged = true;
       }
 
       const needsUpdate = (sourceVersion !== destVersion) || !hasGeminiManifest || hasMissingEntries || hasRemovedEntries || snippetChanged;

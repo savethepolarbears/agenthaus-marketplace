@@ -238,4 +238,47 @@ test('CLI Doctor', async (t) => {
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("'mcpServers' in Cursor MCP config must be an object")));
     assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("MCP server 'srv' in Gemini settings must be an object")));
   });
+
+  await t.test('checkProviderConfigs validates fields inside each MCP server definition', () => {
+    const projectDir = path.join(tmpDir, 'provider-fields-project');
+    fs.mkdirSync(path.join(projectDir, '.cursor'), { recursive: true });
+    // Empty server object without command or url
+    fs.writeFileSync(path.join(projectDir, '.cursor', 'mcp.json'), JSON.stringify({
+      mcpServers: { empty_srv: {} }
+    }));
+
+    fs.mkdirSync(path.join(projectDir, '.gemini'), { recursive: true });
+    // Numeric command
+    fs.writeFileSync(path.join(projectDir, '.gemini', 'settings.json'), JSON.stringify({
+      mcpServers: { num_cmd: { command: 123 } }
+    }));
+
+    const providers = [
+      { id: 'antigravity', name: 'Gemini' },
+      { id: 'cursor', name: 'Cursor' }
+    ];
+
+    const results = checkProviderConfigs(providers, projectDir);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("MCP server 'empty_srv' in Cursor MCP config must specify a 'command' or 'url'")));
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes("'command' in MCP server 'num_cmd' (Gemini settings) must be a non-empty string")));
+  });
+
+  await t.test('Claude provider detect() discovers standalone .claude.json without .claude directory', () => {
+    const projectDir = path.join(tmpDir, 'claude-standalone-project');
+    const fakeHome = path.join(tmpDir, 'fake-home');
+    fs.mkdirSync(projectDir, { recursive: true });
+    fs.mkdirSync(fakeHome, { recursive: true });
+    const claudeProvider = require('../src/providers/claude.js');
+
+    const origHome = os.homedir;
+    try {
+      os.homedir = () => fakeHome;
+      assert.strictEqual(claudeProvider.detect(projectDir), false);
+
+      fs.writeFileSync(path.join(projectDir, '.claude.json'), JSON.stringify({ mcpServers: {} }));
+      assert.strictEqual(claudeProvider.detect(projectDir), true);
+    } finally {
+      os.homedir = origHome;
+    }
+  });
 });

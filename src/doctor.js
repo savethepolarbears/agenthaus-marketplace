@@ -352,6 +352,21 @@ function validateProviderConfigStructure(parsed, configLabel) {
       if (typeof srvConf !== 'object' || srvConf === null || Array.isArray(srvConf)) {
         return `MCP server '${srvName}' in ${configLabel} must be an object`;
       }
+      if (!srvConf.command && !srvConf.url) {
+        return `MCP server '${srvName}' in ${configLabel} must specify a 'command' or 'url'`;
+      }
+      if (srvConf.command !== undefined && (typeof srvConf.command !== 'string' || srvConf.command.trim() === '')) {
+        return `'command' in MCP server '${srvName}' (${configLabel}) must be a non-empty string`;
+      }
+      if (srvConf.url !== undefined && (typeof srvConf.url !== 'string' || srvConf.url.trim() === '')) {
+        return `'url' in MCP server '${srvName}' (${configLabel}) must be a non-empty string`;
+      }
+      if (srvConf.args !== undefined && (!Array.isArray(srvConf.args) || !srvConf.args.every(a => typeof a === 'string'))) {
+        return `'args' in MCP server '${srvName}' (${configLabel}) must be an array of strings`;
+      }
+      if (srvConf.env !== undefined && (typeof srvConf.env !== 'object' || srvConf.env === null || Array.isArray(srvConf.env))) {
+        return `'env' in MCP server '${srvName}' (${configLabel}) must be an object`;
+      }
     }
   }
   if (parsed._agenthaus_mcp !== undefined) {

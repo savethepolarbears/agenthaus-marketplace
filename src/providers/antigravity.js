@@ -140,10 +140,19 @@ module.exports = {
     if (fs.existsSync(snippetPath)) {
       try {
         const snippet = JSON.parse(fs.readFileSync(snippetPath, 'utf8'));
-        if (snippet.mcpServers && typeof snippet.mcpServers === 'object') {
-          mcpServers = snippet.mcpServers;
+        if (typeof snippet !== 'object' || snippet === null || Array.isArray(snippet)) {
+          snippetParseFailed = true;
+          console.warn(`[warn] Gemini: Malformed snippet at ${snippetPath}: expected JSON object. Preserving existing MCP registrations.`);
+        } else if (snippet.mcpServers !== undefined) {
+          if (typeof snippet.mcpServers === 'object' && snippet.mcpServers !== null && !Array.isArray(snippet.mcpServers)) {
+            mcpServers = snippet.mcpServers;
+          } else {
+            snippetParseFailed = true;
+            console.warn(`[warn] Gemini: Invalid 'mcpServers' in snippet at ${snippetPath}: expected JSON object. Preserving existing MCP registrations.`);
+          }
         } else {
-          mcpServers = {};
+          snippetParseFailed = true;
+          console.warn(`[warn] Gemini: Snippet at ${snippetPath} missing 'mcpServers'. Preserving existing MCP registrations.`);
         }
       } catch (err) {
         snippetParseFailed = true;
