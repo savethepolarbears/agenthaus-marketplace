@@ -38,6 +38,94 @@ function validateTargetSafety(targetDir) {
   return canonical;
 }
 
+function getHybridSymlinkInfo(destPath, sourceDir) {
+  let entries;
+  try {
+    entries = fs.readdirSync(destPath);
+  } catch {
+    return { isHybrid: false, isForeign: false };
+  }
+
+  let linkedToSourceCount = 0;
+  let foreignLinkCount = 0;
+  let realSource;
+  try {
+    realSource = fs.realpathSync(sourceDir);
+  } catch {
+    realSource = path.resolve(sourceDir);
+  }
+
+  for (const entry of entries) {
+    const p = path.join(destPath, entry);
+    try {
+      const st = fs.lstatSync(p);
+      if (st.isSymbolicLink()) {
+        const rawTarget = fs.readlinkSync(p);
+        const resolvedTarget = path.resolve(destPath, rawTarget);
+        let realTarget;
+        try {
+          realTarget = fs.realpathSync(p);
+        } catch {
+          realTarget = resolvedTarget;
+        }
+
+        const isToSource = (realTarget === realSource || realTarget.startsWith(realSource + path.sep) ||
+                            resolvedTarget === path.join(sourceDir, entry) || resolvedTarget.startsWith(sourceDir + path.sep));
+
+        if (isToSource) {
+          linkedToSourceCount++;
+        } else {
+          foreignLinkCount++;
+        }
+      }
+    } catch {}
+  }
+
+  if (foreignLinkCount > 0) {
+    return { isHybrid: false, isForeign: true };
+  }
+  if (linkedToSourceCount > 0) {
+    return { isHybrid: true, isForeign: false };
+  }
+  return { isHybrid: false, isForeign: false };
+}
+
+function isForeignInstallation(destPath, sourceDir) {
+  try {
+    const lstat = fs.lstatSync(destPath);
+    if (lstat.isSymbolicLink()) {
+      const rawTarget = fs.readlinkSync(destPath);
+      const resolvedTarget = path.resolve(path.dirname(destPath), rawTarget);
+      let isSame = false;
+      try {
+        isSame = fs.realpathSync(destPath) === fs.realpathSync(sourceDir);
+      } catch {
+        isSame = (resolvedTarget === sourceDir);
+      }
+      if (!isSame && fs.existsSync(resolvedTarget)) {
+        return true;
+      }
+      return false;
+    } else if (lstat.isDirectory()) {
+      const hybridInfo = getHybridSymlinkInfo(destPath, sourceDir);
+      if (hybridInfo.isForeign) {
+        return true;
+      }
+      const manifestPath = path.join(destPath, '.claude-plugin', 'plugin.json');
+      if (fs.existsSync(manifestPath)) {
+        try {
+          const pkg = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          if (pkg.name && pkg.name !== path.basename(sourceDir)) {
+            return true;
+          }
+        } catch {}
+      }
+      return false;
+    }
+  } catch {}
+  return false;
+}
+
 function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = false, provider = null } = {}) {
   if (method !== 'symlink' && method !== 'copy') {
     throw new Error(`Unsupported method: ${method}`);
@@ -54,6 +142,9 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
   }
 
   if (exists) {
+    if (isForeignInstallation(destPath, sourceDir)) {
+      return { status: 'skipped', reason: 'foreign symlink', path: destPath };
+    }
     if (provider && typeof provider.postInstall === 'function') {
       provider.postInstall(sourceDir, safeTargetDir, { dryRun });
     }
@@ -114,58 +205,6 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = nul
   }
 
   return { status: 'removed', path: destPath };
-}
-
-function getHybridSymlinkInfo(destPath, sourceDir) {
-  let entries;
-  try {
-    entries = fs.readdirSync(destPath);
-  } catch {
-    return { isHybrid: false, isForeign: false };
-  }
-
-  let linkedToSourceCount = 0;
-  let foreignLinkCount = 0;
-  let realSource;
-  try {
-    realSource = fs.realpathSync(sourceDir);
-  } catch {
-    realSource = path.resolve(sourceDir);
-  }
-
-  for (const entry of entries) {
-    const p = path.join(destPath, entry);
-    try {
-      const st = fs.lstatSync(p);
-      if (st.isSymbolicLink()) {
-        const rawTarget = fs.readlinkSync(p);
-        const resolvedTarget = path.resolve(destPath, rawTarget);
-        let realTarget;
-        try {
-          realTarget = fs.realpathSync(p);
-        } catch {
-          realTarget = resolvedTarget;
-        }
-
-        const isToSource = (realTarget === realSource || realTarget.startsWith(realSource + path.sep) ||
-                            resolvedTarget === path.join(sourceDir, entry) || resolvedTarget.startsWith(sourceDir + path.sep));
-
-        if (isToSource) {
-          linkedToSourceCount++;
-        } else {
-          foreignLinkCount++;
-        }
-      }
-    } catch {}
-  }
-
-  if (foreignLinkCount > 0) {
-    return { isHybrid: false, isForeign: true };
-  }
-  if (linkedToSourceCount > 0) {
-    return { isHybrid: true, isForeign: false };
-  }
-  return { isHybrid: false, isForeign: false };
 }
 
 function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } = {}) {

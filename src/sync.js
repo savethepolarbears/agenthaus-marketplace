@@ -110,10 +110,33 @@ function repairHookFile(filePath, { dryRun = false } = {}) {
   let modified = false;
   const actions = [];
 
+  const stripApprovalKeys = (obj) => {
+    if (!obj || typeof obj !== 'object') return;
+    if ('requires_approval' in obj) {
+      delete obj.requires_approval;
+      modified = true;
+      actions.push({ type: 'strip-requires-approval' });
+    }
+    if ('approval_message' in obj) {
+      delete obj.approval_message;
+      modified = true;
+      actions.push({ type: 'strip-approval-message' });
+    }
+  };
+
+  // Strip at root level
+  stripApprovalKeys(data);
+  if (data.hooks && typeof data.hooks === 'object') {
+    stripApprovalKeys(data.hooks);
+  }
+
   const checkGroup = (groups) => {
     if (!Array.isArray(groups)) return;
     for (let i = groups.length - 1; i >= 0; i--) {
       const group = groups[i];
+      if (!group || typeof group !== 'object') continue;
+      stripApprovalKeys(group);
+
       if (Array.isArray(group.hooks) && group.hooks.length === 0) {
         groups.splice(i, 1);
         modified = true;
@@ -122,16 +145,7 @@ function repairHookFile(filePath, { dryRun = false } = {}) {
       }
       if (Array.isArray(group.hooks)) {
         for (const h of group.hooks) {
-          if ('requires_approval' in h) {
-            delete h.requires_approval;
-            modified = true;
-            actions.push({ type: 'strip-requires-approval' });
-          }
-          if ('approval_message' in h) {
-            delete h.approval_message;
-            modified = true;
-            actions.push({ type: 'strip-approval-message' });
-          }
+          stripApprovalKeys(h);
         }
       }
     }

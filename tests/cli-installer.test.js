@@ -362,3 +362,57 @@ test('updatePlugin preserves foreign item-level symlink installations', (t) => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+test('installPlugin skips foreign symlinks and does not invoke provider postInstall', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+  const foreignDir = path.join(tmpDir, 'foreign-repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+  fs.mkdirSync(foreignDir, { recursive: true });
+
+  const destPath = path.join(target, 'src-plugin');
+  fs.symlinkSync(foreignDir, destPath, 'dir');
+
+  let postInstallCalled = false;
+  const mockProvider = {
+    postInstall() {
+      postInstallCalled = true;
+    }
+  };
+
+  const res = installPlugin(source, target, { method: 'symlink', provider: mockProvider });
+  assert.strictEqual(res.status, 'skipped');
+  assert.strictEqual(res.reason, 'foreign symlink');
+  assert.strictEqual(postInstallCalled, false);
+  // Ensure the foreign symlink was preserved
+  assert.strictEqual(fs.lstatSync(destPath).isSymbolicLink(), true);
+  assert.strictEqual(path.resolve(fs.readlinkSync(destPath)), path.resolve(foreignDir));
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('antigravity postInstall preserves foreign symlink without unlinking', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'extensions');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'my-ext');
+  const foreignDir = path.join(tmpDir, 'user-managed', 'my-ext');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(source, { recursive: true });
+  fs.mkdirSync(foreignDir, { recursive: true });
+
+  const destPath = path.join(target, 'my-ext');
+  fs.symlinkSync(foreignDir, destPath, 'dir');
+
+  const antigravity = require('../src/providers/antigravity');
+  antigravity.postInstall(source, target, { dryRun: false });
+
+  // Foreign symlink must NOT be unlinked or converted to a directory
+  assert.strictEqual(fs.lstatSync(destPath).isSymbolicLink(), true);
+  assert.strictEqual(path.resolve(fs.readlinkSync(destPath)), path.resolve(foreignDir));
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+

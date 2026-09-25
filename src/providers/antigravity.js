@@ -38,6 +38,19 @@ module.exports = {
       const st = fs.lstatSync(destPath);
       isSymlink = st.isSymbolicLink();
       isDir = st.isDirectory();
+      if (isSymlink) {
+        const rawTarget = fs.readlinkSync(destPath);
+        const resolvedTarget = path.resolve(path.dirname(destPath), rawTarget);
+        let isSame = false;
+        try {
+          isSame = fs.realpathSync(destPath) === fs.realpathSync(sourceDir);
+        } catch {
+          isSame = (resolvedTarget === sourceDir);
+        }
+        if (!isSame && fs.existsSync(resolvedTarget)) {
+          return; // Preserve foreign symlink
+        }
+      }
     } catch {}
 
     if (isSymlink && !dryRun) {

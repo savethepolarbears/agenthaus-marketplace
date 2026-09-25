@@ -245,4 +245,39 @@ test('CLI Providers', async (t) => {
       assert.strictEqual(cleaned.mcpServers['windsurf-server'], undefined);
     }
   });
+
+  await t.test('copilot postInstall registers instructions and prompt files', () => {
+    const copilot = getProvider('copilot');
+    const fakeRepo = path.join(tmpDir, 'copilot-repo');
+    const fakeSource = path.join(tmpDir, 'copilot-plugin');
+    const fakeTargetDir = path.join(fakeRepo, '.github', 'plugins');
+
+    fs.mkdirSync(fakeRepo, { recursive: true });
+    fs.mkdirSync(path.join(fakeSource, 'skills', 'my-skill'), { recursive: true });
+    fs.writeFileSync(path.join(fakeSource, 'skills', 'my-skill', 'SKILL.md'), '# Skill');
+    fs.mkdirSync(path.join(fakeSource, 'commands'), { recursive: true });
+    fs.writeFileSync(path.join(fakeSource, 'commands', 'audit.md'), '# Command');
+
+    // Run postInstall
+    copilot.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
+
+    // Check .github/copilot-instructions.md
+    const instructionsPath = path.join(fakeRepo, '.github', 'copilot-instructions.md');
+    assert.strictEqual(fs.existsSync(instructionsPath), true);
+    const content = fs.readFileSync(instructionsPath, 'utf8');
+    assert.ok(content.includes('Read skills from .github/plugins/copilot-plugin/skills/'));
+    assert.ok(content.includes('Read instructions and command workflows from .github/plugins/copilot-plugin/commands/'));
+
+    // Check .github/prompts/
+    const promptPath = path.join(fakeRepo, '.github', 'prompts', 'copilot-plugin-audit.prompt.md');
+    assert.strictEqual(fs.existsSync(promptPath), true);
+    assert.strictEqual(fs.readFileSync(promptPath, 'utf8'), '# Command');
+
+    // Run postUninstall
+    copilot.postUninstall('copilot-plugin', fakeTargetDir, { dryRun: false });
+
+    const updatedContent = fs.readFileSync(instructionsPath, 'utf8');
+    assert.ok(!updatedContent.includes('copilot-plugin'));
+    assert.strictEqual(fs.existsSync(promptPath), false);
+  });
 });

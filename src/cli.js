@@ -19,7 +19,7 @@ function parseCliArgs(rawArgs) {
       plugin: { type: 'string', short: 'p' },
       all: { type: 'boolean', short: 'a', default: false },
       method: { type: 'string', short: 'm', default: 'symlink' },
-      mode: { type: 'string', default: 'user' },
+      mode: { type: 'string' },
       json: { type: 'boolean', default: false },
       verbose: { type: 'boolean', short: 'v', default: false },
       fix: { type: 'boolean', default: false },
@@ -31,7 +31,7 @@ function parseCliArgs(rawArgs) {
   });
 }
 
-async function handleInstall({ target, plugin, all, method, dryRun, mode }) {
+async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user' }) {
   if (!target) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
     const providers = getAllProviders().map(p => p.id);
@@ -63,7 +63,7 @@ async function handleInstall({ target, plugin, all, method, dryRun, mode }) {
   }
 }
 
-async function handleUpdate({ target, plugin, all, dryRun, mode }) {
+async function handleUpdate({ target, plugin, all, dryRun, mode = 'user' }) {
   if (!target) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target flag');
     const providers = getAllProviders().map(p => p.id);
@@ -142,9 +142,14 @@ async function handleSync({ target, all, dryRun, mode }) {
   } else if (target) {
     const provider = getProvider(target);
     if (!provider) throw new Error(`Unknown provider: ${target}`);
-    const targetDir = provider.getTargetDir(process.cwd(), mode);
-    const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
-    for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
+    const targetDirs = mode ? [provider.getTargetDir(process.cwd(), mode)] : Array.from(new Set([
+      provider.getTargetDir(process.cwd(), 'user'),
+      provider.getTargetDir(process.cwd(), 'project')
+    ]));
+    for (const targetDir of targetDirs) {
+      const actions = healDirectorySymlinks(targetDir, repoPluginsDir, { dryRun });
+      for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
+    }
   }
 }
 

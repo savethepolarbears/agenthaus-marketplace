@@ -295,3 +295,50 @@ test('repairHookFile with dryRun true does not write changes to disk', (t) => {
   
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
+
+test('repairHookFile removes deprecated approval properties at root, wrapped, group, and hook levels', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-sync-test-'));
+  const hookFile = path.join(tmpDir, 'hook.json');
+
+  const multiLevelInvalidHook = {
+    requires_approval: true,
+    approval_message: 'root approval',
+    hooks: {
+      requires_approval: true,
+      approval_message: 'wrapped approval',
+      PreToolUse: [
+        {
+          matcher: '*',
+          requires_approval: true,
+          approval_message: 'group approval',
+          hooks: [
+            {
+              command: 'echo hello',
+              requires_approval: true,
+              approval_message: 'hook approval'
+            }
+          ]
+        }
+      ]
+    }
+  };
+
+  fs.writeFileSync(hookFile, JSON.stringify(multiLevelInvalidHook, null, 2));
+
+  const { repairHookFile } = require('../src/sync');
+  const result = repairHookFile(hookFile);
+
+  assert.strictEqual(result.repaired, true);
+
+  const updated = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
+  assert.strictEqual('requires_approval' in updated, false);
+  assert.strictEqual('approval_message' in updated, false);
+  assert.strictEqual('requires_approval' in updated.hooks, false);
+  assert.strictEqual('approval_message' in updated.hooks, false);
+  assert.strictEqual('requires_approval' in updated.hooks.PreToolUse[0], false);
+  assert.strictEqual('approval_message' in updated.hooks.PreToolUse[0], false);
+  assert.strictEqual('requires_approval' in updated.hooks.PreToolUse[0].hooks[0], false);
+  assert.strictEqual('approval_message' in updated.hooks.PreToolUse[0].hooks[0], false);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});

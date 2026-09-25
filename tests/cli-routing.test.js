@@ -36,6 +36,9 @@ test('CLI Routing and Flag Parsing', async (t) => {
     assert.strictEqual(parsed.values.all, true);
     assert.strictEqual(parsed.values.mode, 'project');
     assert.strictEqual(parsed.values.json, true);
+
+    const defaultParsed = parseCliArgs(['sync', '--all']);
+    assert.strictEqual(defaultParsed.values.mode, undefined);
   });
 
   await t.test('bin/agenthaus.js --help exits 0 and prints usage', () => {
