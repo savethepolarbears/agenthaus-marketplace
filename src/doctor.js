@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { detectAll } = require('./providers/index.js');
 const { discoverPlugins } = require('./catalog.js');
 const { getPluginHookFiles } = require('./sync.js');
@@ -272,6 +273,7 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   
   const providers = detectAll(cwd);
   addResult({ severity: 'INFO', message: `Detected providers: ${providers.map(p => p.name).join(', ') || 'None'}` });
+  addResults(checkProviderConfigs(providers, cwd));
   
   addResults(checkMcpCommands(plugins));
 
@@ -297,7 +299,7 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
           const pDir = path.join(targetDir, entry);
           try {
             const st = fs.lstatSync(pDir);
-            if (st.isDirectory() && !st.isSymbolicLink()) {
+            if (st.isDirectory() && !st.isSymbolicLink() && !hasItemLevelSymlinks(pDir)) {
               addResults(checkHookSchema(pDir));
               const mcpPath = path.join(pDir, '.mcp.json');
               if (fs.existsSync(mcpPath)) {
@@ -325,6 +327,93 @@ function runDoctor({ cwd = process.cwd(), repoRoot = path.resolve(__dirname, '..
   return { pass_count, warn_count, fail_count, checks };
 }
 
+function hasItemLevelSymlinks(dir) {
+  try {
+    const entries = fs.readdirSync(dir);
+    for (const entry of entries) {
+      const p = path.join(dir, entry);
+      try {
+        if (fs.lstatSync(p).isSymbolicLink()) return true;
+      } catch {}
+    }
+  } catch {}
+  return false;
+}
+
+function checkProviderConfigs(providers, cwd = process.cwd()) {
+  const results = [];
+  const home = os.homedir();
+
+  for (const provider of providers) {
+    if (provider.id === 'antigravity') {
+      const candidates = new Set([
+        path.join(home, '.gemini', 'settings.json'),
+        path.join(cwd, '.gemini', 'settings.json')
+      ]);
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          try {
+            JSON.parse(fs.readFileSync(p, 'utf8'));
+            results.push({ severity: 'PASS', message: `Gemini settings valid (${p})` });
+          } catch (err) {
+            results.push({ severity: 'FAIL', message: `Malformed Gemini settings at ${p}: ${err.message}` });
+          }
+        }
+      }
+    } else if (provider.id === 'cursor') {
+      const candidates = new Set([
+        path.join(home, '.cursor', 'mcp.json'),
+        path.join(cwd, '.cursor', 'mcp.json')
+      ]);
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          try {
+            JSON.parse(fs.readFileSync(p, 'utf8'));
+            results.push({ severity: 'PASS', message: `Cursor MCP config valid (${p})` });
+          } catch (err) {
+            results.push({ severity: 'FAIL', message: `Malformed Cursor MCP config at ${p}: ${err.message}` });
+          }
+        }
+      }
+    } else if (provider.id === 'windsurf') {
+      const candidates = new Set([
+        path.join(home, '.codeium', 'windsurf', 'mcp_config.json'),
+        path.join(cwd, '.codeium', 'windsurf', 'mcp_config.json'),
+        path.join(cwd, '.codeium', 'mcp_config.json')
+      ]);
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          try {
+            JSON.parse(fs.readFileSync(p, 'utf8'));
+            results.push({ severity: 'PASS', message: `Windsurf MCP config valid (${p})` });
+          } catch (err) {
+            results.push({ severity: 'FAIL', message: `Malformed Windsurf MCP config at ${p}: ${err.message}` });
+          }
+        }
+      }
+    } else if (provider.id === 'claude') {
+      const candidates = new Set([
+        path.join(home, '.claude', 'settings.json'),
+        path.join(home, '.claude.json'),
+        path.join(cwd, '.claude', 'settings.json'),
+        path.join(cwd, '.claude.json')
+      ]);
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          try {
+            JSON.parse(fs.readFileSync(p, 'utf8'));
+            results.push({ severity: 'PASS', message: `Claude config valid (${p})` });
+          } catch (err) {
+            results.push({ severity: 'FAIL', message: `Malformed Claude config at ${p}: ${err.message}` });
+          }
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
 module.exports = {
   isCommandAccessible,
   checkMcpCommands,
@@ -332,5 +421,7 @@ module.exports = {
   checkHookSchema,
   checkCredentials,
   checkConfigFreshness,
+  checkProviderConfigs,
+  hasItemLevelSymlinks,
   runDoctor
 };

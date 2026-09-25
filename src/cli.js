@@ -100,6 +100,19 @@ async function handleUpdate({ target, plugin, all, dryRun, mode = 'user' }) {
   }
 }
 
+function hasItemLevelSymlinks(dir) {
+  try {
+    const entries = fs.readdirSync(dir);
+    for (const entry of entries) {
+      const p = path.join(dir, entry);
+      try {
+        if (fs.lstatSync(p).isSymbolicLink()) return true;
+      } catch {}
+    }
+  } catch {}
+  return false;
+}
+
 async function handleSync({ target, all, dryRun, mode }) {
   if (!target && !all) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target or --all flag');
@@ -116,9 +129,16 @@ async function handleSync({ target, all, dryRun, mode }) {
       const entryDir = path.join(targetDir, entry);
       try {
         if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
+        if (hasItemLevelSymlinks(entryDir)) continue;
         const hookFiles = getPluginHookFiles(entryDir);
         for (const hookFile of hookFiles) {
           if (fs.existsSync(hookFile)) {
+            try {
+              const real = fs.realpathSync(hookFile);
+              if (real === repoPluginsDir || real.startsWith(repoPluginsDir + path.sep)) {
+                continue;
+              }
+            } catch {}
             const res = repairHookFile(hookFile, { dryRun });
             if (res.repaired) ui.info(`Hook ${entry}: repaired ${path.basename(hookFile)} (${res.actions.map(x=>x.type).join(', ')})`);
           }
@@ -212,14 +232,23 @@ async function runCli(rawArgs) {
               for (const entry of fs.readdirSync(tDir)) {
                 if (!catalogNames.has(entry)) continue;
                 const entryDir = path.join(tDir, entry);
-                if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
-                const hookFiles = getPluginHookFiles(entryDir);
-                for (const hFile of hookFiles) {
-                  if (fs.existsSync(hFile)) {
-                    const res = repairHookFile(hFile, { dryRun });
-                    if (res.repaired) fixCount++;
+                try {
+                  if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
+                  if (hasItemLevelSymlinks(entryDir)) continue;
+                  const hookFiles = getPluginHookFiles(entryDir);
+                  for (const hFile of hookFiles) {
+                    if (fs.existsSync(hFile)) {
+                      try {
+                        const real = fs.realpathSync(hFile);
+                        if (real === PLUGINS_DIR || real.startsWith(PLUGINS_DIR + path.sep)) {
+                          continue;
+                        }
+                      } catch {}
+                      const res = repairHookFile(hFile, { dryRun });
+                      if (res.repaired) fixCount++;
+                    }
                   }
-                }
+                } catch {}
               }
             }
           }

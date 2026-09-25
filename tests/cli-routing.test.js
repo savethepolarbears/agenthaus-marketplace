@@ -168,6 +168,48 @@ test('CLI Routing and Flag Parsing', async (t) => {
     const repairedContent = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
     assert.strictEqual(repairedContent.hooks.PreToolUse[0].requires_approval, undefined);
   });
+
+  await t.test('sync and doctor --fix preserve hybrid item-level symlink installations and do not dirty source files', () => {
+    const projectDir = path.join(tmpDir, 'hybrid-project');
+    const geminiDir = path.join(projectDir, '.gemini', 'extensions', 'circuit-breaker');
+    fs.mkdirSync(geminiDir, { recursive: true });
+
+    // Canonical source hook file in tmpDir (simulating marketplace repo)
+    const canonicalHooksDir = path.join(tmpDir, 'source-circuit-breaker', 'hooks');
+    fs.mkdirSync(canonicalHooksDir, { recursive: true });
+    const canonicalHookFile = path.join(canonicalHooksDir, 'hooks.json');
+    const originalContent = JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            requires_approval: true,
+            hooks: [{ command: 'echo 1' }]
+          }
+        ]
+      }
+    });
+    fs.writeFileSync(canonicalHookFile, originalContent);
+
+    // Hybrid installation: real directory containing an item-level symlink to hooks
+    const symType = process.platform === 'win32' ? 'junction' : 'dir';
+    fs.symlinkSync(canonicalHooksDir, path.join(geminiDir, 'hooks'), symType);
+    fs.writeFileSync(path.join(geminiDir, 'gemini-extension.json'), JSON.stringify({ name: 'circuit-breaker' }));
+
+    // Run sync --target antigravity
+    const syncResult = runBin(['sync', '--target', 'antigravity'], { cwd: projectDir });
+    assert.strictEqual(syncResult.status, 0);
+
+    // Canonical source file must NOT be modified
+    assert.strictEqual(fs.readFileSync(canonicalHookFile, 'utf8'), originalContent);
+
+    // Run doctor --fix
+    const doctorFixResult = runBin(['doctor', '--fix'], { cwd: projectDir });
+    assert.strictEqual(doctorFixResult.status, 0);
+
+    // Canonical source file must still NOT be modified
+    assert.strictEqual(fs.readFileSync(canonicalHookFile, 'utf8'), originalContent);
+  });
 });
 
 

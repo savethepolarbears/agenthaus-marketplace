@@ -12,6 +12,7 @@ const {
   checkHookSchema,
   checkCredentials,
   checkConfigFreshness,
+  checkProviderConfigs,
   runDoctor
 } = require('../src/doctor.js');
 
@@ -178,5 +179,28 @@ test('CLI Doctor', async (t) => {
     assert.ok(result.checks.some(c => c.severity === 'FAIL' && c.message.includes('Corrupted manifest in bad-manifest')));
     assert.ok(result.checks.some(c => c.severity === 'FAIL' && c.message.includes('Corrupted .mcp.json in bad-mcp')));
     assert.ok(result.checks.some(c => c.severity === 'FAIL' && c.message.includes('Deprecated approval property in deprecated-approval')));
+  });
+
+  await t.test('checkProviderConfigs detects malformed provider configurations', () => {
+    const projectDir = path.join(tmpDir, 'provider-conf-project');
+    fs.mkdirSync(path.join(projectDir, '.gemini'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.gemini', 'settings.json'), '{ malformed json');
+
+    fs.mkdirSync(path.join(projectDir, '.cursor'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.cursor', 'mcp.json'), '{ invalid cursor json');
+
+    fs.mkdirSync(path.join(projectDir, '.codeium', 'windsurf'), { recursive: true });
+    fs.writeFileSync(path.join(projectDir, '.codeium', 'windsurf', 'mcp_config.json'), '{ invalid windsurf json');
+
+    const providers = [
+      { id: 'antigravity', name: 'Gemini' },
+      { id: 'cursor', name: 'Cursor' },
+      { id: 'windsurf', name: 'Windsurf' }
+    ];
+
+    const results = checkProviderConfigs(providers, projectDir);
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Gemini settings')));
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Cursor MCP config')));
+    assert.ok(results.some(r => r.severity === 'FAIL' && r.message.includes('Malformed Windsurf MCP config')));
   });
 });
