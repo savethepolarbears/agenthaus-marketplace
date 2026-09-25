@@ -246,6 +246,52 @@ test('CLI Providers', async (t) => {
     }
   });
 
+  await t.test('windsurf postInstall merges marked section into .windsurfrules and postUninstall removes it', () => {
+    const windsurf = getProvider('windsurf');
+    const origCwd = process.cwd();
+    const workDir = path.join(tmpDir, 'windsurf-workspace');
+    fs.mkdirSync(workDir, { recursive: true });
+    fs.mkdirSync(path.join(workDir, '.codeium'), { recursive: true });
+
+    const plugin1 = path.join(tmpDir, 'plugin-one');
+    fs.mkdirSync(plugin1, { recursive: true });
+    fs.writeFileSync(path.join(plugin1, 'AGENTS.md'), '# Plugin One Rules\nDo thing 1.');
+
+    const plugin2 = path.join(tmpDir, 'plugin-two');
+    fs.mkdirSync(plugin2, { recursive: true });
+    fs.writeFileSync(path.join(plugin2, 'AGENTS.md'), '# Plugin Two Rules\nDo thing 2.');
+
+    process.chdir(workDir);
+    try {
+      const targetDir = path.join(workDir, '.codeium', 'plugins');
+      windsurf.postInstall(plugin1, targetDir, { dryRun: false });
+      const rulesPath = path.join(workDir, '.windsurfrules');
+      assert.strictEqual(fs.existsSync(rulesPath), true);
+      let content = fs.readFileSync(rulesPath, 'utf8');
+      assert.ok(content.includes('<!-- agenthaus:windsurf-plugin:plugin-one -->'));
+      assert.ok(content.includes('# Plugin One Rules'));
+
+      // Install second plugin into existing .windsurfrules
+      windsurf.postInstall(plugin2, targetDir, { dryRun: false });
+      content = fs.readFileSync(rulesPath, 'utf8');
+      assert.ok(content.includes('<!-- agenthaus:windsurf-plugin:plugin-one -->'));
+      assert.ok(content.includes('<!-- agenthaus:windsurf-plugin:plugin-two -->'));
+      assert.ok(content.includes('# Plugin Two Rules'));
+
+      // Uninstall plugin 1 - plugin 2 remains
+      windsurf.postUninstall('plugin-one', targetDir, { dryRun: false });
+      content = fs.readFileSync(rulesPath, 'utf8');
+      assert.strictEqual(content.includes('plugin-one'), false);
+      assert.ok(content.includes('plugin-two'));
+
+      // Uninstall plugin 2
+      windsurf.postUninstall('plugin-two', targetDir, { dryRun: false });
+      assert.strictEqual(fs.existsSync(rulesPath), false);
+    } finally {
+      process.chdir(origCwd);
+    }
+  });
+
   await t.test('copilot postInstall registers instructions and prompt files', () => {
     const copilot = getProvider('copilot');
     const fakeRepo = path.join(tmpDir, 'copilot-repo');

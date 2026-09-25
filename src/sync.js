@@ -169,8 +169,33 @@ function repairHookFile(filePath, { dryRun = false } = {}) {
   return { repaired: true, backupPath, actions };
 }
 
+function getPluginHookFiles(pluginDir) {
+  const hookFiles = new Set();
+  const manifestPath = path.join(pluginDir, '.claude-plugin', 'plugin.json');
+  if (fs.existsSync(manifestPath)) {
+    try {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      if (Array.isArray(manifest.hooks)) {
+        for (const hookRef of manifest.hooks) {
+          if (typeof hookRef === 'string') {
+            hookFiles.add(path.resolve(pluginDir, hookRef));
+          }
+        }
+      } else if (typeof manifest.hooks === 'string') {
+        hookFiles.add(path.resolve(pluginDir, manifest.hooks));
+      }
+    } catch {}
+  }
+  const defaultHook = path.join(pluginDir, 'hooks', 'hooks.json');
+  if (fs.existsSync(defaultHook)) {
+    hookFiles.add(defaultHook);
+  }
+  return Array.from(hookFiles);
+}
+
 module.exports = {
   cleanOrphanedCache,
   healDirectorySymlinks,
-  repairHookFile
+  repairHookFile,
+  getPluginHookFiles
 };

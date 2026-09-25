@@ -6,7 +6,7 @@ const { discoverPlugins, PLUGINS_DIR } = require('./catalog.js');
 const { runDoctor } = require('./doctor.js');
 const { getProvider, detectAll, getAllProviders } = require('./providers/index.js');
 const { installPlugin, updatePlugin } = require('./installer.js');
-const { cleanOrphanedCache, healDirectorySymlinks, repairHookFile } = require('./sync.js');
+const { cleanOrphanedCache, healDirectorySymlinks, repairHookFile, getPluginHookFiles } = require('./sync.js');
 const fs = require('node:fs');
 const os = require('node:os');
 const ui = require('./ui.js');
@@ -129,11 +129,14 @@ async function handleSync({ target, all, dryRun, mode }) {
         if (fs.existsSync(targetDir)) {
           for (const entry of fs.readdirSync(targetDir)) {
             if (!catalogNames.has(entry)) continue;
-            if (fs.lstatSync(path.join(targetDir, entry)).isSymbolicLink()) continue;
-            const hookFile = path.join(targetDir, entry, 'hooks', 'hooks.json');
-            if (fs.existsSync(hookFile)) {
-              const res = repairHookFile(hookFile, { dryRun });
-              if (res.repaired) ui.info(`Hook ${entry}: repaired (${res.actions.map(x=>x.type).join(', ')})`);
+            const entryDir = path.join(targetDir, entry);
+            if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
+            const hookFiles = getPluginHookFiles(entryDir);
+            for (const hookFile of hookFiles) {
+              if (fs.existsSync(hookFile)) {
+                const res = repairHookFile(hookFile, { dryRun });
+                if (res.repaired) ui.info(`Hook ${entry}: repaired ${path.basename(hookFile)} (${res.actions.map(x=>x.type).join(', ')})`);
+              }
             }
           }
         }
@@ -185,7 +188,7 @@ async function runCli(rawArgs) {
         ui.renderPluginList(plugins, { json: values.json, verbose: values.verbose });
         break;
       case 'doctor':
-        const docRes = runDoctor({ verbose: values.verbose, json: values.json });
+        let docRes = runDoctor({ verbose: values.verbose, json: values.json });
         if (values.fix) {
           // implement fix scoped to catalog plugins
           let fixCount = 0;
@@ -200,11 +203,14 @@ async function runCli(rawArgs) {
               if (!fs.existsSync(tDir)) continue;
               for (const entry of fs.readdirSync(tDir)) {
                 if (!catalogNames.has(entry)) continue;
-                if (fs.lstatSync(path.join(tDir, entry)).isSymbolicLink()) continue;
-                const hFile = path.join(tDir, entry, 'hooks', 'hooks.json');
-                if (fs.existsSync(hFile)) {
-                  const res = repairHookFile(hFile, { dryRun });
-                  if (res.repaired) fixCount++;
+                const entryDir = path.join(tDir, entry);
+                if (fs.lstatSync(entryDir).isSymbolicLink()) continue;
+                const hookFiles = getPluginHookFiles(entryDir);
+                for (const hFile of hookFiles) {
+                  if (fs.existsSync(hFile)) {
+                    const res = repairHookFile(hFile, { dryRun });
+                    if (res.repaired) fixCount++;
+                  }
                 }
               }
             }
@@ -215,6 +221,10 @@ async function runCli(rawArgs) {
             } else {
               ui.success(`Applied ${fixCount} fixes automatically`);
             }
+          }
+
+          if (!dryRun && fixCount > 0) {
+            docRes = runDoctor({ verbose: values.verbose, json: values.json });
           }
         }
 

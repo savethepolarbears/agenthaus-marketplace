@@ -416,3 +416,27 @@ test('antigravity postInstall preserves foreign symlink without unlinking', (t) 
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+test('updatePlugin preserves user-managed directories without agenthaus ownership metadata', (t) => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-inst-test-'));
+  const target = path.join(tmpDir, 'target-dir');
+  const source = path.join(tmpDir, 'repo', 'plugins', 'src-plugin');
+
+  fs.mkdirSync(target, { recursive: true });
+  fs.mkdirSync(path.join(source, '.claude-plugin'), { recursive: true });
+  fs.writeFileSync(path.join(source, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '2.0.0' }));
+
+  // Simulate a manual user checkout/fork without .agenthaus-install.json
+  const destPath = path.join(target, 'src-plugin');
+  fs.mkdirSync(path.join(destPath, '.claude-plugin'), { recursive: true });
+  fs.writeFileSync(path.join(destPath, '.claude-plugin', 'plugin.json'), JSON.stringify({ version: '1.0.0' }));
+  fs.writeFileSync(path.join(destPath, 'user-work.txt'), 'do not delete');
+
+  const res = updatePlugin(source, target);
+  assert.strictEqual(res.status, 'skipped');
+  assert.strictEqual(res.reason, 'user-managed directory');
+  assert.strictEqual(fs.existsSync(path.join(destPath, 'user-work.txt')), true);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+

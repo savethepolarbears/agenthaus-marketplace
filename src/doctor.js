@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { detectAll } = require('./providers/index.js');
 const { discoverPlugins } = require('./catalog.js');
+const { getPluginHookFiles } = require('./sync.js');
 
 function isCommandAccessible(command) {
   const extensions = process.platform === 'win32'
@@ -164,17 +165,24 @@ function checkHookSchema(pluginDir) {
     }
   };
 
-  const hooks = manifest.hooks || {};
-  checkHookData(hooks);
+  // If manifest.hooks is an inline object (not an array of paths)
+  if (manifest.hooks && !Array.isArray(manifest.hooks) && typeof manifest.hooks === 'object') {
+    checkHookData(manifest.hooks);
+  }
 
-  const realHookFile = path.join(pluginDir, 'hooks', 'hooks.json');
-  if (fs.existsSync(realHookFile)) {
-    try {
-      const hd = JSON.parse(fs.readFileSync(realHookFile, 'utf8'));
-      const realHooks = hd.hooks || hd;
-      checkHookData(realHooks);
-    } catch (e) {
-      results.push({ severity: 'FAIL', message: `Corrupted hook file in ${path.basename(pluginDir)}` });
+  // Inspect all referenced hook files as well as default hooks/hooks.json
+  const hookFiles = getPluginHookFiles(pluginDir);
+  for (const hookFile of hookFiles) {
+    if (fs.existsSync(hookFile)) {
+      try {
+        const hd = JSON.parse(fs.readFileSync(hookFile, 'utf8'));
+        const realHooks = hd.hooks || hd;
+        checkHookData(realHooks);
+      } catch (e) {
+        results.push({ severity: 'FAIL', message: `Corrupted hook file in ${path.basename(pluginDir)}` });
+      }
+    } else {
+      results.push({ severity: 'FAIL', message: `Referenced hook file missing: ${path.basename(hookFile)} in ${path.basename(pluginDir)}` });
     }
   }
 

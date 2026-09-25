@@ -107,20 +107,27 @@ function isForeignInstallation(destPath, sourceDir) {
       }
       return false;
     } else if (lstat.isDirectory()) {
+      if (fs.existsSync(path.join(destPath, '.git'))) {
+        return true;
+      }
       const hybridInfo = getHybridSymlinkInfo(destPath, sourceDir);
       if (hybridInfo.isForeign) {
         return true;
       }
-      const manifestPath = path.join(destPath, '.claude-plugin', 'plugin.json');
-      if (fs.existsSync(manifestPath)) {
+      if (hybridInfo.isHybrid) {
+        return false;
+      }
+      const metaPath = path.join(destPath, '.agenthaus-install.json');
+      if (fs.existsSync(metaPath)) {
         try {
-          const pkg = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-          if (pkg.name && pkg.name !== path.basename(sourceDir)) {
-            return true;
+          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+          if (meta.managedBy === 'agenthaus' && meta.plugin === path.basename(sourceDir)) {
+            return false;
           }
         } catch {}
       }
-      return false;
+      // If it's a directory with no Agenthaus ownership metadata, treat as user-managed
+      return true;
     }
   } catch {}
   return false;
@@ -143,7 +150,9 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
 
   if (exists) {
     if (isForeignInstallation(destPath, sourceDir)) {
-      return { status: 'skipped', reason: 'foreign symlink', path: destPath };
+      const lstat = fs.lstatSync(destPath);
+      const reason = lstat.isSymbolicLink() ? 'foreign symlink' : 'user-managed directory';
+      return { status: 'skipped', reason, path: destPath };
     }
     if (provider && typeof provider.postInstall === 'function') {
       provider.postInstall(sourceDir, safeTargetDir, { dryRun });
@@ -157,6 +166,10 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
       fs.symlinkSync(sourceDir, destPath, process.platform === 'win32' ? 'junction' : 'dir');
     } else if (method === 'copy') {
       fs.cpSync(sourceDir, destPath, { recursive: true });
+      fs.writeFileSync(path.join(destPath, '.agenthaus-install.json'), JSON.stringify({
+        plugin: path.basename(sourceDir),
+        managedBy: 'agenthaus'
+      }, null, 2) + '\n', 'utf8');
     }
   }
 
@@ -371,6 +384,11 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
       return { status: 'updated', path: destPath, fromVersion: destVersion, toVersion: sourceVersion };
     }
 
+    // Verify ownership before modifying or deleting copied directory
+    if (isForeignInstallation(destPath, sourceDir)) {
+      return { status: 'skipped', reason: 'user-managed directory', path: destPath };
+    }
+
     const sourcePkgPath = path.join(sourceDir, '.claude-plugin', 'plugin.json');
     const destPkgPath = path.join(destPath, '.claude-plugin', 'plugin.json');
     let sourceVersion = '0.0.0';
@@ -384,6 +402,10 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
       if (!dryRun) {
         fs.rmSync(destPath, { recursive: true, force: true });
         fs.cpSync(sourceDir, destPath, { recursive: true });
+        fs.writeFileSync(path.join(destPath, '.agenthaus-install.json'), JSON.stringify({
+          plugin: pluginName,
+          managedBy: 'agenthaus'
+        }, null, 2) + '\n', 'utf8');
       }
       if (provider && typeof provider.postInstall === 'function') {
         provider.postInstall(sourceDir, safeTargetDir, { dryRun });

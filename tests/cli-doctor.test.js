@@ -92,6 +92,29 @@ test('CLI Doctor', async (t) => {
     assert.ok(res.some(r => r.severity === 'FAIL' && r.message.includes('Deprecated approval property in hook')));
   });
 
+  await t.test('checkHookSchema inspects referenced hook files in manifest.hooks array', () => {
+    const testDir = path.join(tmpDir, 'referenced-hooks-test');
+    fs.mkdirSync(path.join(testDir, '.claude-plugin'), { recursive: true });
+    fs.mkdirSync(path.join(testDir, 'hooks'), { recursive: true });
+    fs.writeFileSync(path.join(testDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      hooks: [
+        './hooks/custom-guard.json'
+      ]
+    }));
+    fs.writeFileSync(path.join(testDir, 'hooks', 'custom-guard.json'), JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [{ command: 'echo 1', requires_approval: true }]
+          }
+        ]
+      }
+    }));
+    const res = checkHookSchema(testDir);
+    assert.ok(res.some(r => r.severity === 'FAIL' && r.message.includes('Deprecated approval property in hook')));
+  });
+
   await t.test('checkCredentials', () => {
     const backup = process.env.FAKE_TOKEN;
     delete process.env.FAKE_TOKEN;

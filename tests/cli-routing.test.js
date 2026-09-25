@@ -107,4 +107,36 @@ test('CLI Routing and Flag Parsing', async (t) => {
     const result = runBin(['doctor']);
     assert.strictEqual(result.stdout.includes('undefined'), false, 'Doctor text output should not contain undefined');
   });
+
+  await t.test('doctor --fix repairs FAIL hook issues and recomputes diagnostics to exit 0', () => {
+    const projectDir = path.join(tmpDir, 'fix-workspace');
+    const copilotDir = path.join(projectDir, '.github', 'plugins', 'circuit-breaker');
+    fs.mkdirSync(path.join(copilotDir, '.claude-plugin'), { recursive: true });
+    fs.mkdirSync(path.join(copilotDir, 'hooks'), { recursive: true });
+    fs.writeFileSync(path.join(copilotDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      name: 'circuit-breaker',
+      version: '1.0.0'
+    }));
+    fs.writeFileSync(path.join(copilotDir, 'hooks', 'hooks.json'), JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            requires_approval: true,
+            hooks: [{ command: 'echo 1' }]
+          }
+        ]
+      }
+    }));
+
+    const unfixResult = runBin(['doctor'], { cwd: projectDir });
+    assert.strictEqual(unfixResult.status, 1);
+    assert.ok((unfixResult.stdout + unfixResult.stderr).includes('Deprecated approval property'));
+
+    const fixResult = runBin(['doctor', '--fix'], { cwd: projectDir });
+    assert.strictEqual(fixResult.status, 0);
+    assert.ok(fixResult.stdout.includes('Applied 1 fixes automatically'));
+    assert.ok(fixResult.stdout.includes('0 Fail'));
+  });
 });
+
