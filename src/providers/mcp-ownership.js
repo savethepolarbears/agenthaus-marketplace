@@ -12,7 +12,8 @@
  * - `managed: false` marks a pre-existing identical user entry the plugin reuses;
  *   it is never deleted by prune or uninstall.
  * Legacy in-config markers (`_agenthaus_mcp`, `_agenthaus_mcp_map`) are imported
- * into the state file and stripped from the config on the next write.
+ * into the state file and stripped from the config on the next write; legacy bare
+ * keys are imported as unmanaged because their provenance is unknown.
  */
 
 const fs = require('node:fs');
@@ -114,13 +115,20 @@ function importLegacyOwnership(config, records) {
     if (records[plugin] || !Array.isArray(keys)) continue;
     const pluginMap = isPlainObject(legacyMap[plugin]) ? legacyMap[plugin] : {};
     const record = {};
+    // Legacy markers did not record whether a bare key was created by agenthaus or
+    // adopted from an identical pre-existing user entry. Only namespaced keys
+    // (<plugin>-...) are unambiguously ours; bare keys migrate as unmanaged so they
+    // are never deleted.
+    const isNamespaced = (destKey) => destKey.startsWith(`${plugin}-`);
     for (const [sourceKey, destKey] of Object.entries(pluginMap)) {
-      if (typeof destKey === 'string' && keys.includes(destKey)) record[sourceKey] = { key: destKey, managed: true };
+      if (typeof destKey === 'string' && keys.includes(destKey)) {
+        record[sourceKey] = { key: destKey, managed: isNamespaced(destKey) };
+      }
     }
     const mappedKeys = new Set(Object.values(record).map(r => r.key));
     for (const destKey of keys) {
       if (typeof destKey === 'string' && !mappedKeys.has(destKey) && !record[destKey]) {
-        record[destKey] = { key: destKey, managed: true };
+        record[destKey] = { key: destKey, managed: isNamespaced(destKey) };
       }
     }
     if (Object.keys(record).length > 0) records[plugin] = record;

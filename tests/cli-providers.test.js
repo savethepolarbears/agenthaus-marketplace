@@ -270,7 +270,9 @@ test('CLI Providers', async (t) => {
 
       // Devin Desktop present: its config (~/.config/devin, or %APPDATA%\devin on Windows) takes precedence
       process.env.APPDATA = path.join(fakeHome, 'AppData', 'Roaming');
-      const devinConfig = windsurf.getConfigPaths(process.cwd(), fakeHome)[0];
+      const devinConfig = process.platform === 'win32'
+        ? path.join(process.env.APPDATA, 'devin', 'mcp_config.json')
+        : path.join(fakeHome, '.config', 'devin', 'mcp_config.json');
       fs.mkdirSync(path.dirname(devinConfig), { recursive: true });
       windsurf.postInstall(fakeSource, fakeTargetDir, { dryRun: false });
       assert.ok(JSON.parse(fs.readFileSync(devinConfig, 'utf8')).mcpServers['windsurf-server']);

@@ -229,6 +229,11 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = nul
   try {
     lstat = fs.lstatSync(destPath);
   } catch (e) {
+    // Provider registrations are tracked independently of the install directory
+    // (e.g. it was deleted by hand), so clean them up anyway.
+    if (provider && typeof provider.postUninstall === 'function') {
+      provider.postUninstall(pluginName, safeTargetDir, { dryRun });
+    }
     return { status: 'not_found', path: destPath };
   }
 

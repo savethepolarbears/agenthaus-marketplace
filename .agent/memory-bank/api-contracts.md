@@ -142,7 +142,7 @@ Remote servers use `"type": "http"` (or `"sse"`) with `url` and optional `header
 
 - `key` differs from `sourceKey` when the name was taken (`<plugin>-<name>`, then `-2`, `-3`, ...).
 - `managed: false` marks a pre-existing identical user entry the plugin reuses; it is never deleted.
-- Legacy in-config `_agenthaus_mcp` / `_agenthaus_mcp_map` markers are imported and stripped on the next write.
+- Legacy in-config `_agenthaus_mcp` / `_agenthaus_mcp_map` markers are imported and stripped on the next write; namespaced legacy keys (`<plugin>-…`) import as managed, bare keys as unmanaged (provenance unknown, never deleted).
 - Codex uses a marked `# >>> agenthaus:<plugin> >>>` block in `config.toml` instead of the state file.
 
 ## Environment Variables

@@ -513,7 +513,9 @@ test('updatePlugin updates hybrid item-level symlink installations when MCP serv
 
   const updatedSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
   assert.ok(updatedSettings.mcpServers.srvA);
-  assert.strictEqual(updatedSettings.mcpServers.srvB, undefined);
+  // Legacy markers cannot tell an agenthaus-created bare key from an adopted user entry,
+  // so the dropped bare key is kept (not deleted) and no longer owned by the plugin.
+  assert.deepStrictEqual(updatedSettings.mcpServers.srvB, { command: 'node', args: ['b.js'] });
   // Legacy in-config ownership markers are migrated into the state file
   assert.strictEqual(updatedSettings._agenthaus_mcp, undefined);
   assert.deepStrictEqual(getOwnedKeys(settingsPath, 'src-plugin'), ['srvA']);

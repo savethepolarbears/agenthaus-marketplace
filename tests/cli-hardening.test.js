@@ -432,6 +432,55 @@ if (args.includes('--json')) { console.log(JSON.stringify({ command: args[1], ou
     assert.strictEqual(fs.existsSync(process.env.AGENTHAUS_STATE_FILE), false, 'no ownership recorded');
   });
 
+  await t.test('legacy migration treats namespaced keys as managed and bare keys as unmanaged', () => {
+    const configPath = path.join(tmpDir, 'cursor', 'mcp.json');
+    writeJson(configPath, {
+      mcpServers: { srv: { command: 'maybe-user' }, 'p-other': { command: 'ours' } },
+      _agenthaus_mcp: { p: ['srv', 'p-other'] },
+      _agenthaus_mcp_map: { p: { srv: 'srv', other: 'p-other' } }
+    });
+    syncPluginServers({ configPath, pluginName: 'p', label: 'x', servers: {} });
+    const config = readJson(configPath);
+    assert.deepStrictEqual(config.mcpServers, { srv: { command: 'maybe-user' } });
+    assert.deepStrictEqual(getOwnedKeys(configPath, 'p'), []);
+  });
+
+  await t.test('uninstall cleans provider registrations even when the install directory is gone', () => {
+    const cursor = getProvider('cursor');
+    const targetDir = path.join(tmpDir, 'proj', '.cursor', 'plugins');
+    fs.mkdirSync(targetDir, { recursive: true });
+    const source = path.join(tmpDir, 'plugins', 'gone');
+    writeJson(path.join(source, '.cursor', 'mcp.json'), { mcpServers: { g: { command: 'g' } } });
+    cursor.postInstall(source, targetDir, { dryRun: false });
+    const configPath = path.join(tmpDir, 'proj', '.cursor', 'mcp.json');
+    assert.ok(readJson(configPath).mcpServers.g);
+
+    const res = uninstallPlugin(targetDir, 'gone', { provider: cursor, sourceDir: source });
+    assert.strictEqual(res.status, 'not_found');
+    assert.strictEqual(readJson(configPath).mcpServers, undefined);
+    assert.deepStrictEqual(getOwnedKeys(configPath, 'gone'), []);
+  });
+
+  await t.test('doctor validates only the Windsurf config the adapter selects', () => {
+    const home = path.join(tmpDir, 'home');
+    const origXdg = process.env.XDG_CONFIG_HOME;
+    const origAppData = process.env.APPDATA;
+    try {
+      delete process.env.XDG_CONFIG_HOME;
+      process.env.APPDATA = path.join(home, 'AppData', 'Roaming');
+      const devinDir = process.platform === 'win32' ? path.join(process.env.APPDATA, 'devin') : path.join(home, '.config', 'devin');
+      writeJson(path.join(devinDir, 'mcp_config.json'), { mcpServers: {} });
+      fs.mkdirSync(path.join(home, '.codeium', 'windsurf'), { recursive: true });
+      fs.writeFileSync(path.join(home, '.codeium', 'windsurf', 'mcp_config.json'), '{ stale broken');
+      const results = checkProviderConfigs([{ id: 'windsurf' }], path.join(tmpDir, 'proj'), home);
+      assert.strictEqual(results.some(r => r.severity === 'FAIL'), false);
+      assert.ok(results.some(r => r.severity === 'PASS' && r.message.includes(devinDir)));
+    } finally {
+      if (origXdg === undefined) delete process.env.XDG_CONFIG_HOME; else process.env.XDG_CONFIG_HOME = origXdg;
+      if (origAppData === undefined) delete process.env.APPDATA; else process.env.APPDATA = origAppData;
+    }
+  });
+
   await t.test('sync helpers prune stale temp files and orphaned ownership records', () => {
     const configPath = path.join(tmpDir, 'cursor', 'mcp.json');
     syncPluginServers({ configPath, pluginName: 'p', label: 'x', servers: { a: { command: 'a' } } });

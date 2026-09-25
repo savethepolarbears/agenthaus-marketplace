@@ -21,9 +21,14 @@ function getLegacyConfigDir(home = os.homedir()) {
   return path.join(home, '.codeium', 'windsurf');
 }
 
-function getConfigPath() {
-  const dir = fs.existsSync(getDevinConfigDir()) ? getDevinConfigDir() : getLegacyConfigDir();
+// The config the adapter reads and writes: Devin when installed, else legacy Windsurf.
+function getConfigPath(home = os.homedir()) {
+  const dir = fs.existsSync(getDevinConfigDir(home)) ? getDevinConfigDir(home) : getLegacyConfigDir(home);
   return path.join(dir, 'mcp_config.json');
+}
+
+function getAllConfigPaths(home = os.homedir()) {
+  return [path.join(getDevinConfigDir(home), 'mcp_config.json'), path.join(getLegacyConfigDir(home), 'mcp_config.json')];
 }
 
 function loadPluginServers(sourceDir, targetDir) {
@@ -52,7 +57,7 @@ module.exports = {
     return path.join(os.homedir(), '.codeium', 'windsurf', 'plugins');
   },
   getConfigPaths(cwd, home = os.homedir()) {
-    return [path.join(getDevinConfigDir(home), 'mcp_config.json'), path.join(getLegacyConfigDir(home), 'mcp_config.json')];
+    return [getConfigPath(home)];
   },
   getCapabilities() {
     return { mcp: 'via mcp_config.json', hooks: false, commands: 'partial', skills: true };
@@ -109,7 +114,7 @@ module.exports = {
   },
   postUninstall(pluginName, targetDir, { dryRun = false } = {}) {
     // 1. Remove MCP registrations from both current and legacy config locations
-    for (const configPath of module.exports.getConfigPaths(process.cwd())) {
+    for (const configPath of getAllConfigPaths()) {
       removePluginServers({ configPath, pluginName, label: LABEL, dryRun });
     }
 
