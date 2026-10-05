@@ -119,8 +119,13 @@ validate_plugin() {
 
   # 2b. Validate against plugin.schema.json
   if [[ -f "$SCHEMA" ]]; then
-    local schema_validation
-    schema_validation="$(python3 -c "
+    local schema_validation=""
+    local schema_err=0
+
+    if command -v node >/dev/null 2>&1; then
+      schema_validation="$(node "$SCRIPT_DIR/validate-schema.js" "$manifest" "$SCHEMA" 2>&1)" || schema_err=1
+    elif command -v python3 >/dev/null 2>&1; then
+      schema_validation="$(python3 -c "
 import json, sys
 try:
     import jsonschema
@@ -131,17 +136,17 @@ try:
     fc = checker() if checker else None
     jsonschema.validate(instance=m, schema=s, format_checker=fc)
     print('VALID')
-except ImportError:
-    print('SKIP')
 except Exception as e:
     print(getattr(e, 'message', str(e)))
     sys.exit(1)
-" 2>&1)" || true
+" 2>&1)" || schema_err=1
+    else
+      schema_validation="No JSON schema validator runtime available (node or python3 required)"
+      schema_err=1
+    fi
 
-    if [[ "$schema_validation" == "VALID" ]]; then
+    if [[ $schema_err -eq 0 && ("$schema_validation" == "VALID" || -z "$schema_validation") ]]; then
       log_pass "plugin.json matches plugin.schema.json"
-    elif [[ "$schema_validation" == "SKIP" ]]; then
-      log_pass "plugin.json syntax OK (jsonschema python module not installed)"
     else
       log_fail "plugin.json schema violation: ${schema_validation}"
       failed=1
