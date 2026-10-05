@@ -140,27 +140,26 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@example.com.'), false);
     assert.strictEqual(isValidEmail('user@example..com'), false);
 
-    // Invalid domain literals
-    assert.strictEqual(isValidEmail('user@[:::]'), false);
-    assert.strictEqual(isValidEmail('user@[127.0.0.999]'), false);
-
-    // General address literals
+    // RFC 5322 Section 3.4.1 domain literals (dtext printable ASCII excluding '[', '\', ']')
+    assert.strictEqual(isValidEmail('user@[1:value]'), true);
     assert.strictEqual(isValidEmail('user@[tag:value]'), true);
     assert.strictEqual(isValidEmail('user@[custom-tag:value]'), true);
     assert.strictEqual(isValidEmail('user@[tag1:my-val]'), true);
-
-    // RFC 5322 section 3.4.1 domain literals (dtext without colons)
+    assert.strictEqual(isValidEmail('user@[1tag:value]'), true);
+    assert.strictEqual(isValidEmail('user@[-tag:value]'), true);
+    assert.strictEqual(isValidEmail('user@[tag-:value]'), true);
     assert.strictEqual(isValidEmail('user@[foo]'), true);
     assert.strictEqual(isValidEmail('user@[foo-bar]'), true);
     assert.strictEqual(isValidEmail('user@[sub.domain]'), true);
+    assert.strictEqual(isValidEmail('user@[:::]'), true);
+    assert.strictEqual(isValidEmail('user@[127.0.0.999]'), true);
 
-    // Invalid general address literals (RFC 5321 tag boundaries, dcontent backslash, scoped IPv6)
-    assert.strictEqual(isValidEmail('user@[-tag:value]'), false);
-    assert.strictEqual(isValidEmail('user@[tag-:value]'), false);
-    assert.strictEqual(isValidEmail('user@[1tag:value]'), false);
-    assert.strictEqual(isValidEmail('user@[1:value]'), false);
-    assert.strictEqual(isValidEmail('user@[tag:foo\\bar]'), false);
-    assert.strictEqual(isValidEmail('user@[IPv6:::1%20zone]'), false);
+    // Invalid domain literals (empty, whitespace, unclosed, or invalid characters like '[', '\', ']')
+    assert.strictEqual(isValidEmail('user@[]'), false);
+    assert.strictEqual(isValidEmail('user@[foo bar]'), false);
+    assert.strictEqual(isValidEmail('user@[foo\\bar]'), false);
+    assert.strictEqual(isValidEmail('user@[foo[bar]]'), false);
+    assert.strictEqual(isValidEmail('user@[unclosed'), false);
 
     // Invalid quoted strings
     assert.strictEqual(isValidEmail('"unclosed@example.com'), false);

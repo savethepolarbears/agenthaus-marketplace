@@ -193,36 +193,14 @@ function isValidEmail(val) {
   if (!domain || domain.length === 0 || domain.length > 253) return false;
 
   if (domain.startsWith('[')) {
-    // Domain-literal: [ IPv4 / IPv6 / general-address-literal ]
+    // Domain-literal: RFC 5322 section 3.4.1
+    // domain-literal = [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
+    // dtext is %d33-90 / %d94-126 (printable US-ASCII excluding '[', '\', ']')
     if (!domain.endsWith(']')) return false;
     const literal = domain.slice(1, -1);
     if (literal.length === 0) return false;
 
-    // IPv4 address literal: must be valid IPv4
-    if (/^[0-9.]+$/.test(literal)) {
-      return net.isIPv4(literal);
-    }
-
-    // IPv6 address literal (with optional "IPv6:" prefix per RFC 5321)
-    if (literal.toLowerCase().startsWith('ipv6:')) {
-      const ipv6Candidate = literal.slice(5);
-      return !ipv6Candidate.includes('%') && net.isIPv6(ipv6Candidate);
-    }
-    if (!literal.includes('%') && net.isIPv6(literal)) return true;
-
-    // General address literal: Standardized-tag ":" 1*dcontent
-    // RFC 5321: Standardized-tag is an Ldh-str beginning with ALPHA and ending in letter/digit: ALPHA *(ALPHA/DIGIT/"-") ALPHA/DIGIT
-    // dcontent is %d33-90 / %d94-126 (printable ASCII excluding '[', '\', ']')
-    const colonIdx = literal.indexOf(':');
-    if (colonIdx !== -1) {
-      const tag = literal.slice(0, colonIdx);
-      const content = literal.slice(colonIdx + 1);
-      if (!/^[a-zA-Z](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(tag)) return false;
-      return /^[\x21-\x5a\x5e-\x7e]+$/.test(content);
-    }
-
-    // RFC 5322 section 3.4.1 domain-literal:
-    // dtext is %d33-90 / %d94-126 (printable US-ASCII excluding '[', '\', ']')
+    // Validate the whole bracketed value using RFC 5322 domain-literal grammar
     return /^[\x21-\x5a\x5e-\x7e]+$/.test(literal);
   }
 
