@@ -144,6 +144,18 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user(foo\r\nbar)@example.com'), false);
     assert.strictEqual(isValidEmail('user(unclosed@example.com'), false);
 
+    // RFC 5322 Section 4.4 obs-local-part and obs-domain syntax
+    assert.strictEqual(isValidEmail('user."tag"@example.com'), true);
+    assert.strictEqual(isValidEmail('"user".tag@example.com'), true);
+    assert.strictEqual(isValidEmail('"first"."last"@example.com'), true);
+    assert.strictEqual(isValidEmail('user."tag".more@example.com'), true);
+    assert.strictEqual(isValidEmail('user."foo bar"@example.com'), true);
+    assert.strictEqual(isValidEmail('user . "tag" @ example.com'), true);
+    assert.strictEqual(isValidEmail('user . "tag" @ example . com'), true);
+    assert.strictEqual(isValidEmail('user.."tag"@example.com'), false);
+    assert.strictEqual(isValidEmail('user."tag".@example.com'), false);
+    assert.strictEqual(isValidEmail('."tag"@example.com'), false);
+
     // Domain literals (IPv4 and IPv6)
     assert.strictEqual(isValidEmail('user@[127.0.0.1]'), true);
     assert.strictEqual(isValidEmail('user@[IPv6:2001:db8::1]'), true);

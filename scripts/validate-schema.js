@@ -212,28 +212,34 @@ function consumeCFWS(str, idx) {
 }
 
 /**
- * Standards-compliant RFC 5321/5322 and JSON Schema Draft-07 email address validation.
- * Accepts:
- * - dot-atom local-part (rejecting leading, trailing, or consecutive dots)
- * - quoted-string local-part (e.g. "John Doe"@example.com, "foo..bar"@example.com, "foo\r\n bar"@example.com, "foo" @example.com)
- * - single-label or multi-label domain (e.g. user@localhost, user@example.com)
- * - domain-literal address (e.g. user@[127.0.0.1], user@[IPv6:2001:db8::1], user@[foo bar])
+ * Consumes an RFC 5322 atom = [CFWS] 1*atext [CFWS] starting at idx.
+ * Returns the index following the atom and optional trailing CFWS, or -1 on invalid syntax.
  */
-function isValidEmail(val) {
-  if (typeof val !== 'string' || val.length === 0) return false;
+function consumeAtom(str, idx) {
+  idx = consumeCFWS(str, idx);
+  if (idx === -1 || idx >= str.length) return -1;
 
-  let idx = consumeCFWS(val, 0);
-  if (idx === -1 || idx >= val.length) return false;
+  const atextMatch = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+/.exec(str.slice(idx));
+  if (!atextMatch) return -1;
 
-  let domain;
+  return consumeCFWS(str, idx + atextMatch[0].length);
+}
 
-  if (val[idx] === '"') {
-    // Quoted-string local-part: RFC 5322 Section 3.2.4
+/**
+ * Consumes an RFC 5322 word = atom / quoted-string starting at idx.
+ * Returns the index following the word and optional trailing CFWS, or -1 on invalid syntax.
+ */
+function consumeWord(str, idx) {
+  idx = consumeCFWS(str, idx);
+  if (idx === -1 || idx >= str.length) return -1;
+
+  if (str[idx] === '"') {
+    // Quoted-string: RFC 5322 Section 3.2.4
     // quoted-string = [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
     let i = idx + 1;
     let closed = false;
-    while (i < val.length) {
-      const ch = val[i];
+    while (i < str.length) {
+      const ch = str[i];
       if (ch === '\\') {
         i += 2;
       } else if (ch === '"') {
@@ -243,33 +249,46 @@ function isValidEmail(val) {
         i++;
       }
     }
-    if (!closed) return false;
+    if (!closed) return -1;
 
-    const qContent = val.slice(idx + 1, i);
-    if (!RFC5322_QUOTED_STRING_RE.test(qContent)) return false;
+    const qContent = str.slice(idx + 1, i);
+    if (!RFC5322_QUOTED_STRING_RE.test(qContent)) return -1;
 
-    idx = consumeCFWS(val, i + 1);
-    if (idx === -1 || val[idx] !== '@') return false;
-
-    idx = consumeCFWS(val, idx + 1);
-    if (idx === -1) return false;
-    domain = val.slice(idx);
-  } else {
-    // Unquoted local-part: RFC 5322 dot-atom = [CFWS] dot-atom-text [CFWS]
-    const dotAtomMatch = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*/.exec(val.slice(idx));
-    if (!dotAtomMatch) return false;
-
-    idx += dotAtomMatch[0].length;
-    idx = consumeCFWS(val, idx);
-    if (idx === -1 || val[idx] !== '@') return false;
-
-    idx = consumeCFWS(val, idx + 1);
-    if (idx === -1) return false;
-    domain = val.slice(idx);
+    return consumeCFWS(str, i + 1);
   }
 
-  // Domain validation: dot-atom or domain-literal
-  if (domain.length === 0) return false;
+  return consumeAtom(str, idx);
+}
+
+/**
+ * Standards-compliant RFC 5321/5322 and JSON Schema Draft-07 email address validation.
+ * Accepts:
+ * - dot-atom / quoted-string / obs-local-part (e.g. user@example.com, "John Doe"@example.com, user."tag"@example.com)
+ * - dot-atom / domain-literal / obs-domain (e.g. user@localhost, user@[127.0.0.1], user@[foo bar], user@example.com)
+ */
+function isValidEmail(val) {
+  if (typeof val !== 'string' || val.length === 0) return false;
+
+  // Local-part: RFC 5322 Section 3.4.1 & Section 4.4
+  // local-part = dot-atom / quoted-string / obs-local-part
+  // obs-local-part = word *("." word)
+  // word = atom / quoted-string
+  let idx = consumeWord(val, 0);
+  if (idx === -1) return false;
+
+  while (idx < val.length && val[idx] === '.') {
+    idx = consumeWord(val, idx + 1);
+    if (idx === -1) return false;
+  }
+
+  if (idx >= val.length || val[idx] !== '@') return false;
+
+  // Domain validation: RFC 5322 Section 3.4.1 & Section 4.4
+  // domain = dot-atom / domain-literal / obs-domain
+  idx = consumeCFWS(val, idx + 1);
+  if (idx === -1 || idx >= val.length) return false;
+
+  const domain = val.slice(idx);
 
   if (domain.startsWith('[')) {
     // Domain-literal: RFC 5322 Section 3.4.1
@@ -282,11 +301,16 @@ function isValidEmail(val) {
     return afterBracket === domain.length;
   }
 
-  // Domain name: RFC 5322 dot-atom = [CFWS] dot-atom-text [CFWS]
-  const domainMatch = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*/.exec(domain);
-  if (!domainMatch) return false;
-  const afterDomain = consumeCFWS(domain, domainMatch[0].length);
-  return afterDomain === domain.length;
+  // Domain name: RFC 5322 dot-atom / obs-domain = atom *("." atom)
+  let dIdx = consumeAtom(domain, 0);
+  if (dIdx === -1) return false;
+
+  while (dIdx < domain.length && domain[dIdx] === '.') {
+    dIdx = consumeAtom(domain, dIdx + 1);
+    if (dIdx === -1) return false;
+  }
+
+  return dIdx === domain.length;
 }
 
 /**
