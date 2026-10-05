@@ -212,6 +212,10 @@ function checkCredentials(requiredVars) {
   return results;
 }
 
+function normalizeLineEndings(str) {
+  return typeof str === 'string' ? str.replace(/\r\n/g, '\n') : str;
+}
+
 function checkConfigFreshness(plugins, repoRoot) {
   const results = [];
   
@@ -238,7 +242,9 @@ function checkConfigFreshness(plugins, repoRoot) {
     if (gen && typeof gen.loadPlugin === 'function') {
       try {
         pluginData = gen.loadPlugin(pDir, p.name);
-      } catch (_) {}
+      } catch (err) {
+        results.push({ severity: 'WARN', message: `Failed to load plugin metadata for ${p.name}: ${err.message}` });
+      }
     }
 
     const files = [
@@ -266,11 +272,13 @@ function checkConfigFreshness(plugins, repoRoot) {
           const expected = item.getExpected();
           if (expected !== null) {
             const actual = fs.readFileSync(f, 'utf8');
-            if (actual !== expected) {
+            if (normalizeLineEndings(actual) !== normalizeLineEndings(expected)) {
               results.push({ severity: 'WARN', message: `Stale generated file: ${path.relative(repoRoot, f)}` });
             }
           }
-        } catch (_) {}
+        } catch (err) {
+          results.push({ severity: 'WARN', message: `Failed to evaluate generated file ${path.relative(repoRoot, f)}: ${err.message}` });
+        }
       }
     }
   }
@@ -529,6 +537,7 @@ module.exports = {
   checkProviderConfigs,
   checkOwnershipState,
   validateProviderConfigStructure,
+  normalizeLineEndings,
   isMarketplaceHybrid,
   runDoctor
 };
