@@ -167,17 +167,40 @@ function consumeCFWS(str, idx) {
       let depth = 1;
       let j = idx + 1;
       while (j < str.length && depth > 0) {
+        if (str[j] === ' ' || str[j] === '\t') {
+          j++;
+          continue;
+        }
+        if (str.slice(j, j + 2) === '\r\n' && j + 2 < str.length && (str[j + 2] === ' ' || str[j + 2] === '\t')) {
+          j += 3;
+          continue;
+        }
         if (str[j] === '\\') {
-          j += 2;
-        } else if (str[j] === '(') {
+          if (j + 1 >= str.length) return -1;
+          const escCode = str.charCodeAt(j + 1);
+          if (escCode === 9 || (escCode >= 32 && escCode <= 126)) {
+            j += 2;
+            continue;
+          }
+          return -1;
+        }
+        if (str[j] === '(') {
           depth++;
           j++;
-        } else if (str[j] === ')') {
+          continue;
+        }
+        if (str[j] === ')') {
           depth--;
           j++;
-        } else {
-          j++;
+          continue;
         }
+        const c = str.charCodeAt(j);
+        // RFC 5322 ctext: %d33-39 / %d42-91 / %d93-126
+        if ((c >= 33 && c <= 39) || (c >= 42 && c <= 91) || (c >= 93 && c <= 126)) {
+          j++;
+          continue;
+        }
+        return -1;
       }
       if (depth !== 0) return -1;
       idx = j;
