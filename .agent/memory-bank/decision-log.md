@@ -74,3 +74,11 @@ Architectural decisions and their rationale. Agents should consult this before p
 
 **Rationale:** Provider docs (verified 2026-09-25) show Claude Code loads plugins only via its marketplace registry, Codex ignores `[mcp.servers.*]` and does not expand `${VAR}`, and Antigravity rejects `url`. Keeping ownership out of provider configs avoids undocumented top-level keys, lets one shared module (`src/providers/mcp-ownership.js`) own the merge/namespace/prune rules for every JSON provider, and keeps user-owned entries safe on uninstall. All config writes are atomic with a rolling `.agenthaus.bak`.
 
+
+## ADR-010: v2.1 Modular Runtime Planning and Legacy Gap Ownership
+
+**Decision (approved 2026-10-05):** Create v2.1 “The Modular Agentic Runtime” and retain incomplete v2.0 Phase 6–8 requirement ownership. New phases start at 9. v2.0 is superseded with gaps, not certified complete. BASE-01 renews the missing Phase 5 final verification.
+
+**Scope:** Milestone/requirements/roadmap and six legacy gap plans are defined. All implementation and acceptance are pending. Keep Claude-native manifests, CommonJS/minimal runtime dependencies, external ownership state and existing collision naming. Use sidecar metadata, measured paged discovery, reviewed SHA-256 locks, event-specific hook adapters, honest isolation capabilities and fenced leases. TypeScript/WebSocket migrations are deferred.
+
+**Artifacts:** Tracked .planning/ROADMAP.md and STATE.md; local ignored PROJECT/REQUIREMENTS/research/phase plans and reports/modular-runtime-analysis.md. Intentional ignore/privacy policy remains; do not force-add internal planning/reports.

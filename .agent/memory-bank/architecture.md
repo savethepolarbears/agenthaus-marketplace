@@ -4,14 +4,14 @@ Persistent context for AI agents working in this repository. Read this file befo
 
 ## Repository Purpose
 
-AgentHaus Marketplace is a collection of **27 production-ready plugins** for Claude Code and Claude Cowork. It includes a Next.js web storefront for browsing and discovering plugins.
+AgentHaus Marketplace is a collection of **37 plugins** for Claude Code and Claude Cowork. The repository distributes a CommonJS CLI in bin/agenthaus.js and src/; the historical storefront is excluded from distribution.
 
 ## High-Level Structure
 
 ```text
 agenthaus-marketplace/
 ├── agenthaus-web/          # Next.js 16 storefront (frontend)
-├── plugins/                # 27 plugin directories (the product)
+├── plugins/                # 37 plugin directories (the product)
 ├── .agent/                 # Agent configuration (rules, skills, workflows, memory-bank)
 ├── .claude-plugin/         # Marketplace registry (marketplace.json)
 ├── schemas/                # JSON schemas for validation
@@ -76,3 +76,7 @@ GitHub Actions (`.github/workflows/validate.yml`):
 ## Plugin Categories
 
 `content` · `devops` · `cloud` · `deployment` · `knowledge` · `docs` · `rag` · `productivity` · `qa` · `testing` · `database` · `utility` · `ux` · `orchestration` · `safety` · `memory` · `training` · `security` · `integration` · `seo` · `media`
+
+## Active Development Milestone (2026-10-05)
+
+v2.1 “The Modular Agentic Runtime” has 36 requirements across Phases 6–14. Six gap plans cover original v2.0 Phases 6–8. New work covers compatible metadata, progressive disclosure, Unicode/integrity, hook execution boundaries, atomic coordination and provider runtime proof. These are planned architecture additions, not implemented modules. See .planning/ROADMAP.md. Phase 5 implementation exists but final acceptance is pending renewal in 06-01.

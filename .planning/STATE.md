@@ -1,38 +1,38 @@
 ---
 gsd_state_version: "1.0"
-milestone: v2.0
-milestone_name: Unified CLI, Universal Runtime Guard & MemPalace Protocol
+milestone: v2.1
+milestone_name: The Modular Agentic Runtime
 current_phase: 6
-current_phase_name: Universal Runtime Guard
-status: phase_complete
-stopped_at: Phase 5 complete — all 2 plans executed, 57 tests passing, CLI operational
-last_updated: "2026-09-24T18:15:00.000Z"
-last_activity: 2026-09-24
-last_activity_desc: Phase 5 (Unified CLI & Self-Healing Installer) completed — 6 commits, 57 tests
-state_head: 32c1595
+current_phase_name: Universal Runtime Guard — v2.0 Gap Closure
+status: planning
+stopped_at: v2.1 defined; Phase 6–8 gap plans checked; implementation pending
+last_updated: "2026-10-05T20:40:01.260Z"
+last_activity: 2026-10-05
+last_activity_desc: v2.1 defined; legacy Phases 6–8 gap plans prepared
+state_head: edb8447f8e61ef2f51533eb4c95e7e5a43a9e40b
 progress:
-  total_phases: 4
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 25
+  total_phases: 9
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-20)
+See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** Every plugin works reliably on every supported AI coding agent
-**Current focus:** Phase 5 complete — next: Phase 6 (Universal Runtime Guard)
+**Current focus:** v2.1 defined; execute checked Phase 6 gap plans before Phases 7–8 and new Phases 9–14.
 
 ## Current Position
 
-Phase: 5 (Unified CLI & Self-Healing Installer) — ✅ COMPLETE
-Plan: All 2/2 plans completed
-Status: Phase complete
-Last activity: 2026-09-24 — Phase 5 executed (2 waves, 6 tasks, 57 tests)
+Phase: 6 (Universal Runtime Guard — v2.0 Gap Closure)
+Plan: 0/2 — gap plans checked, ready for execution
+Status: planning
+Last activity: 2026-10-05 — v2.1 defined; legacy Phases 6–8 gap plans prepared
 
 ## Performance Metrics
 
@@ -106,6 +106,21 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T13:10:09.150Z
-Stopped at: Completed 04-03-PLAN.md — platform support tables added to all 27 plugin READMEs
-Resume file: None
+Last session: 2026-10-05
+Stopped at: v2.1 defined; Phase 6–8 gap plans checked; implementation pending
+Resume file: reports/modular-runtime-handoff.md
+
+## Milestone Progress
+
+Total Phases: 9
+Progress: [░░░░░░░░░░] 0%
+Total Plans in Phase: 2
+
+## Acceptance Boundaries
+
+- v2.0 archived as superseded with gaps, never accepted by this planning operation.
+- Missing Phase 5 verification renewed by BASE-01 in 06-01.
+- Six gap plans are ready; Phases 9–14 have goals/requirements and need phase planning.
+- Baseline local tests passed; real-provider discovery, approval UX, external receipts and exact-head CI remain unverified.
+- Gitcrawl DB and live GitHub metadata unavailable; no issue/PR disposition inferred.
+- .planning/ and reports/ are intentionally ignored except existing tracked ROADMAP/STATE; no force-add of private artifacts.
