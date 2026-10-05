@@ -211,13 +211,13 @@ function isValidEmail(val) {
     if (!literal.includes('%') && net.isIPv6(literal)) return true;
 
     // General address literal: Standardized-tag ":" 1*dcontent
-    // RFC 5321: Standardized-tag is an Ldh-str ending in a letter or digit: ALPHA/DIGIT *(ALPHA/DIGIT/"-") ALPHA/DIGIT
+    // RFC 5321: Standardized-tag is an Ldh-str beginning with ALPHA and ending in letter/digit: ALPHA *(ALPHA/DIGIT/"-") ALPHA/DIGIT
     // dcontent is %d33-90 / %d94-126 (printable ASCII excluding '[', '\', ']')
     const colonIdx = literal.indexOf(':');
     if (colonIdx !== -1) {
       const tag = literal.slice(0, colonIdx);
       const content = literal.slice(colonIdx + 1);
-      if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(tag)) return false;
+      if (!/^[a-zA-Z](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(tag)) return false;
       return /^[\x21-\x5a\x5e-\x7e]+$/.test(content);
     }
 

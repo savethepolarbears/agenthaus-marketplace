@@ -52,8 +52,6 @@ function writeIfChanged(filePath, content) {
   try {
     const existing = fs.readFileSync(filePath, 'utf8');
     if (existing === content) {
-      const now = new Date();
-      try { fs.utimesSync(filePath, now, now); } catch (_) {}
       return false;
     }
   } catch (_) { /* file does not exist yet */ }
@@ -631,4 +629,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { discoverPlugins, generateAll, injectSkillsPlatforms, loadPlugin, parseFrontmatter, renderAgentsMd, renderClaudeDesktop, renderCursorMcp, renderCursorMdc, renderGeminiMd, renderGeminiSettingsSnippet, renderRepoAgentsMd, stableStringify, transformEnvVars, writeIfChanged };
+module.exports = { discoverPlugins, generateAll, injectSkillsPlatforms, loadPlugin, parseFrontmatter, renderAgentsMd, renderClaudeDesktop, renderCodexToml, renderCursorMcp, renderCursorMdc, renderGeminiMd, renderGeminiSettingsSnippet, renderRepoAgentsMd, renderWindsurfMcp, stableStringify, transformEnvVars, writeIfChanged };

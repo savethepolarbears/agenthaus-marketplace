@@ -147,6 +147,8 @@ describe('Plugin Manifest Schema Validation', () => {
     // Invalid general address literals (RFC 5321 tag boundaries, dcontent backslash, scoped IPv6)
     assert.strictEqual(isValidEmail('user@[-tag:value]'), false);
     assert.strictEqual(isValidEmail('user@[tag-:value]'), false);
+    assert.strictEqual(isValidEmail('user@[1tag:value]'), false);
+    assert.strictEqual(isValidEmail('user@[1:value]'), false);
     assert.strictEqual(isValidEmail('user@[tag:foo\\bar]'), false);
     assert.strictEqual(isValidEmail('user@[IPv6:::1%20zone]'), false);
 
