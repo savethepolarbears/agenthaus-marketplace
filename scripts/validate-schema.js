@@ -5,6 +5,25 @@ const fs = require('fs');
 const path = require('path');
 
 /**
+ * RFC 3986 compliant URI syntax validation.
+ * URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+ * Disallows whitespace, unescaped characters, and malformed percent-encodings.
+ */
+const RFC_3986_URI_REGEX = /^[a-zA-Z][a-zA-Z0-9+.-]*:(?:\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
+
+function isValidRfc3986Uri(val) {
+  if (typeof val !== 'string' || val.length === 0) return false;
+  // RFC 3986 strictly prohibits whitespace anywhere in a URI
+  if (/\s/.test(val)) return false;
+  if (!RFC_3986_URI_REGEX.test(val)) return false;
+  // Percent-encodings must be strictly %HEXDIG HEXDIG
+  if (/%(?![0-9a-fA-F]{2})/.test(val)) return false;
+  // Characters outside the allowed RFC 3986 set must be percent-encoded
+  if (/[^a-zA-Z0-9-._~:/?#\[\]@!$&'()*+,;=%]/.test(val)) return false;
+  return true;
+}
+
+/**
  * Lightweight, zero-dependency JSON Schema validator for Draft-07 schemas
  * used across AgentHaus marketplace plugin manifests.
  */
@@ -49,11 +68,8 @@ function validateValue(val, schema, jsonPath = '') {
           errors.push(`${jsonPath || 'root'}: "${val}" is not a valid email address`);
         }
       } else if (schema.format === 'uri') {
-        try {
-          const u = new URL(val);
-          if (!u.protocol) throw new Error();
-        } catch {
-          errors.push(`${jsonPath || 'root'}: "${val}" is not a valid URI`);
+        if (!isValidRfc3986Uri(val)) {
+          errors.push(`${jsonPath || 'root'}: "${val}" is not a valid RFC-compliant URI`);
         }
       }
     }
@@ -170,4 +186,4 @@ if (require.main === module) {
   process.exit(0);
 }
 
-module.exports = { validateValue };
+module.exports = { validateValue, isValidRfc3986Uri };

@@ -69,6 +69,47 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.ok(errors.some(e => e.includes('author') || e.includes('email')));
   });
 
+  test('fails on invalid URI format with RFC semantics', () => {
+    const invalidHomepage = {
+      name: 'test-plugin',
+      version: '1.0.0',
+      description: 'A test plugin description that is long enough',
+      homepage: 'https://example.com/%'
+    };
+    const errors = validateValue(invalidHomepage, schema);
+    assert.ok(errors.length > 0);
+    assert.ok(errors.some(e => e.includes('homepage') && e.includes('RFC-compliant URI')));
+
+    const invalidWhitespace = {
+      name: 'test-plugin',
+      version: '1.0.0',
+      description: 'A test plugin description that is long enough',
+      repository: ' https://github.com/example/repo '
+    };
+    const errorsWs = validateValue(invalidWhitespace, schema);
+    assert.ok(errorsWs.length > 0);
+    assert.ok(errorsWs.some(e => e.includes('repository') && e.includes('RFC-compliant URI')));
+  });
+
+  test('isValidRfc3986Uri validates RFC 3986 URI syntax strictly', () => {
+    const { isValidRfc3986Uri } = require('../scripts/validate-schema.js');
+    assert.strictEqual(isValidRfc3986Uri('https://example.com'), true);
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/path?q=1#frag'), true);
+    assert.strictEqual(isValidRfc3986Uri('mailto:user@example.com'), true);
+    assert.strictEqual(isValidRfc3986Uri('urn:isbn:0451450523'), true);
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/%20encoded'), true);
+
+    // Invalid percent encoding, whitespace, unescaped characters, or missing scheme
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/%'), false);
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/%2'), false);
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/%ZZ'), false);
+    assert.strictEqual(isValidRfc3986Uri(' https://example.com '), false);
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/foo bar'), false);
+    assert.strictEqual(isValidRfc3986Uri('not-a-uri'), false);
+    assert.strictEqual(isValidRfc3986Uri('://missing-scheme'), false);
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/<script>'), false);
+  });
+
   test('CLI exits 0 on valid manifest and 1 on invalid manifest', () => {
     const scriptPath = path.resolve(__dirname, '../scripts/validate-schema.js');
     const validManifest = path.resolve(__dirname, '../plugins/circuit-breaker/.claude-plugin/plugin.json');
