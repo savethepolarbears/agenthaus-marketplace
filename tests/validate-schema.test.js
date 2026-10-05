@@ -149,6 +149,11 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@[custom-tag:value]'), true);
     assert.strictEqual(isValidEmail('user@[tag1:my-val]'), true);
 
+    // RFC 5322 section 3.4.1 domain literals (dtext without colons)
+    assert.strictEqual(isValidEmail('user@[foo]'), true);
+    assert.strictEqual(isValidEmail('user@[foo-bar]'), true);
+    assert.strictEqual(isValidEmail('user@[sub.domain]'), true);
+
     // Invalid general address literals (RFC 5321 tag boundaries, dcontent backslash, scoped IPv6)
     assert.strictEqual(isValidEmail('user@[-tag:value]'), false);
     assert.strictEqual(isValidEmail('user@[tag-:value]'), false);

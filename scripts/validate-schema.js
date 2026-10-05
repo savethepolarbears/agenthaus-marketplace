@@ -221,7 +221,9 @@ function isValidEmail(val) {
       return /^[\x21-\x5a\x5e-\x7e]+$/.test(content);
     }
 
-    return false;
+    // RFC 5322 section 3.4.1 domain-literal:
+    // dtext is %d33-90 / %d94-126 (printable US-ASCII excluding '[', '\', ']')
+    return /^[\x21-\x5a\x5e-\x7e]+$/.test(literal);
   }
 
   // Domain name: RFC 5322 dot-atom (Section 3.4.1)
