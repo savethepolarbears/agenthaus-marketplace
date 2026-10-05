@@ -162,7 +162,15 @@ function main(argv = process.argv.slice(2)) {
   } });
   if (!values.policy || !positionals.length) throw new Error('Usage: safety-guard --policy <file> -- <command> [args]');
   const policy = JSON.parse(fs.readFileSync(values.policy, 'utf8'));
-  runGuard({ command: positionals[0], args: positionals.slice(1), policy });
+  const approvalFlags = ['public-key', 'receipt-dir', 'receipt-file', 'actor', 'provider'];
+  let authorize;
+  if (approvalFlags.some(k => values[k])) {
+    if (!approvalFlags.every(k => values[k])) throw new Error('Incomplete approval configuration');
+    const { createAuthorizer } = require('./approval-receipts.js');
+    authorize = createAuthorizer({ publicKey: fs.readFileSync(values['public-key'], 'utf8'),
+      directory: values['receipt-dir'], receiptFile: values['receipt-file'], policy, actor: values.actor, provider: values.provider });
+  }
+  runGuard({ command: positionals[0], args: positionals.slice(1), policy, ...(authorize ? { authorize } : {}) });
 }
 
 if (require.main === module) {
