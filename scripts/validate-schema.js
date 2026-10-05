@@ -134,18 +134,22 @@ function isValidRfc3986Uri(val) {
   return true;
 }
 
-// RFC 5322 Section 3.4.1 domain-literal: [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
-// dtext is %d33-90 / %d94-126 (printable US-ASCII excluding '[', '\', ']')
-// FWS is folding white space: ([*WSP CRLF] 1*WSP) / obs-FWS (Section 3.2.2)
+// RFC 5322 Section 3.2.1 quoted-pair: "\" (VCHAR / WSP) / obs-qp
+const RFC5322_QUOTED_PAIR = '\\\\[\\x20-\\x7e\\t]';
+
+// RFC 5322 Section 3.2.2 folding white space: ([*WSP CRLF] 1*WSP) / obs-FWS
 const RFC5322_FWS = '(?:[ \\t]+|\\r\\n[ \\t]+)+';
-const RFC5322_DOMAIN_LITERAL_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?[\\x21-\\x5a\\x5e-\\x7e])*(?:${RFC5322_FWS})?$`);
+
+// RFC 5322 Section 3.4.1 & Section 4.4 domain-literal: [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
+// dtext is %d33-90 / %d94-126 / obs-dtext
+// obs-dtext is obs-NO-WS-CTL / quoted-pair
+const RFC5322_DTEXT = `(?:[\\x21-\\x5a\\x5e-\\x7e]|${RFC5322_QUOTED_PAIR}|[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f])`;
+const RFC5322_DOMAIN_LITERAL_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?${RFC5322_DTEXT})*(?:${RFC5322_FWS})?$`);
 
 // RFC 5322 Section 3.2.4 quoted-string: [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
 // qcontent is qtext / quoted-pair
 // qtext is %d33 / %d35-91 / %d93-126 (printable US-ASCII excluding '"' and '\')
-// quoted-pair is "\" (VCHAR / WSP) / obs-qp
 const RFC5322_QTEXT = '[\\x21\\x23-\\x5b\\x5d-\\x7e]';
-const RFC5322_QUOTED_PAIR = '\\\\[\\x20-\\x7e\\t]';
 const RFC5322_QCONTENT = `(?:${RFC5322_QTEXT}|${RFC5322_QUOTED_PAIR})`;
 const RFC5322_QUOTED_STRING_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?${RFC5322_QCONTENT})*(?:${RFC5322_FWS})?$`);
 
@@ -291,13 +295,26 @@ function isValidEmail(val) {
   const domain = val.slice(idx);
 
   if (domain.startsWith('[')) {
-    // Domain-literal: RFC 5322 Section 3.4.1
+    // Domain-literal: RFC 5322 Section 3.4.1 & Section 4.4
     // domain-literal = [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
-    const closeBracket = domain.indexOf(']');
-    if (closeBracket === -1) return false;
-    const literal = domain.slice(1, closeBracket);
+    // Scan for unescaped closing ']'
+    let i = 1;
+    let closed = false;
+    while (i < domain.length) {
+      if (domain[i] === '\\') {
+        i += 2;
+      } else if (domain[i] === ']') {
+        closed = true;
+        break;
+      } else {
+        i++;
+      }
+    }
+    if (!closed) return false;
+
+    const literal = domain.slice(1, i);
     if (!RFC5322_DOMAIN_LITERAL_RE.test(literal)) return false;
-    const afterBracket = consumeCFWS(domain, closeBracket + 1);
+    const afterBracket = consumeCFWS(domain, i + 1);
     return afterBracket === domain.length;
   }
 

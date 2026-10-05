@@ -196,8 +196,16 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@[]'), true);
     assert.strictEqual(isValidEmail('user@[   ]'), true);
 
-    // Invalid domain literals (unclosed, trailing garbage, or invalid characters like '[', '\', ']')
-    assert.strictEqual(isValidEmail('user@[foo\\bar]'), false);
+    // RFC 5322 Section 4.4 quoted pairs in domain literals (obs-dtext = quoted-pair)
+    assert.strictEqual(isValidEmail('user@[foo\\]bar]'), true);
+    assert.strictEqual(isValidEmail('user@[foo\\[bar]'), true);
+    assert.strictEqual(isValidEmail('user@[foo\\\\bar]'), true);
+    assert.strictEqual(isValidEmail('user@[foo\\bar]'), true);
+    assert.strictEqual(isValidEmail('user@[foo\\ bar]'), true);
+    assert.strictEqual(isValidEmail('user@[foo\\]bar] (comment)'), true);
+
+    // Invalid domain literals (unclosed, trailing garbage, unescaped brackets, or invalid control characters)
+    assert.strictEqual(isValidEmail('user@[foo\\]'), false);
     assert.strictEqual(isValidEmail('user@[foo[bar]]'), false);
     assert.strictEqual(isValidEmail('user@[foo\nbar]'), false);
     assert.strictEqual(isValidEmail('user@[unclosed'), false);
