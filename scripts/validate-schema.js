@@ -106,10 +106,24 @@ function isValidRfc3986Uri(val) {
     }
   } else {
     // Non-authority path: path-absolute, path-rootless, or path-empty
-    // Each segment must be *pchar (NO [ or ])
+    // RFC 3986:
+    // path-absolute = "/" [ segment-nz *( "/" segment ) ]
+    // path-rootless = segment-nz *( "/" segment )
+    // path-empty    = 0<pchar>
+    // segment       = *pchar
+    // segment-nz    = 1*pchar
     if (rest.length > 0) {
-      if (!/^(?:\/?[a-zA-Z0-9-._~:!$&'()*+,;=@]|%[0-9a-fA-F]{2})*$/.test(rest)) {
-        return false;
+      if (rest === '/') {
+        // Single slash is valid path-absolute
+      } else {
+        const segmentsStr = rest.startsWith('/') ? rest.slice(1) : rest;
+        const segments = segmentsStr.split('/');
+        // First segment must be segment-nz
+        if (segments[0].length === 0) return false;
+        const pcharRe = /^(?:[a-zA-Z0-9-._~:!$&'()*+,;=@]|%[0-9a-fA-F]{2})*$/;
+        for (const seg of segments) {
+          if (!pcharRe.test(seg)) return false;
+        }
       }
     }
   }
@@ -118,16 +132,97 @@ function isValidRfc3986Uri(val) {
 }
 
 /**
- * Standards-compliant RFC 5321/5322 dot-atom email address validation.
- * Rejects leading, trailing, or consecutive dots in local part and domain.
+ * Standards-compliant RFC 5321/5322 and JSON Schema Draft-07 email address validation.
+ * Accepts:
+ * - dot-atom local-part (rejecting leading, trailing, or consecutive dots)
+ * - quoted-string local-part (e.g. "John Doe"@example.com, "foo..bar"@example.com)
+ * - single-label or multi-label domain (e.g. user@localhost, user@example.com)
+ * - domain-literal address (e.g. user@[127.0.0.1], user@[IPv6:2001:db8::1])
  */
-const EMAIL_REGEX = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
-
 function isValidEmail(val) {
   if (typeof val !== 'string' || val.length === 0 || val.length > 254) return false;
-  const atIdx = val.indexOf('@');
-  if (atIdx === -1 || atIdx > 64) return false;
-  return EMAIL_REGEX.test(val);
+
+  let localPart, domain;
+
+  if (val.startsWith('"')) {
+    // Quoted-string local-part: find matching unescaped closing quote
+    let i = 1;
+    let closed = false;
+    while (i < val.length) {
+      const ch = val[i];
+      if (ch === '\\') {
+        i++;
+        if (i >= val.length) return false;
+        const nextCode = val.charCodeAt(i);
+        if (nextCode !== 9 && (nextCode < 32 || nextCode > 126)) return false;
+        i++;
+      } else if (ch === '"') {
+        closed = true;
+        break;
+      } else {
+        const code = val.charCodeAt(i);
+        if (code !== 9 && (code < 32 || code > 126)) return false;
+        i++;
+      }
+    }
+    if (!closed) return false;
+
+    localPart = val.slice(0, i + 1);
+    if (localPart.length > 64) return false;
+
+    if (val[i + 1] !== '@') return false;
+    domain = val.slice(i + 2);
+  } else {
+    // Unquoted local-part: RFC 5322 dot-atom
+    const atIdx = val.indexOf('@');
+    if (atIdx === -1) return false;
+
+    localPart = val.slice(0, atIdx);
+    if (localPart.length === 0 || localPart.length > 64) return false;
+
+    const dotAtomRe = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
+    if (!dotAtomRe.test(localPart)) return false;
+
+    domain = val.slice(atIdx + 1);
+  }
+
+  // Domain validation (max 253 characters)
+  if (!domain || domain.length === 0 || domain.length > 253) return false;
+
+  if (domain.startsWith('[')) {
+    // Domain-literal: [ IPv4 / IPv6 / general-address-literal ]
+    if (!domain.endsWith(']')) return false;
+    const literal = domain.slice(1, -1);
+    if (literal.length === 0) return false;
+
+    // IPv4 address literal: must be valid IPv4
+    if (/^[0-9.]+$/.test(literal)) {
+      return net.isIPv4(literal);
+    }
+
+    // IPv6 address literal (with optional "IPv6:" prefix per RFC 5321)
+    if (literal.toLowerCase().startsWith('ipv6:')) {
+      const ipv6Candidate = literal.slice(5);
+      return net.isIPv6(ipv6Candidate);
+    }
+    if (net.isIPv6(literal)) return true;
+
+    // General address literal: Standardized-tag ":" 1*dcontent
+    const colonIdx = literal.indexOf(':');
+    if (colonIdx !== -1) {
+      const tag = literal.slice(0, colonIdx);
+      const content = literal.slice(colonIdx + 1);
+      if (!/^[a-zA-Z0-9-]+$/.test(tag)) return false;
+      return /^(?:[\x21-\x5a\x5e-\x7e]|\\[\x20-\x7e])+$/.test(content);
+    }
+
+    return false;
+  }
+
+  // Domain name (dot-atom / hostname labels)
+  // Each label 1-63 chars, separated by dots. Single-label domains (e.g. localhost) allowed.
+  const domainLabelRe = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  return domainLabelRe.test(domain);
 }
 
 /**

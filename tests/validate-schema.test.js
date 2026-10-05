@@ -80,13 +80,30 @@ describe('Plugin Manifest Schema Validation', () => {
     }
   });
 
-  test('isValidEmail validates RFC 5322 dot-atom grammar strictly', () => {
+  test('isValidEmail validates RFC 5322 and Draft-07 email grammar strictly', () => {
     const { isValidEmail } = require('../scripts/validate-schema.js');
     assert.strictEqual(isValidEmail('user@example.com'), true);
     assert.strictEqual(isValidEmail('user.name+tag@sub.domain.co.uk'), true);
     assert.strictEqual(isValidEmail('first.last@example.org'), true);
 
-    // Invalid dot-atoms in local-part
+    // Single-label domains (e.g. localhost, mailserver)
+    assert.strictEqual(isValidEmail('user@localhost'), true);
+    assert.strictEqual(isValidEmail('admin@mailserver'), true);
+
+    // Quoted local parts
+    assert.strictEqual(isValidEmail('"John Doe"@example.com'), true);
+    assert.strictEqual(isValidEmail('"john..doe"@example.com'), true);
+    assert.strictEqual(isValidEmail('"foo@bar"@example.com'), true);
+    assert.strictEqual(isValidEmail('"foo\\"bar"@example.com'), true);
+
+    // Domain literals (IPv4 and IPv6)
+    assert.strictEqual(isValidEmail('user@[127.0.0.1]'), true);
+    assert.strictEqual(isValidEmail('user@[IPv6:2001:db8::1]'), true);
+    assert.strictEqual(isValidEmail('user@[IPv6:::1]'), true);
+    assert.strictEqual(isValidEmail('user@[2001:db8::1]'), true);
+    assert.strictEqual(isValidEmail('user@[::1]'), true);
+
+    // Invalid dot-atoms in unquoted local-part
     assert.strictEqual(isValidEmail('.user@example.com'), false);
     assert.strictEqual(isValidEmail('user.@example.com'), false);
     assert.strictEqual(isValidEmail('user..name@example.com'), false);
@@ -95,6 +112,14 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@.example.com'), false);
     assert.strictEqual(isValidEmail('user@example.com.'), false);
     assert.strictEqual(isValidEmail('user@example..com'), false);
+
+    // Invalid domain literals
+    assert.strictEqual(isValidEmail('user@[:::]'), false);
+    assert.strictEqual(isValidEmail('user@[127.0.0.999]'), false);
+
+    // Invalid quoted strings
+    assert.strictEqual(isValidEmail('"unclosed@example.com'), false);
+    assert.strictEqual(isValidEmail('"quoted"extra@example.com'), false);
   });
 
   test('fails on invalid URI format with RFC semantics', () => {
@@ -140,10 +165,18 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidRfc3986Uri('http://[2001:db8::1]/'), true);
     assert.strictEqual(isValidRfc3986Uri('http://127.0.0.1:3000'), true);
 
+    // Non-authority paths: path-absolute, path-rootless, empty segments, trailing slashes
+    assert.strictEqual(isValidRfc3986Uri('file:/'), true);
+    assert.strictEqual(isValidRfc3986Uri('foo:/a/'), true);
+    assert.strictEqual(isValidRfc3986Uri('foo:/a//b'), true);
+    assert.strictEqual(isValidRfc3986Uri('file:///path/to/file'), true);
+
     // Malformed authorities and IP-literals
     assert.strictEqual(isValidRfc3986Uri('http://[:::]'), false);
     assert.strictEqual(isValidRfc3986Uri('https://exa[mple.com'), false);
     assert.strictEqual(isValidRfc3986Uri('https://example.com/[]'), false);
+    assert.strictEqual(isValidRfc3986Uri('file:/[]'), false);
+    assert.strictEqual(isValidRfc3986Uri('foo:/a/[]/b'), false);
 
     // Invalid percent encoding, whitespace, unescaped characters, or missing scheme
     assert.strictEqual(isValidRfc3986Uri('https://example.com/%'), false);
