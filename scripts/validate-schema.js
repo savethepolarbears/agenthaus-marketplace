@@ -140,11 +140,20 @@ function isValidRfc3986Uri(val) {
 const RFC5322_FWS = '(?:[ \\t]+|\\r\\n[ \\t]+)+';
 const RFC5322_DOMAIN_LITERAL_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?[\\x21-\\x5a\\x5e-\\x7e])*(?:${RFC5322_FWS})?$`);
 
+// RFC 5322 Section 3.2.4 quoted-string: [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
+// qcontent is qtext / quoted-pair
+// qtext is %d33 / %d35-91 / %d93-126 (printable US-ASCII excluding '"' and '\')
+// quoted-pair is "\" (VCHAR / WSP) / obs-qp
+const RFC5322_QTEXT = '[\\x21\\x23-\\x5b\\x5d-\\x7e]';
+const RFC5322_QUOTED_PAIR = '\\\\[\\x20-\\x7e\\t]';
+const RFC5322_QCONTENT = `(?:${RFC5322_QTEXT}|${RFC5322_QUOTED_PAIR})`;
+const RFC5322_QUOTED_STRING_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?${RFC5322_QCONTENT})*(?:${RFC5322_FWS})?$`);
+
 /**
  * Standards-compliant RFC 5321/5322 and JSON Schema Draft-07 email address validation.
  * Accepts:
  * - dot-atom local-part (rejecting leading, trailing, or consecutive dots)
- * - quoted-string local-part (e.g. "John Doe"@example.com, "foo..bar"@example.com)
+ * - quoted-string local-part (e.g. "John Doe"@example.com, "foo..bar"@example.com, "foo\r\n bar"@example.com)
  * - single-label or multi-label domain (e.g. user@localhost, user@example.com)
  * - domain-literal address (e.g. user@[127.0.0.1], user@[IPv6:2001:db8::1], user@[foo bar])
  */
@@ -160,25 +169,22 @@ function isValidEmail(val) {
     while (i < val.length) {
       const ch = val[i];
       if (ch === '\\') {
-        i++;
-        if (i >= val.length) return false;
-        const nextCode = val.charCodeAt(i);
-        if (nextCode !== 9 && (nextCode < 32 || nextCode > 126)) return false;
-        i++;
+        i += 2;
       } else if (ch === '"') {
         closed = true;
         break;
       } else {
-        const code = val.charCodeAt(i);
-        if (code !== 9 && (code < 32 || code > 126)) return false;
         i++;
       }
     }
     if (!closed) return false;
 
-    localPart = val.slice(0, i + 1);
-
     if (val[i + 1] !== '@') return false;
+
+    const qContent = val.slice(1, i);
+    if (!RFC5322_QUOTED_STRING_RE.test(qContent)) return false;
+
+    localPart = val.slice(0, i + 1);
     domain = val.slice(i + 2);
   } else {
     // Unquoted local-part: RFC 5322 dot-atom

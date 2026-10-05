@@ -122,6 +122,11 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('"john..doe"@example.com'), true);
     assert.strictEqual(isValidEmail('"foo@bar"@example.com'), true);
     assert.strictEqual(isValidEmail('"foo\\"bar"@example.com'), true);
+    assert.strictEqual(isValidEmail('"foo\r\n bar"@example.com'), true);
+    assert.strictEqual(isValidEmail('" foo bar "@example.com'), true);
+    assert.strictEqual(isValidEmail('"foo\nbar"@example.com'), false);
+    assert.strictEqual(isValidEmail('"foo\rbar"@example.com'), false);
+    assert.strictEqual(isValidEmail('"foo\r\nbar"@example.com'), false);
 
     // Domain literals (IPv4 and IPv6)
     assert.strictEqual(isValidEmail('user@[127.0.0.1]'), true);
