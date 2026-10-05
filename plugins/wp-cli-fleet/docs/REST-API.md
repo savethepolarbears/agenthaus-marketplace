@@ -10,8 +10,8 @@ All requests require dual authentication:
 2. **X-Agentic-WP-Secret** header with the shared secret
 
 ```bash
-curl -u "username:application-password" \
-  -H "X-Agentic-WP-Secret: your-shared-secret" \
+curl -u "$WP_USER:$WP_APP_PASSWORD" \
+  -H "X-Agentic-WP-Secret: $AGENTIC_WP_SECRET" \
   "https://example.com/wp-json/agentic-wp-cli/v1/health"
 ```
 

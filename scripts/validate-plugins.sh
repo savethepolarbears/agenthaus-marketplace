@@ -117,6 +117,35 @@ validate_plugin() {
   fi
   log_pass "plugin.json is valid JSON"
 
+  # 2b. Validate against plugin.schema.json
+  if [[ -f "$SCHEMA" ]]; then
+    local schema_validation
+    schema_validation="$(python3 -c "
+import json, sys
+try:
+    import jsonschema
+    with open('$SCHEMA') as sf, open('$manifest') as mf:
+        s = json.load(sf)
+        m = json.load(mf)
+    jsonschema.validate(instance=m, schema=s)
+    print('VALID')
+except ImportError:
+    print('SKIP')
+except Exception as e:
+    print(getattr(e, 'message', str(e)))
+    sys.exit(1)
+" 2>&1)" || true
+
+    if [[ "$schema_validation" == "VALID" ]]; then
+      log_pass "plugin.json matches plugin.schema.json"
+    elif [[ "$schema_validation" == "SKIP" ]]; then
+      log_pass "plugin.json syntax OK (jsonschema python module not installed)"
+    else
+      log_fail "plugin.json schema violation: ${schema_validation}"
+      failed=1
+    fi
+  fi
+
   # 3. Check required fields: name, version, description
   for field in name version description; do
     local value

@@ -7,6 +7,7 @@ on:
     branches: [ main ]
   schedule:
     - cron: '0 4 * * *'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,7 +19,6 @@ permissions:
 jobs:
   validate:
     name: Validate Plugins & Marketplace
-    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -30,7 +30,7 @@ jobs:
           node-version: 24
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq
+        run: sudo apt-get update && sudo apt-get install -y jq python3-jsonschema
 
       - name: Generate skills index
         run: bash scripts/generate-skills-index.sh
@@ -78,13 +78,12 @@ jobs:
 
   test:
     name: Test Suite (${{ matrix.os }}, Node ${{ matrix.node-version }})
-    if: github.event_name != 'schedule'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [20, 22]
+        node-version: [20, 22, 24]
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -1,0 +1,10 @@
+# Gitleaks configuration for agenthaus-marketplace
+# By default extends base rules and allows reports, tests, and mock credentials
+
+[allowlist]
+description = "Repository allowlist for tests, fixtures, and documentation reports"
+paths = [
+  '''^\.gitleaksignore$''',
+  '''^reports/.*''',
+  '''^tests/.*''',
+]

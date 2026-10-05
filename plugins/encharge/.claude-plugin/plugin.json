@@ -19,18 +19,6 @@
     "segments",
     "marketing-automation"
   ],
-  "capabilities": [
-    "MCP integration with 55 tools",
-    "Multi-account support",
-    "CLI commands",
-    "Contact management",
-    "Email templates",
-    "Tag management",
-    "Segment operations",
-    "Custom objects",
-    "Webhooks",
-    "Cross-account workflows"
-  ],
   "commands": [
     "./commands/people.md",
     "./commands/tags.md",

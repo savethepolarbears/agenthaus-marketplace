@@ -1,0 +1,3 @@
+# Gitleaks ignore list for false positives in historical commits
+# Documentation curl basic auth placeholder example (replaced with environment variables)
+aa3a0039bd0bc80c7c40ef284bca33e324206b6a:plugins/wp-cli-fleet/docs/REST-API.md:curl-auth-user:13

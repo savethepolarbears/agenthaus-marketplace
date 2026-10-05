@@ -51,7 +51,11 @@ function stableStringify(obj) {
 function writeIfChanged(filePath, content) {
   try {
     const existing = fs.readFileSync(filePath, 'utf8');
-    if (existing === content) return false;
+    if (existing === content) {
+      const now = new Date();
+      try { fs.utimesSync(filePath, now, now); } catch (_) {}
+      return false;
+    }
   } catch (_) { /* file does not exist yet */ }
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, content, 'utf8');
