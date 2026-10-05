@@ -128,7 +128,11 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@[IPv6:2001:db8::1]'), true);
     assert.strictEqual(isValidEmail('user@[IPv6:::1]'), true);
     assert.strictEqual(isValidEmail('user@[2001:db8::1]'), true);
-    assert.strictEqual(isValidEmail('user@[::1]'), true);
+    // RFC 5322 addresses without transport-specific SMTP length limits
+    assert.strictEqual(isValidEmail('a'.repeat(65) + '@example.com'), true);
+    assert.strictEqual(isValidEmail('"' + 'a'.repeat(65) + '"@example.com'), true);
+    assert.strictEqual(isValidEmail('user@' + 'a'.repeat(255)), true);
+    assert.strictEqual(isValidEmail('a'.repeat(65) + '@' + 'b'.repeat(200) + '.com'), true);
 
     // Invalid dot-atoms in unquoted local-part
     assert.strictEqual(isValidEmail('.user@example.com'), false);

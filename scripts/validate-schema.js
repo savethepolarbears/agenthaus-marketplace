@@ -149,7 +149,7 @@ const RFC5322_DOMAIN_LITERAL_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?[\\x21-\\x5
  * - domain-literal address (e.g. user@[127.0.0.1], user@[IPv6:2001:db8::1], user@[foo bar])
  */
 function isValidEmail(val) {
-  if (typeof val !== 'string' || val.length === 0 || val.length > 254) return false;
+  if (typeof val !== 'string' || val.length === 0) return false;
 
   let localPart, domain;
 
@@ -177,7 +177,6 @@ function isValidEmail(val) {
     if (!closed) return false;
 
     localPart = val.slice(0, i + 1);
-    if (localPart.length > 64) return false;
 
     if (val[i + 1] !== '@') return false;
     domain = val.slice(i + 2);
@@ -187,7 +186,7 @@ function isValidEmail(val) {
     if (atIdx === -1) return false;
 
     localPart = val.slice(0, atIdx);
-    if (localPart.length === 0 || localPart.length > 64) return false;
+    if (localPart.length === 0) return false;
 
     const dotAtomRe = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
     if (!dotAtomRe.test(localPart)) return false;
@@ -195,8 +194,8 @@ function isValidEmail(val) {
     domain = val.slice(atIdx + 1);
   }
 
-  // Domain validation (max 253 characters)
-  if (!domain || domain.length === 0 || domain.length > 253) return false;
+  // Domain validation
+  if (!domain || domain.length === 0) return false;
 
   if (domain.startsWith('[')) {
     // Domain-literal: RFC 5322 section 3.4.1
