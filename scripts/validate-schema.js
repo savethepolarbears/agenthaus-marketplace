@@ -77,7 +77,7 @@ function isValidRfc3986Uri(val) {
       }
       // Validate IP-literal: IPv6address or IPvFuture
       const isIpv6 = net.isIPv6(ip);
-      const isIpvFuture = /^v[0-9a-fA-F]+\.[a-zA-Z0-9-._~:!$&'()*+,;=]+$/.test(ip);
+      const isIpvFuture = /^[vV][0-9a-fA-F]+\.[a-zA-Z0-9-._~:!$&'()*+,;=]+$/.test(ip);
       if (!isIpv6 && !isIpvFuture) return false;
     } else {
       // reg-name or IPv4address [ ":" port ]
@@ -254,8 +254,12 @@ function validateValue(val, schema, jsonPath = '') {
 
   // 2. String constraints
   if (typeof val === 'string') {
-    if (schema.minLength !== undefined && val.length < schema.minLength) {
-      errors.push(`${jsonPath || 'root'}: string length ${val.length} is less than minLength ${schema.minLength}`);
+    const codePointLength = Array.from(val).length;
+    if (schema.minLength !== undefined && codePointLength < schema.minLength) {
+      errors.push(`${jsonPath || 'root'}: string length ${codePointLength} is less than minLength ${schema.minLength}`);
+    }
+    if (schema.maxLength !== undefined && codePointLength > schema.maxLength) {
+      errors.push(`${jsonPath || 'root'}: string length ${codePointLength} is greater than maxLength ${schema.maxLength}`);
     }
     if (schema.pattern) {
       const re = new RegExp(schema.pattern);

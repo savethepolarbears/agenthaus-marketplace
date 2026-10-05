@@ -44,6 +44,28 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.ok(errors.some(e => e.includes("missing required property 'description'")));
   });
 
+  test('counts Unicode code points rather than UTF-16 code units for minLength', () => {
+    // 5 emojis = 10 UTF-16 code units, but only 5 Unicode code points
+    // schema minLength for description is 10
+    const invalidEmojis = {
+      name: 'test-plugin',
+      version: '1.0.0',
+      description: '🚀🔥🌟🎉✨'
+    };
+    const errors = validateValue(invalidEmojis, schema);
+    assert.ok(errors.length > 0);
+    assert.ok(errors.some(e => e.includes('string length 5 is less than minLength 10')));
+
+    // 10 emojis = 20 UTF-16 code units, exactly 10 Unicode code points
+    const validEmojis = {
+      name: 'test-plugin',
+      version: '1.0.0',
+      description: '🚀🔥🌟🎉✨🚀🔥🌟🎉✨'
+    };
+    const validErrors = validateValue(validEmojis, schema);
+    assert.deepStrictEqual(validErrors, []);
+  });
+
   test('fails on invalid semver format', () => {
     const invalid = {
       name: 'test-plugin',
@@ -164,6 +186,15 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidRfc3986Uri('http://[::1]:8080/path'), true);
     assert.strictEqual(isValidRfc3986Uri('http://[2001:db8::1]/'), true);
     assert.strictEqual(isValidRfc3986Uri('http://127.0.0.1:3000'), true);
+
+    // IPvFuture literals (case-insensitive version prefix v/V per RFC 3986)
+    assert.strictEqual(isValidRfc3986Uri('http://[v1.example]/'), true);
+    assert.strictEqual(isValidRfc3986Uri('http://[V1.example]/'), true);
+    assert.strictEqual(isValidRfc3986Uri('http://[v7.a-b-c:123]/'), true);
+    assert.strictEqual(isValidRfc3986Uri('http://[VF.sub-delims]/'), true);
+    assert.strictEqual(isValidRfc3986Uri('http://[v]/'), false);
+    assert.strictEqual(isValidRfc3986Uri('http://[vx.abc]/'), false);
+    assert.strictEqual(isValidRfc3986Uri('http://[v1]/'), false);
 
     // Non-authority paths: path-absolute, path-rootless, empty segments, trailing slashes
     assert.strictEqual(isValidRfc3986Uri('file:/'), true);
