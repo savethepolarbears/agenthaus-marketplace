@@ -203,6 +203,9 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@[foo\\bar]'), true);
     assert.strictEqual(isValidEmail('user@[foo\\ bar]'), true);
     assert.strictEqual(isValidEmail('user@[foo\\]bar] (comment)'), true);
+    assert.strictEqual(isValidEmail('user@[foo\\\x01bar]'), true);
+    assert.strictEqual(isValidEmail('"foo\\\x01bar"@example.com'), true);
+    assert.strictEqual(isValidEmail('user(comment\\\x01)@example.com'), true);
 
     // Invalid domain literals (unclosed, trailing garbage, unescaped brackets, or invalid control characters)
     assert.strictEqual(isValidEmail('user@[foo\\]'), false);

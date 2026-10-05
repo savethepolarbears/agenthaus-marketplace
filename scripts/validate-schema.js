@@ -134,8 +134,9 @@ function isValidRfc3986Uri(val) {
   return true;
 }
 
-// RFC 5322 Section 3.2.1 quoted-pair: "\" (VCHAR / WSP) / obs-qp
-const RFC5322_QUOTED_PAIR = '\\\\[\\x20-\\x7e\\t]';
+// RFC 5322 Section 3.2.1 & Section 4.1 quoted-pair: ("\" (VCHAR / WSP)) / obs-qp
+// obs-qp permits "\" followed by any US-ASCII character (%d0-127)
+const RFC5322_QUOTED_PAIR = '\\\\[\\x00-\\x7f]';
 
 // RFC 5322 Section 3.2.2 folding white space: ([*WSP CRLF] 1*WSP) / obs-FWS
 const RFC5322_FWS = '(?:[ \\t]+|\\r\\n[ \\t]+)+';
@@ -182,7 +183,7 @@ function consumeCFWS(str, idx) {
         if (str[j] === '\\') {
           if (j + 1 >= str.length) return -1;
           const escCode = str.charCodeAt(j + 1);
-          if (escCode === 9 || (escCode >= 32 && escCode <= 126)) {
+          if (escCode >= 0 && escCode <= 127) {
             j += 2;
             continue;
           }
