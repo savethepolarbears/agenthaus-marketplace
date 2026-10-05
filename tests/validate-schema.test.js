@@ -139,6 +139,17 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@[:::]'), false);
     assert.strictEqual(isValidEmail('user@[127.0.0.999]'), false);
 
+    // General address literals
+    assert.strictEqual(isValidEmail('user@[tag:value]'), true);
+    assert.strictEqual(isValidEmail('user@[custom-tag:value]'), true);
+    assert.strictEqual(isValidEmail('user@[tag1:my-val]'), true);
+
+    // Invalid general address literals (RFC 5321 tag boundaries, dcontent backslash, scoped IPv6)
+    assert.strictEqual(isValidEmail('user@[-tag:value]'), false);
+    assert.strictEqual(isValidEmail('user@[tag-:value]'), false);
+    assert.strictEqual(isValidEmail('user@[tag:foo\\bar]'), false);
+    assert.strictEqual(isValidEmail('user@[IPv6:::1%20zone]'), false);
+
     // Invalid quoted strings
     assert.strictEqual(isValidEmail('"unclosed@example.com'), false);
     assert.strictEqual(isValidEmail('"quoted"extra@example.com'), false);
@@ -208,6 +219,10 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidRfc3986Uri('https://example.com/[]'), false);
     assert.strictEqual(isValidRfc3986Uri('file:/[]'), false);
     assert.strictEqual(isValidRfc3986Uri('foo:/a/[]/b'), false);
+
+    // Scoped IPv6 values are not RFC 3986 literals
+    assert.strictEqual(isValidRfc3986Uri('http://[fe80::1%20zone]/'), false);
+    assert.strictEqual(isValidRfc3986Uri('http://[fe80::1%eth0]/'), false);
 
     // Invalid percent encoding, whitespace, unescaped characters, or missing scheme
     assert.strictEqual(isValidRfc3986Uri('https://example.com/%'), false);

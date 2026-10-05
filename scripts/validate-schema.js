@@ -76,6 +76,9 @@ function isValidRfc3986Uri(val) {
         if (!/^:[0-9]*$/.test(afterBracket)) return false;
       }
       // Validate IP-literal: IPv6address or IPvFuture
+      // RFC 3986 Section 3.2.2 does not support scoped IPv6 addresses / zone identifiers (%scope).
+      // Node's net.isIPv6() permits scoped addresses; reject them before delegating.
+      if (ip.includes('%')) return false;
       const isIpv6 = net.isIPv6(ip);
       const isIpvFuture = /^[vV][0-9a-fA-F]+\.[a-zA-Z0-9-._~:!$&'()*+,;=]+$/.test(ip);
       if (!isIpv6 && !isIpvFuture) return false;
@@ -203,17 +206,19 @@ function isValidEmail(val) {
     // IPv6 address literal (with optional "IPv6:" prefix per RFC 5321)
     if (literal.toLowerCase().startsWith('ipv6:')) {
       const ipv6Candidate = literal.slice(5);
-      return net.isIPv6(ipv6Candidate);
+      return !ipv6Candidate.includes('%') && net.isIPv6(ipv6Candidate);
     }
-    if (net.isIPv6(literal)) return true;
+    if (!literal.includes('%') && net.isIPv6(literal)) return true;
 
     // General address literal: Standardized-tag ":" 1*dcontent
+    // RFC 5321: Standardized-tag is an Ldh-str ending in a letter or digit: ALPHA/DIGIT *(ALPHA/DIGIT/"-") ALPHA/DIGIT
+    // dcontent is %d33-90 / %d94-126 (printable ASCII excluding '[', '\', ']')
     const colonIdx = literal.indexOf(':');
     if (colonIdx !== -1) {
       const tag = literal.slice(0, colonIdx);
       const content = literal.slice(colonIdx + 1);
-      if (!/^[a-zA-Z0-9-]+$/.test(tag)) return false;
-      return /^(?:[\x21-\x5a\x5e-\x7e]|\\[\x20-\x7e])+$/.test(content);
+      if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(tag)) return false;
+      return /^[\x21-\x5a\x5e-\x7e]+$/.test(content);
     }
 
     return false;
