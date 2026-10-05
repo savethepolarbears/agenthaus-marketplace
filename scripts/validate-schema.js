@@ -134,25 +134,104 @@ function isValidRfc3986Uri(val) {
   return true;
 }
 
-// RFC 5322 Section 3.2.1 & Section 4.1 quoted-pair: ("\" (VCHAR / WSP)) / obs-qp
-// obs-qp permits "\" followed by any US-ASCII character (%d0-127)
-const RFC5322_QUOTED_PAIR = '\\\\[\\x00-\\x7f]';
+/**
+ * RFC 5322 Section 3.2.4 & Section 4.1 quoted-string content parser.
+ * Scans *([FWS] qcontent) [FWS] linearly in O(N) time with zero backtracking.
+ */
+function isValidQuotedStringContent(str) {
+  let idx = 0;
+  while (idx < str.length) {
+    if (str[idx] === ' ' || str[idx] === '\t') {
+      idx++;
+      continue;
+    }
+    if (str.slice(idx, idx + 2) === '\r\n') {
+      if (idx + 2 < str.length && (str[idx + 2] === ' ' || str[idx + 2] === '\t')) {
+        idx += 3;
+        while (idx < str.length && (str[idx] === ' ' || str[idx] === '\t')) idx++;
+        continue;
+      }
+      return false;
+    }
+    if (str[idx] === '\\') {
+      if (idx + 1 >= str.length) return false;
+      const escCode = str.charCodeAt(idx + 1);
+      if (escCode >= 0 && escCode <= 127) {
+        idx += 2;
+        continue;
+      }
+      return false;
+    }
+    const c = str.charCodeAt(idx);
+    // RFC 5322 Section 3.2.4 & Section 4.1:
+    // qtext: %d33 / %d35-91 / %d93-126
+    // obs-qtext (obs-NO-WS-CTL): %d1-8 / %d11 / %d12 / %d14-31 / %d127
+    if (
+      c === 33 ||
+      (c >= 35 && c <= 91) ||
+      (c >= 93 && c <= 126) ||
+      (c >= 1 && c <= 8) ||
+      c === 11 ||
+      c === 12 ||
+      (c >= 14 && c <= 31) ||
+      c === 127
+    ) {
+      idx++;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
 
-// RFC 5322 Section 3.2.2 folding white space: ([*WSP CRLF] 1*WSP) / obs-FWS
-const RFC5322_FWS = '(?:[ \\t]+|\\r\\n[ \\t]+)+';
-
-// RFC 5322 Section 3.4.1 & Section 4.4 domain-literal: [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
-// dtext is %d33-90 / %d94-126 / obs-dtext
-// obs-dtext is obs-NO-WS-CTL / quoted-pair
-const RFC5322_DTEXT = `(?:[\\x21-\\x5a\\x5e-\\x7e]|${RFC5322_QUOTED_PAIR}|[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f])`;
-const RFC5322_DOMAIN_LITERAL_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?${RFC5322_DTEXT})*(?:${RFC5322_FWS})?$`);
-
-// RFC 5322 Section 3.2.4 & Section 4.1 quoted-string: [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
-// qcontent is qtext / quoted-pair
-// qtext is %d33 / %d35-91 / %d93-126 / obs-qtext (obs-NO-WS-CTL: %d1-8 / %d11 / %d12 / %d14-31 / %d127)
-const RFC5322_QTEXT = '[\\x21\\x23-\\x5b\\x5d-\\x7e\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]';
-const RFC5322_QCONTENT = `(?:${RFC5322_QTEXT}|${RFC5322_QUOTED_PAIR})`;
-const RFC5322_QUOTED_STRING_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?${RFC5322_QCONTENT})*(?:${RFC5322_FWS})?$`);
+/**
+ * RFC 5322 Section 3.4.1 & Section 4.4 domain-literal content parser.
+ * Scans *([FWS] dtext) [FWS] linearly in O(N) time with zero backtracking.
+ */
+function isValidDomainLiteral(str) {
+  let idx = 0;
+  while (idx < str.length) {
+    if (str[idx] === ' ' || str[idx] === '\t') {
+      idx++;
+      continue;
+    }
+    if (str.slice(idx, idx + 2) === '\r\n') {
+      if (idx + 2 < str.length && (str[idx + 2] === ' ' || str[idx + 2] === '\t')) {
+        idx += 3;
+        while (idx < str.length && (str[idx] === ' ' || str[idx] === '\t')) idx++;
+        continue;
+      }
+      return false;
+    }
+    if (str[idx] === '\\') {
+      if (idx + 1 >= str.length) return false;
+      const escCode = str.charCodeAt(idx + 1);
+      if (escCode >= 0 && escCode <= 127) {
+        idx += 2;
+        continue;
+      }
+      return false;
+    }
+    const c = str.charCodeAt(idx);
+    // RFC 5322 Section 3.4.1 & Section 4.4:
+    // dtext: %d33-90 / %d94-126
+    // obs-dtext (obs-NO-WS-CTL): %d1-8 / %d11 / %d12 / %d14-31 / %d127
+    if (
+      (c >= 33 && c <= 90) ||
+      (c >= 94 && c <= 126) ||
+      (c >= 1 && c <= 8) ||
+      c === 11 ||
+      c === 12 ||
+      (c >= 14 && c <= 31) ||
+      c === 127
+    ) {
+      idx++;
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
 
 /**
  * Consumes optional RFC 5322 CFWS (comments and folding white space) starting at idx.
@@ -266,7 +345,7 @@ function consumeWord(str, idx) {
     if (!closed) return -1;
 
     const qContent = str.slice(idx + 1, i);
-    if (!RFC5322_QUOTED_STRING_RE.test(qContent)) return -1;
+    if (!isValidQuotedStringContent(qContent)) return -1;
 
     return consumeCFWS(str, i + 1);
   }
@@ -323,7 +402,7 @@ function isValidEmail(val) {
     if (!closed) return false;
 
     const literal = domain.slice(1, i);
-    if (!RFC5322_DOMAIN_LITERAL_RE.test(literal)) return false;
+    if (!isValidDomainLiteral(literal)) return false;
     const afterBracket = consumeCFWS(domain, i + 1);
     return afterBracket === domain.length;
   }

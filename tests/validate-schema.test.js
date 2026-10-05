@@ -223,6 +223,13 @@ describe('Plugin Manifest Schema Validation', () => {
     // Invalid quoted strings
     assert.strictEqual(isValidEmail('"unclosed@example.com'), false);
     assert.strictEqual(isValidEmail('"quoted"extra@example.com'), false);
+
+    // Linear FWS parsing without exponential backtracking (ReDoS guard)
+    const spaces50 = ' '.repeat(50);
+    assert.strictEqual(isValidEmail('u@[' + spaces50 + '\n]'), false);
+    assert.strictEqual(isValidEmail('"' + spaces50 + '\n"@example.com'), false);
+    assert.strictEqual(isValidEmail('u@[' + spaces50 + 'foo]'), true);
+    assert.strictEqual(isValidEmail('"' + spaces50 + 'foo"@example.com'), true);
   });
 
   test('fails on invalid URI format with RFC semantics', () => {
