@@ -225,12 +225,27 @@ function checkConfigFreshness(plugins, repoRoot) {
   }
 
   let gen = null;
+  let genError = null;
+  const repoGenPath = path.join(repoRoot, 'scripts', 'generate-cross-platform.js');
   try {
-    gen = require(path.join(repoRoot, 'scripts', 'generate-cross-platform.js'));
-  } catch (_) {
-    try {
-      gen = require('../scripts/generate-cross-platform.js');
-    } catch (_) {}
+    gen = require(repoGenPath);
+  } catch (err1) {
+    genError = err1;
+    if (!fs.existsSync(repoGenPath)) {
+      try {
+        gen = require('../scripts/generate-cross-platform.js');
+        genError = null;
+      } catch (err2) {
+        genError = err2;
+      }
+    }
+  }
+
+  if (!gen) {
+    results.push({
+      severity: 'WARN',
+      message: `Failed to load cross-platform generator (scripts/generate-cross-platform.js): ${genError ? genError.message : 'Module not found'}`
+    });
   }
 
   for (const p of plugins) {

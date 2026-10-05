@@ -224,10 +224,10 @@ function isValidEmail(val) {
     return false;
   }
 
-  // Domain name (dot-atom / hostname labels)
-  // Each label 1-63 chars, separated by dots. Single-label domains (e.g. localhost) allowed.
-  const domainLabelRe = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-  return domainLabelRe.test(domain);
+  // Domain name: RFC 5322 dot-atom (Section 3.4.1)
+  // dot-atom-text = 1*atext *("." 1*atext)
+  const dotAtomRe = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
+  return dotAtomRe.test(domain);
 }
 
 /**

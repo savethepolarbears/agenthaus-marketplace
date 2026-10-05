@@ -201,6 +201,18 @@ test('CLI Doctor', async (t) => {
     assert.ok(res.some(r => r.severity === 'WARN' && r.message.includes('Failed to evaluate generated file') && r.message.includes('exceeds 2 KiB budget')));
   });
 
+  await t.test('checkConfigFreshness reports diagnostic warning when generator fails to load', () => {
+    const fakeRepo = path.join(tmpDir, 'fake-broken-gen-repo');
+    fs.mkdirSync(path.join(fakeRepo, 'scripts'), { recursive: true });
+    fs.writeFileSync(path.join(fakeRepo, 'AGENTS.md'), '# Repo Agents\n');
+    // Write syntactically invalid generator script
+    fs.writeFileSync(path.join(fakeRepo, 'scripts', 'generate-cross-platform.js'), 'invalid syntax {{{');
+
+    const plugins = [{ name: 'test-p', badges: {} }];
+    const res = checkConfigFreshness(plugins, fakeRepo);
+    assert.ok(res.some(r => r.severity === 'WARN' && r.message.includes('Failed to load cross-platform generator')));
+  });
+
   await t.test('severity isolation in runDoctor', () => {
     // If we mock everything to be fine except optional credentials
     // fail_count should be 0

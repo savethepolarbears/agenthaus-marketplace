@@ -112,6 +112,11 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user@localhost'), true);
     assert.strictEqual(isValidEmail('admin@mailserver'), true);
 
+    // RFC 5322 dot-atom domains (atext characters including _, !, etc.)
+    assert.strictEqual(isValidEmail('user@foo_bar'), true);
+    assert.strictEqual(isValidEmail('user@foo!bar'), true);
+    assert.strictEqual(isValidEmail('user@sub_domain.example_org.com'), true);
+
     // Quoted local parts
     assert.strictEqual(isValidEmail('"John Doe"@example.com'), true);
     assert.strictEqual(isValidEmail('"john..doe"@example.com'), true);
