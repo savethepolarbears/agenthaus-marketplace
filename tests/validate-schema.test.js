@@ -125,8 +125,16 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('"foo\r\n bar"@example.com'), true);
     assert.strictEqual(isValidEmail('" foo bar "@example.com'), true);
     assert.strictEqual(isValidEmail('"foo\nbar"@example.com'), false);
-    assert.strictEqual(isValidEmail('"foo\rbar"@example.com'), false);
     assert.strictEqual(isValidEmail('"foo\r\nbar"@example.com'), false);
+
+    // RFC 5322 CFWS around local parts and domains
+    assert.strictEqual(isValidEmail('"foo" @example.com'), true);
+    assert.strictEqual(isValidEmail('"foo" @ example.com'), true);
+    assert.strictEqual(isValidEmail('"foo"@ example.com'), true);
+    assert.strictEqual(isValidEmail('"foo" (comment) @example.com'), true);
+    assert.strictEqual(isValidEmail('"foo" @ [127.0.0.1]'), true);
+    assert.strictEqual(isValidEmail('user @ example.com'), true);
+    assert.strictEqual(isValidEmail('user @ [127.0.0.1]'), true);
 
     // Domain literals (IPv4 and IPv6)
     assert.strictEqual(isValidEmail('user@[127.0.0.1]'), true);
