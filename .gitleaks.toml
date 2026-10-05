@@ -1,10 +1,6 @@
 # Gitleaks configuration for agenthaus-marketplace
-# By default extends base rules and allows reports, tests, and mock credentials
+# Extends built-in rules so all standard detectors remain active.
+# Specific historical false positives are suppressed in .gitleaksignore.
 
-[allowlist]
-description = "Repository allowlist for tests, fixtures, and documentation reports"
-paths = [
-  '''^\.gitleaksignore$''',
-  '''^reports/.*''',
-  '''^tests/.*''',
-]
+[extend]
+useDefault = true

@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "Open-source Claude Code agent skills for SEO, GEO, Google Ads, and Meta Ads. Connects to live account data via Google Ads MCP, Meta Ads MCP, Google Search Console MCP, and Google Analytics (GA4) MCP.",
   "author": {
-    "name": "nowork-studio",
-    "email": ""
+    "name": "nowork-studio"
   },
   "homepage": "https://github.com/nowork-studio/NotFair",
   "repository": "https://github.com/nowork-studio/NotFair",

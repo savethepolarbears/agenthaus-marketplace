@@ -127,7 +127,9 @@ try:
     with open('$SCHEMA') as sf, open('$manifest') as mf:
         s = json.load(sf)
         m = json.load(mf)
-    jsonschema.validate(instance=m, schema=s)
+    checker = getattr(jsonschema, 'FormatChecker', None)
+    fc = checker() if checker else None
+    jsonschema.validate(instance=m, schema=s, format_checker=fc)
     print('VALID')
 except ImportError:
     print('SKIP')
