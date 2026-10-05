@@ -103,3 +103,19 @@ test('shell metacharacters are argv data; malformed policy starts no child', () 
   assert.throws(() => runGuard({ command: process.execPath, policy: null }));
   assert.throws(() => runGuard({ command: 'node\0sh', policy: { version: 1, rules: [] } }));
 });
+test('upstream crash and malformed upstream output fail pending requests', { timeout: 5000 }, async t => {
+  for (const name of ['crash', 'invalid']) {
+    const h = harness(t, { policy: { version: 1, rules: [{ id: 'fixture', tool: name, action: 'allow-read' }] } });
+    await h.init(); const exit = once(h.guard.child, 'exit');
+    assert.equal((await h.request(name, 'tools/call', { name })).error.code, -32001); await exit;
+  }
+});
+test('disconnect terminates the upstream and command arguments never invoke a shell', { timeout: 5000 }, async t => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-argv-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const marker = path.join(dir, 'should-not-exist');
+  const h = harness(t, { args: [path.join(__dirname, 'fixtures/mcp-upstream.js'), `; touch ${marker}`] });
+  await h.init(); assert.equal(fs.existsSync(marker), false);
+  const exit = once(h.guard.child, 'exit'); h.input.end(); await exit;
+  assert.ok(h.stderr().includes('Client disconnected'));
+});

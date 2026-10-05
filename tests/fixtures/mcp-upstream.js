@@ -12,6 +12,10 @@ readline.createInterface({ input: process.stdin }).on('line', line => {
     process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { tools: [{ name: 'read', inputSchema: { type: 'object' } }] } }) + '\n');
   } else if (m.method === 'tools/call' && m.params.name === 'hang') {
     // Timeout fixture.
+  } else if (m.method === 'tools/call' && m.params.name === 'crash') {
+    process.exit(7);
+  } else if (m.method === 'tools/call' && m.params.name === 'invalid') {
+    process.stdout.write('{invalid frame}\n');
   } else if (m.method === 'tools/call' && m.params.name === 'error') {
     process.stderr.write('CANARY_SECRET\n');
     process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: m.id, error: { code: -32042, message: 'CANARY_SECRET', data: 'CANARY_SECRET' } }) + '\n');
