@@ -30,9 +30,11 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Malformed policies, receipt replay, wrong request/policy/identity, expiry, and unavailable approval all fail closed.
 4. Five plugin integrations declare their execution owner; direct tools outside the proxy remain explicitly unprotected.
 
+**Execution status:** Both plans implemented; 181 tests and 37 plugins pass locally. Phase verification is `human_needed`; real provider/operator acceptance is pending.
+
 **Plans:** 2 gap-closure plans
-- [ ] 06-01-PLAN.md — tracer and core contract
-- [ ] 06-02-PLAN.md — integration and adversarial coverage
+- [x] 06-01-PLAN.md — tracer and core contract
+- [x] 06-02-PLAN.md — integration and adversarial coverage
 
 ### Phase 7: Typed Handoffs & MemPalace — v2.0 Gap Closure
 

@@ -82,3 +82,8 @@ Architectural decisions and their rationale. Agents should consult this before p
 **Scope:** Milestone/requirements/roadmap and six legacy gap plans are defined. All implementation and acceptance are pending. Keep Claude-native manifests, CommonJS/minimal runtime dependencies, external ownership state and existing collision naming. Use sidecar metadata, measured paged discovery, reviewed SHA-256 locks, event-specific hook adapters, honest isolation capabilities and fenced leases. TypeScript/WebSocket migrations are deferred.
 
 **Artifacts:** Tracked .planning/ROADMAP.md and STATE.md; local ignored PROJECT/REQUIREMENTS/research/phase plans and reports/modular-runtime-analysis.md. Intentional ignore/privacy policy remains; do not force-add internal planning/reports.
+
+
+## 2026-10-05 — Phase 6 guard execution
+
+Implemented opt-in stdio guard, strict bounded policy matching, Ed25519 single-use receipts, operator-terminal signing command, and generated provider wrapping. Default providers and ownership namespace stay unchanged. Private keys, pinned configuration and consumed-nonce state need an independent operator trust boundary; same-user file modes do not establish isolation. Direct shell and remote calls remain unprotected; hooks provide guidance only. 181 tests and 37 plugins pass locally. Phase 6 is human_needed for live provider discovery/operator UX and legacy baseline acceptance; Phases 7–8 are not executed. Evidence: reports/phase-06-verification-receipt.json.
