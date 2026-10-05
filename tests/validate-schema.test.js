@@ -138,6 +138,12 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidEmail('user(nested (comment))@example.com'), true);
     assert.strictEqual(isValidEmail('user(escaped \\(paren\\))@example.com'), true);
     assert.strictEqual(isValidEmail('user(foo\r\n bar)@example.com'), true);
+    assert.strictEqual(isValidEmail('user(\x01)@example.com'), true);
+    assert.strictEqual(isValidEmail('user(\x0b)@example.com'), true);
+    assert.strictEqual(isValidEmail('user(\x7f)@example.com'), true);
+    assert.strictEqual(isValidEmail('"foo\x01bar"@example.com'), true);
+    assert.strictEqual(isValidEmail('"foo\x0bbar"@example.com'), true);
+    assert.strictEqual(isValidEmail('"foo\x7fbar"@example.com'), true);
     assert.strictEqual(isValidEmail('user(\n)@example.com'), false);
     assert.strictEqual(isValidEmail('user(\r)@example.com'), false);
     assert.strictEqual(isValidEmail('user(\0)@example.com'), false);

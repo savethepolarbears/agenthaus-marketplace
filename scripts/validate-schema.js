@@ -147,10 +147,10 @@ const RFC5322_FWS = '(?:[ \\t]+|\\r\\n[ \\t]+)+';
 const RFC5322_DTEXT = `(?:[\\x21-\\x5a\\x5e-\\x7e]|${RFC5322_QUOTED_PAIR}|[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f])`;
 const RFC5322_DOMAIN_LITERAL_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?${RFC5322_DTEXT})*(?:${RFC5322_FWS})?$`);
 
-// RFC 5322 Section 3.2.4 quoted-string: [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
+// RFC 5322 Section 3.2.4 & Section 4.1 quoted-string: [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
 // qcontent is qtext / quoted-pair
-// qtext is %d33 / %d35-91 / %d93-126 (printable US-ASCII excluding '"' and '\')
-const RFC5322_QTEXT = '[\\x21\\x23-\\x5b\\x5d-\\x7e]';
+// qtext is %d33 / %d35-91 / %d93-126 / obs-qtext (obs-NO-WS-CTL: %d1-8 / %d11 / %d12 / %d14-31 / %d127)
+const RFC5322_QTEXT = '[\\x21\\x23-\\x5b\\x5d-\\x7e\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f]';
 const RFC5322_QCONTENT = `(?:${RFC5322_QTEXT}|${RFC5322_QUOTED_PAIR})`;
 const RFC5322_QUOTED_STRING_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?${RFC5322_QCONTENT})*(?:${RFC5322_FWS})?$`);
 
@@ -200,8 +200,17 @@ function consumeCFWS(str, idx) {
           continue;
         }
         const c = str.charCodeAt(j);
-        // RFC 5322 ctext: %d33-39 / %d42-91 / %d93-126
-        if ((c >= 33 && c <= 39) || (c >= 42 && c <= 91) || (c >= 93 && c <= 126)) {
+        // RFC 5322 ctext: %d33-39 / %d42-91 / %d93-126 / obs-ctext (obs-NO-WS-CTL)
+        if (
+          (c >= 33 && c <= 39) ||
+          (c >= 42 && c <= 91) ||
+          (c >= 93 && c <= 126) ||
+          (c >= 1 && c <= 8) ||
+          c === 11 ||
+          c === 12 ||
+          (c >= 14 && c <= 31) ||
+          c === 127
+        ) {
           j++;
           continue;
         }
