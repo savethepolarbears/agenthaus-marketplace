@@ -55,18 +55,46 @@ describe('Plugin Manifest Schema Validation', () => {
   });
 
   test('fails on invalid author email format', () => {
-    const invalid = {
-      name: 'test-plugin',
-      version: '1.0.0',
-      description: 'A test plugin description that is long enough',
-      author: {
-        name: 'Test Author',
-        email: 'invalid-email-address'
-      }
-    };
-    const errors = validateValue(invalid, schema);
-    assert.ok(errors.length > 0);
-    assert.ok(errors.some(e => e.includes('author') || e.includes('email')));
+    const invalidEmails = [
+      'invalid-email-address',
+      '.foo@example.com',
+      'foo.@example.com',
+      'foo..bar@example.com',
+      'foo@.example.com',
+      'foo@example.com.'
+    ];
+
+    for (const email of invalidEmails) {
+      const invalid = {
+        name: 'test-plugin',
+        version: '1.0.0',
+        description: 'A test plugin description that is long enough',
+        author: {
+          name: 'Test Author',
+          email
+        }
+      };
+      const errors = validateValue(invalid, schema);
+      assert.ok(errors.length > 0, `Expected failure for email: ${email}`);
+      assert.ok(errors.some(e => e.includes('author') || e.includes('email')));
+    }
+  });
+
+  test('isValidEmail validates RFC 5322 dot-atom grammar strictly', () => {
+    const { isValidEmail } = require('../scripts/validate-schema.js');
+    assert.strictEqual(isValidEmail('user@example.com'), true);
+    assert.strictEqual(isValidEmail('user.name+tag@sub.domain.co.uk'), true);
+    assert.strictEqual(isValidEmail('first.last@example.org'), true);
+
+    // Invalid dot-atoms in local-part
+    assert.strictEqual(isValidEmail('.user@example.com'), false);
+    assert.strictEqual(isValidEmail('user.@example.com'), false);
+    assert.strictEqual(isValidEmail('user..name@example.com'), false);
+
+    // Invalid domain dots
+    assert.strictEqual(isValidEmail('user@.example.com'), false);
+    assert.strictEqual(isValidEmail('user@example.com.'), false);
+    assert.strictEqual(isValidEmail('user@example..com'), false);
   });
 
   test('fails on invalid URI format with RFC semantics', () => {
@@ -89,6 +117,16 @@ describe('Plugin Manifest Schema Validation', () => {
     const errorsWs = validateValue(invalidWhitespace, schema);
     assert.ok(errorsWs.length > 0);
     assert.ok(errorsWs.some(e => e.includes('repository') && e.includes('RFC-compliant URI')));
+
+    const invalidAuthority = {
+      name: 'test-plugin',
+      version: '1.0.0',
+      description: 'A test plugin description that is long enough',
+      homepage: 'http://[:::]'
+    };
+    const errorsAuth = validateValue(invalidAuthority, schema);
+    assert.ok(errorsAuth.length > 0);
+    assert.ok(errorsAuth.some(e => e.includes('homepage') && e.includes('RFC-compliant URI')));
   });
 
   test('isValidRfc3986Uri validates RFC 3986 URI syntax strictly', () => {
@@ -98,6 +136,14 @@ describe('Plugin Manifest Schema Validation', () => {
     assert.strictEqual(isValidRfc3986Uri('mailto:user@example.com'), true);
     assert.strictEqual(isValidRfc3986Uri('urn:isbn:0451450523'), true);
     assert.strictEqual(isValidRfc3986Uri('https://example.com/%20encoded'), true);
+    assert.strictEqual(isValidRfc3986Uri('http://[::1]:8080/path'), true);
+    assert.strictEqual(isValidRfc3986Uri('http://[2001:db8::1]/'), true);
+    assert.strictEqual(isValidRfc3986Uri('http://127.0.0.1:3000'), true);
+
+    // Malformed authorities and IP-literals
+    assert.strictEqual(isValidRfc3986Uri('http://[:::]'), false);
+    assert.strictEqual(isValidRfc3986Uri('https://exa[mple.com'), false);
+    assert.strictEqual(isValidRfc3986Uri('https://example.com/[]'), false);
 
     // Invalid percent encoding, whitespace, unescaped characters, or missing scheme
     assert.strictEqual(isValidRfc3986Uri('https://example.com/%'), false);

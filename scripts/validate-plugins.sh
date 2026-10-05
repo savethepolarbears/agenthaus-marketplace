@@ -41,6 +41,12 @@ validate_marketplace() {
   fi
   log_pass "marketplace.json is valid JSON"
 
+  if [[ ! -f "$SCHEMA" ]]; then
+    log_fail "schemas/plugin.schema.json not found"
+    return 1
+  fi
+  log_pass "schemas/plugin.schema.json exists"
+
   # Check required fields
   local errors
   errors="$(jq -r '
@@ -118,7 +124,10 @@ validate_plugin() {
   log_pass "plugin.json is valid JSON"
 
   # 2b. Validate against plugin.schema.json
-  if [[ -f "$SCHEMA" ]]; then
+  if [[ ! -f "$SCHEMA" ]]; then
+    log_fail "schemas/plugin.schema.json not found at ${SCHEMA}"
+    failed=1
+  else
     local schema_validation=""
     local schema_err=0
 

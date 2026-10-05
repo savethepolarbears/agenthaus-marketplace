@@ -3,24 +3,131 @@
 
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
 
 /**
- * RFC 3986 compliant URI syntax validation.
+ * Component-aware RFC 3986 URI syntax validation.
  * URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
- * Disallows whitespace, unescaped characters, and malformed percent-encodings.
+ * Strictly validates authority, IP-literal (IPv6/IPvFuture), reg-name, and path grammar.
  */
-const RFC_3986_URI_REGEX = /^[a-zA-Z][a-zA-Z0-9+.-]*:(?:\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
-
 function isValidRfc3986Uri(val) {
   if (typeof val !== 'string' || val.length === 0) return false;
   // RFC 3986 strictly prohibits whitespace anywhere in a URI
   if (/\s/.test(val)) return false;
-  if (!RFC_3986_URI_REGEX.test(val)) return false;
-  // Percent-encodings must be strictly %HEXDIG HEXDIG
+
+  // Verify all percent encodings in the entire string are strictly %HEXDIG HEXDIG
   if (/%(?![0-9a-fA-F]{2})/.test(val)) return false;
-  // Characters outside the allowed RFC 3986 set must be percent-encoded
-  if (/[^a-zA-Z0-9-._~:/?#\[\]@!$&'()*+,;=%]/.test(val)) return false;
+
+  // Split scheme
+  const schemeMatch = /^([a-zA-Z][a-zA-Z0-9+.-]*):(.*)$/.exec(val);
+  if (!schemeMatch) return false;
+  let rest = schemeMatch[2];
+
+  // Split fragment
+  const hashIdx = rest.indexOf('#');
+  if (hashIdx !== -1) {
+    const fragment = rest.slice(hashIdx + 1);
+    rest = rest.slice(0, hashIdx);
+    // Fragment: *( pchar / "/" / "?" ) - cannot contain [ or ]
+    if (!/^(?:[a-zA-Z0-9-._~:!$&'()*+,;=@/?]|%[0-9a-fA-F]{2})*$/.test(fragment)) {
+      return false;
+    }
+  }
+
+  // Split query
+  const qIdx = rest.indexOf('?');
+  if (qIdx !== -1) {
+    const query = rest.slice(qIdx + 1);
+    rest = rest.slice(0, qIdx);
+    // Query: *( pchar / "/" / "?" ) - cannot contain [ or ]
+    if (!/^(?:[a-zA-Z0-9-._~:!$&'()*+,;=@/?]|%[0-9a-fA-F]{2})*$/.test(query)) {
+      return false;
+    }
+  }
+
+  // hier-part validation
+  if (rest.startsWith('//')) {
+    // Authority form: //authority[path]
+    const afterSlashes = rest.slice(2);
+    const slashIdx = afterSlashes.indexOf('/');
+    const authority = slashIdx !== -1 ? afterSlashes.slice(0, slashIdx) : afterSlashes;
+    const pathPart = slashIdx !== -1 ? afterSlashes.slice(slashIdx) : '';
+
+    // Authority: [ userinfo "@" ] host [ ":" port ]
+    let hostAndPort = authority;
+    const atIdx = authority.indexOf('@');
+    if (atIdx !== -1) {
+      const userinfo = authority.slice(0, atIdx);
+      hostAndPort = authority.slice(atIdx + 1);
+      // userinfo = *( unreserved / pct-encoded / sub-delims / ":" )
+      if (!/^(?:[a-zA-Z0-9-._~:!$&'()*+,;=]|%[0-9a-fA-F]{2})*$/.test(userinfo)) {
+        return false;
+      }
+    }
+
+    // Host and Port
+    if (hostAndPort.startsWith('[')) {
+      // IP-literal: "[" ( IPv6address / IPvFuture ) "]"
+      const closeBracket = hostAndPort.indexOf(']');
+      if (closeBracket === -1) return false;
+      const ip = hostAndPort.slice(1, closeBracket);
+      const afterBracket = hostAndPort.slice(closeBracket + 1);
+      if (afterBracket.length > 0) {
+        if (!/^:[0-9]*$/.test(afterBracket)) return false;
+      }
+      // Validate IP-literal: IPv6address or IPvFuture
+      const isIpv6 = net.isIPv6(ip);
+      const isIpvFuture = /^v[0-9a-fA-F]+\.[a-zA-Z0-9-._~:!$&'()*+,;=]+$/.test(ip);
+      if (!isIpv6 && !isIpvFuture) return false;
+    } else {
+      // reg-name or IPv4address [ ":" port ]
+      let host, port;
+      const colonIdx = hostAndPort.lastIndexOf(':');
+      if (colonIdx !== -1) {
+        host = hostAndPort.slice(0, colonIdx);
+        port = hostAndPort.slice(colonIdx + 1);
+        if (!/^[0-9]*$/.test(port)) return false;
+      } else {
+        host = hostAndPort;
+      }
+      // reg-name: *( unreserved / pct-encoded / sub-delims )
+      // Square brackets [ or ] are strictly forbidden in reg-name or IPv4
+      if (!/^(?:[a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*$/.test(host)) {
+        return false;
+      }
+    }
+
+    // Path abempty: *( "/" segment )
+    if (pathPart.length > 0) {
+      // segment: *pchar (NO [ or ])
+      if (!/^(?:\/(?:[a-zA-Z0-9-._~:!$&'()*+,;=@]|%[0-9a-fA-F]{2})*)*$/.test(pathPart)) {
+        return false;
+      }
+    }
+  } else {
+    // Non-authority path: path-absolute, path-rootless, or path-empty
+    // Each segment must be *pchar (NO [ or ])
+    if (rest.length > 0) {
+      if (!/^(?:\/?[a-zA-Z0-9-._~:!$&'()*+,;=@]|%[0-9a-fA-F]{2})*$/.test(rest)) {
+        return false;
+      }
+    }
+  }
+
   return true;
+}
+
+/**
+ * Standards-compliant RFC 5321/5322 dot-atom email address validation.
+ * Rejects leading, trailing, or consecutive dots in local part and domain.
+ */
+const EMAIL_REGEX = /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+function isValidEmail(val) {
+  if (typeof val !== 'string' || val.length === 0 || val.length > 254) return false;
+  const atIdx = val.indexOf('@');
+  if (atIdx === -1 || atIdx > 64) return false;
+  return EMAIL_REGEX.test(val);
 }
 
 /**
@@ -63,8 +170,7 @@ function validateValue(val, schema, jsonPath = '') {
     }
     if (schema.format) {
       if (schema.format === 'email') {
-        const emailRe = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-        if (!emailRe.test(val)) {
+        if (!isValidEmail(val)) {
           errors.push(`${jsonPath || 'root'}: "${val}" is not a valid email address`);
         }
       } else if (schema.format === 'uri') {
@@ -186,4 +292,4 @@ if (require.main === module) {
   process.exit(0);
 }
 
-module.exports = { validateValue, isValidRfc3986Uri };
+module.exports = { validateValue, isValidRfc3986Uri, isValidEmail };
