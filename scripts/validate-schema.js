@@ -134,13 +134,19 @@ function isValidRfc3986Uri(val) {
   return true;
 }
 
+// RFC 5322 Section 3.4.1 domain-literal: [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
+// dtext is %d33-90 / %d94-126 (printable US-ASCII excluding '[', '\', ']')
+// FWS is folding white space: ([*WSP CRLF] 1*WSP) / obs-FWS (Section 3.2.2)
+const RFC5322_FWS = '(?:[ \\t]+|\\r\\n[ \\t]+)+';
+const RFC5322_DOMAIN_LITERAL_RE = new RegExp(`^(?:(?:${RFC5322_FWS})?[\\x21-\\x5a\\x5e-\\x7e])*(?:${RFC5322_FWS})?$`);
+
 /**
  * Standards-compliant RFC 5321/5322 and JSON Schema Draft-07 email address validation.
  * Accepts:
  * - dot-atom local-part (rejecting leading, trailing, or consecutive dots)
  * - quoted-string local-part (e.g. "John Doe"@example.com, "foo..bar"@example.com)
  * - single-label or multi-label domain (e.g. user@localhost, user@example.com)
- * - domain-literal address (e.g. user@[127.0.0.1], user@[IPv6:2001:db8::1])
+ * - domain-literal address (e.g. user@[127.0.0.1], user@[IPv6:2001:db8::1], user@[foo bar])
  */
 function isValidEmail(val) {
   if (typeof val !== 'string' || val.length === 0 || val.length > 254) return false;
@@ -195,13 +201,9 @@ function isValidEmail(val) {
   if (domain.startsWith('[')) {
     // Domain-literal: RFC 5322 section 3.4.1
     // domain-literal = [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
-    // dtext is %d33-90 / %d94-126 (printable US-ASCII excluding '[', '\', ']')
     if (!domain.endsWith(']')) return false;
     const literal = domain.slice(1, -1);
-    if (literal.length === 0) return false;
-
-    // Validate the whole bracketed value using RFC 5322 domain-literal grammar
-    return /^[\x21-\x5a\x5e-\x7e]+$/.test(literal);
+    return RFC5322_DOMAIN_LITERAL_RE.test(literal);
   }
 
   // Domain name: RFC 5322 dot-atom (Section 3.4.1)
