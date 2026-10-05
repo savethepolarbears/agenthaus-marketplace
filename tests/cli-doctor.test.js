@@ -15,6 +15,7 @@ const {
   checkCredentials,
   checkConfigFreshness,
   checkProviderConfigs,
+  normalizeLineEndings,
   isMarketplaceHybrid,
   runDoctor
 } = require('../src/doctor.js');
@@ -136,9 +137,80 @@ test('CLI Doctor', async (t) => {
     if (backup) process.env.FAKE_TOKEN = backup;
   });
 
+  await t.test('normalizeLineEndings converts CRLF to LF', () => {
+    assert.strictEqual(normalizeLineEndings('hello\r\nworld\r\n'), 'hello\nworld\n');
+    assert.strictEqual(normalizeLineEndings('already\nlf'), 'already\nlf');
+    assert.strictEqual(normalizeLineEndings(null), null);
+    assert.strictEqual(normalizeLineEndings(undefined), undefined);
+  });
+
   await t.test('checkConfigFreshness', () => {
     const res = checkConfigFreshness([], tmpDir);
     assert.ok(res.some(r => r.severity === 'WARN' && r.message.includes('AGENTS.md is missing')));
+  });
+
+  await t.test('checkConfigFreshness normalizes line endings and does not flag CRLF files as stale', () => {
+    const fakeRepo = path.join(tmpDir, 'fake-freshness-repo');
+    fs.mkdirSync(fakeRepo, { recursive: true });
+    fs.writeFileSync(path.join(fakeRepo, 'AGENTS.md'), '# Repo Agents\n');
+
+    const pDir = path.join(fakeRepo, 'plugins', 'fresh-plugin');
+    fs.mkdirSync(path.join(pDir, '.claude-plugin'), { recursive: true });
+    fs.mkdirSync(path.join(pDir, '.cursor', 'rules'), { recursive: true });
+    fs.writeFileSync(path.join(pDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      name: 'fresh-plugin',
+      description: 'A test plugin for line ending freshness verification.',
+      version: '1.0.0'
+    }));
+
+    const gen = require('../scripts/generate-cross-platform.js');
+    const pData = gen.loadPlugin(pDir, 'fresh-plugin');
+    const expectedAgents = gen.renderAgentsMd(pData);
+    const expectedGemini = gen.renderGeminiMd(pData);
+    const expectedCursor = gen.renderCursorMdc(pData);
+
+    // Write with CRLF line endings
+    fs.writeFileSync(path.join(pDir, 'AGENTS.md'), expectedAgents.replace(/\n/g, '\r\n'), 'utf8');
+    fs.writeFileSync(path.join(pDir, 'GEMINI.md'), expectedGemini.replace(/\n/g, '\r\n'), 'utf8');
+    fs.writeFileSync(path.join(pDir, '.cursor', 'rules', 'fresh-plugin.mdc'), expectedCursor.replace(/\n/g, '\r\n'), 'utf8');
+
+    const plugins = [{ name: 'fresh-plugin', badges: {} }];
+    const res = checkConfigFreshness(plugins, fakeRepo);
+    assert.strictEqual(res.some(r => r.message.includes('Stale generated file')), false);
+  });
+
+  await t.test('checkConfigFreshness reports evaluation errors when renderers throw', () => {
+    const fakeRepo = path.join(tmpDir, 'fake-throw-repo');
+    fs.mkdirSync(fakeRepo, { recursive: true });
+    fs.writeFileSync(path.join(fakeRepo, 'AGENTS.md'), '# Repo Agents\n');
+
+    const pDir = path.join(fakeRepo, 'plugins', 'huge-plugin');
+    fs.mkdirSync(path.join(pDir, '.claude-plugin'), { recursive: true });
+    fs.mkdirSync(path.join(pDir, '.cursor', 'rules'), { recursive: true });
+    fs.writeFileSync(path.join(pDir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+      name: 'huge-plugin',
+      description: 'x'.repeat(2500),
+      version: '1.0.0'
+    }));
+    fs.writeFileSync(path.join(pDir, 'AGENTS.md'), 'placeholder');
+    fs.writeFileSync(path.join(pDir, 'GEMINI.md'), 'placeholder');
+    fs.writeFileSync(path.join(pDir, '.cursor', 'rules', 'huge-plugin.mdc'), 'placeholder');
+
+    const plugins = [{ name: 'huge-plugin', badges: {} }];
+    const res = checkConfigFreshness(plugins, fakeRepo);
+    assert.ok(res.some(r => r.severity === 'WARN' && r.message.includes('Failed to evaluate generated file') && r.message.includes('exceeds 2 KiB budget')));
+  });
+
+  await t.test('checkConfigFreshness reports diagnostic warning when generator fails to load', () => {
+    const fakeRepo = path.join(tmpDir, 'fake-broken-gen-repo');
+    fs.mkdirSync(path.join(fakeRepo, 'scripts'), { recursive: true });
+    fs.writeFileSync(path.join(fakeRepo, 'AGENTS.md'), '# Repo Agents\n');
+    // Write syntactically invalid generator script
+    fs.writeFileSync(path.join(fakeRepo, 'scripts', 'generate-cross-platform.js'), 'invalid syntax {{{');
+
+    const plugins = [{ name: 'test-p', badges: {} }];
+    const res = checkConfigFreshness(plugins, fakeRepo);
+    assert.ok(res.some(r => r.severity === 'WARN' && r.message.includes('Failed to load cross-platform generator')));
   });
 
   await t.test('severity isolation in runDoctor', () => {

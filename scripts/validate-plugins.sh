@@ -41,6 +41,12 @@ validate_marketplace() {
   fi
   log_pass "marketplace.json is valid JSON"
 
+  if [[ ! -f "$SCHEMA" ]]; then
+    log_fail "schemas/plugin.schema.json not found"
+    return 1
+  fi
+  log_pass "schemas/plugin.schema.json exists"
+
   # Check required fields
   local errors
   errors="$(jq -r '
@@ -116,6 +122,45 @@ validate_plugin() {
     return
   fi
   log_pass "plugin.json is valid JSON"
+
+  # 2b. Validate against plugin.schema.json
+  if [[ ! -f "$SCHEMA" ]]; then
+    log_fail "schemas/plugin.schema.json not found at ${SCHEMA}"
+    failed=1
+  else
+    local schema_validation=""
+    local schema_err=0
+
+    if command -v node >/dev/null 2>&1; then
+      schema_validation="$(node "$SCRIPT_DIR/validate-schema.js" "$manifest" "$SCHEMA" 2>&1)" || schema_err=1
+    elif command -v python3 >/dev/null 2>&1; then
+      schema_validation="$(python3 -c "
+import json, sys
+try:
+    import jsonschema
+    with open('$SCHEMA') as sf, open('$manifest') as mf:
+        s = json.load(sf)
+        m = json.load(mf)
+    checker = getattr(jsonschema, 'FormatChecker', None)
+    fc = checker() if checker else None
+    jsonschema.validate(instance=m, schema=s, format_checker=fc)
+    print('VALID')
+except Exception as e:
+    print(getattr(e, 'message', str(e)))
+    sys.exit(1)
+" 2>&1)" || schema_err=1
+    else
+      schema_validation="No JSON schema validator runtime available (node or python3 required)"
+      schema_err=1
+    fi
+
+    if [[ $schema_err -eq 0 && ("$schema_validation" == "VALID" || -z "$schema_validation") ]]; then
+      log_pass "plugin.json matches plugin.schema.json"
+    else
+      log_fail "plugin.json schema violation: ${schema_validation}"
+      failed=1
+    fi
+  fi
 
   # 3. Check required fields: name, version, description
   for field in name version description; do

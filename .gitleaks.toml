@@ -1,0 +1,6 @@
+# Gitleaks configuration for agenthaus-marketplace
+# Extends built-in rules so all standard detectors remain active.
+# Specific historical false positives are suppressed in .gitleaksignore.
+
+[extend]
+useDefault = true

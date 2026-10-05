@@ -51,7 +51,9 @@ function stableStringify(obj) {
 function writeIfChanged(filePath, content) {
   try {
     const existing = fs.readFileSync(filePath, 'utf8');
-    if (existing === content) return false;
+    if (existing === content) {
+      return false;
+    }
   } catch (_) { /* file does not exist yet */ }
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, content, 'utf8');
@@ -627,4 +629,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { discoverPlugins, generateAll, injectSkillsPlatforms, loadPlugin, parseFrontmatter, renderAgentsMd, renderClaudeDesktop, renderCursorMcp, renderCursorMdc, renderGeminiMd, renderGeminiSettingsSnippet, renderRepoAgentsMd, stableStringify, transformEnvVars, writeIfChanged };
+module.exports = { discoverPlugins, generateAll, injectSkillsPlatforms, loadPlugin, parseFrontmatter, renderAgentsMd, renderClaudeDesktop, renderCodexToml, renderCursorMcp, renderCursorMdc, renderGeminiMd, renderGeminiSettingsSnippet, renderRepoAgentsMd, renderWindsurfMcp, stableStringify, transformEnvVars, writeIfChanged };

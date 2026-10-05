@@ -212,6 +212,10 @@ function checkCredentials(requiredVars) {
   return results;
 }
 
+function normalizeLineEndings(str) {
+  return typeof str === 'string' ? str.replace(/\r\n/g, '\n') : str;
+}
+
 function checkConfigFreshness(plugins, repoRoot) {
   const results = [];
   
@@ -220,35 +224,75 @@ function checkConfigFreshness(plugins, repoRoot) {
     results.push({ severity: 'WARN', message: 'Repo-level AGENTS.md is missing. Run scripts/generate-cross-platform.js' });
   }
 
+  let gen = null;
+  let genError = null;
+  const repoGenPath = path.join(repoRoot, 'scripts', 'generate-cross-platform.js');
+  try {
+    gen = require(repoGenPath);
+  } catch (err1) {
+    genError = err1;
+    if (!fs.existsSync(repoGenPath)) {
+      try {
+        gen = require('../scripts/generate-cross-platform.js');
+        genError = null;
+      } catch (err2) {
+        genError = err2;
+      }
+    }
+  }
+
+  if (!gen) {
+    results.push({
+      severity: 'WARN',
+      message: `Failed to load cross-platform generator (scripts/generate-cross-platform.js): ${genError ? genError.message : 'Module not found'}`
+    });
+  }
+
   for (const p of plugins) {
     const pDir = path.join(repoRoot, 'plugins', p.name);
     const mPath = path.join(pDir, '.claude-plugin', 'plugin.json');
     if (!fs.existsSync(mPath)) continue;
-    const mTime = fs.statSync(mPath).mtimeMs;
-    
+
+    let pluginData = null;
+    if (gen && typeof gen.loadPlugin === 'function') {
+      try {
+        pluginData = gen.loadPlugin(pDir, p.name);
+      } catch (err) {
+        results.push({ severity: 'WARN', message: `Failed to load plugin metadata for ${p.name}: ${err.message}` });
+      }
+    }
+
     const files = [
-      path.join(pDir, 'AGENTS.md'),
-      path.join(pDir, 'GEMINI.md'),
-      path.join(pDir, '.cursor', 'rules', `${p.name}.mdc`)
+      { path: path.join(pDir, 'AGENTS.md'), getExpected: () => gen && pluginData ? gen.renderAgentsMd(pluginData) : null },
+      { path: path.join(pDir, 'GEMINI.md'), getExpected: () => gen && pluginData ? gen.renderGeminiMd(pluginData) : null },
+      { path: path.join(pDir, '.cursor', 'rules', `${p.name}.mdc`), getExpected: () => gen && pluginData ? gen.renderCursorMdc(pluginData) : null }
     ];
 
-    if (p.badges.mcp) {
+    if ((p.badges && p.badges.mcp) || (pluginData && pluginData.hasMcp)) {
       files.push(
-        path.join(pDir, 'claude-desktop-snippet.json'),
-        path.join(pDir, '.cursor', 'mcp.json'),
-        path.join(pDir, 'gemini-settings-snippet.json'),
-        path.join(pDir, 'windsurf-mcp-snippet.json'),
-        path.join(pDir, 'codex-mcp-config.toml')
+        { path: path.join(pDir, 'claude-desktop-snippet.json'), getExpected: () => gen && pluginData ? gen.renderClaudeDesktop(pluginData) : null },
+        { path: path.join(pDir, '.cursor', 'mcp.json'), getExpected: () => gen && pluginData ? gen.renderCursorMcp(pluginData) : null },
+        { path: path.join(pDir, 'gemini-settings-snippet.json'), getExpected: () => gen && pluginData ? gen.renderGeminiSettingsSnippet(pluginData) : null },
+        { path: path.join(pDir, 'windsurf-mcp-snippet.json'), getExpected: () => (gen && gen.renderWindsurfMcp && pluginData) ? gen.renderWindsurfMcp(pluginData) : null },
+        { path: path.join(pDir, 'codex-mcp-config.toml'), getExpected: () => (gen && gen.renderCodexToml && pluginData) ? gen.renderCodexToml(pluginData) : null }
       );
     }
 
-    for (const f of files) {
+    for (const item of files) {
+      const f = item.path;
       if (!fs.existsSync(f)) {
         results.push({ severity: 'WARN', message: `Missing generated file: ${path.relative(repoRoot, f)}` });
-      } else {
-        const fTime = fs.statSync(f).mtimeMs;
-        if (fTime < mTime) {
-          results.push({ severity: 'WARN', message: `Stale generated file: ${path.relative(repoRoot, f)}` });
+      } else if (pluginData) {
+        try {
+          const expected = item.getExpected();
+          if (expected !== null) {
+            const actual = fs.readFileSync(f, 'utf8');
+            if (normalizeLineEndings(actual) !== normalizeLineEndings(expected)) {
+              results.push({ severity: 'WARN', message: `Stale generated file: ${path.relative(repoRoot, f)}` });
+            }
+          }
+        } catch (err) {
+          results.push({ severity: 'WARN', message: `Failed to evaluate generated file ${path.relative(repoRoot, f)}: ${err.message}` });
         }
       }
     }
@@ -508,6 +552,7 @@ module.exports = {
   checkProviderConfigs,
   checkOwnershipState,
   validateProviderConfigStructure,
+  normalizeLineEndings,
   isMarketplaceHybrid,
   runDoctor
 };
