@@ -69,9 +69,8 @@ describe('Drift Guard & Untracked Files Check', () => {
             fs.cpSync(path.join(repoRoot, 'scripts'), path.join(cleanFixtureDir, 'scripts'), {
                 recursive: true
             });
-            // The generator renders Codex TOML with the shared src/codex-toml.js module
-            fs.mkdirSync(path.join(cleanFixtureDir, 'src'), { recursive: true });
-            fs.copyFileSync(path.join(repoRoot, 'src', 'codex-toml.js'), path.join(cleanFixtureDir, 'src', 'codex-toml.js'));
+            // Copy shared generator dependencies, including opt-in safety wiring.
+            fs.cpSync(path.join(repoRoot, 'src'), path.join(cleanFixtureDir, 'src'), { recursive: true });
             if (fs.existsSync(path.join(repoRoot, 'skills_index.json'))) {
                 fs.copyFileSync(path.join(repoRoot, 'skills_index.json'), path.join(cleanFixtureDir, 'skills_index.json'));
             }

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { renderCodexSnippet } = require('../src/codex-toml.js');
+const { guardPlugin } = require('../src/safety-wiring.js');
 
 const PLUGINS_DIR = path.resolve(__dirname, '..', 'plugins');
 
@@ -629,4 +630,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { discoverPlugins, generateAll, injectSkillsPlatforms, loadPlugin, parseFrontmatter, renderAgentsMd, renderClaudeDesktop, renderCodexToml, renderCursorMcp, renderCursorMdc, renderGeminiMd, renderGeminiSettingsSnippet, renderRepoAgentsMd, renderWindsurfMcp, stableStringify, transformEnvVars, writeIfChanged };
+module.exports = { guardPlugin, discoverPlugins, generateAll, injectSkillsPlatforms, loadPlugin, parseFrontmatter, renderAgentsMd, renderClaudeDesktop, renderCodexToml, renderCursorMcp, renderCursorMdc, renderGeminiMd, renderGeminiSettingsSnippet, renderRepoAgentsMd, renderWindsurfMcp, stableStringify, transformEnvVars, writeIfChanged };
