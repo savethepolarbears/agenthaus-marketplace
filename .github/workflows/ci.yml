@@ -100,6 +100,32 @@ jobs:
       - name: Run test suite
         run: node --test
 
+  qa-droid-smoke:
+    name: QA-Droid MCP Smoke (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: plugins/qa-droid/package-lock.json
+      - name: Install locked dependencies
+        working-directory: plugins/qa-droid
+        run: npm ci --ignore-scripts
+      - name: Install Chromium
+        working-directory: plugins/qa-droid
+        run: npx playwright install --with-deps chromium
+      - name: Verify MCP startup and browser tool
+        working-directory: plugins/qa-droid
+        run: npm test
+
   dependency-audit:
     name: Dependency Vulnerability Audit
     runs-on: ubuntu-latest

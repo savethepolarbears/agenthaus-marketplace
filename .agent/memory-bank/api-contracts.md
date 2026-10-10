@@ -145,6 +145,15 @@ Remote servers use `"type": "http"` (or `"sse"`) with `url` and optional `header
 - Legacy in-config `_agenthaus_mcp` / `_agenthaus_mcp_map` markers are imported and stripped on the next write; namespaced legacy keys (`<plugin>-…`) import as managed, bare keys as unmanaged (provenance unknown, never deleted).
 - Codex uses a marked `# >>> agenthaus:<plugin> >>>` block in `config.toml` instead of the state file.
 
+## QA-Droid STDIO MCP
+
+`plugins/qa-droid/index.js` registers SDK request schemas for `tools/list` and
+`tools/call`. `visit_and_report` requires an HTTP or HTTPS `url` and returns the
+page title. Unknown tools and invalid URLs produce protocol errors; browser
+failures produce `isError: true` tool results. Every launched browser is closed
+in a `finally` block. `npm test` in that plugin runs the real STDIO/browser smoke
+test against a local HTTP fixture; CI covers Node 20, 22, and 24.
+
 ## Environment Variables
 
 See `.env.example` for the complete list. Key variables by plugin are documented in `AGENTS.md` under "Required Environment Variables by Plugin".

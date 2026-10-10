@@ -55,6 +55,22 @@ GMAIL_CREDS={"client_id":"...","client_secret":"..."}
 
 The plugin includes a custom `index.js` that starts a local Playwright MCP server. This is configured as `playwright-local` in `.mcp.json`.
 
+Install its runtime dependencies and Chromium before using the local server:
+
+```bash
+cd plugins/qa-droid
+npm ci --ignore-scripts
+npx playwright install --with-deps chromium
+npm test
+```
+
+`npm test` verifies the STDIO initialization handshake, tool discovery, a real
+browser visit to a local fixture, invalid inputs, and recovery after navigation
+failure. CI runs this smoke test on Node 20, 22, and 24. `visit_and_report` accepts
+HTTP and HTTPS URLs, returns the page title, and closes the browser after both
+successful and failed visits. Navigation failures return an MCP tool error;
+invalid arguments and unknown tools return protocol errors.
+
 ## Architecture
 
 - **playwright-local** -- Custom local MCP server (`index.js`) wrapping Playwright for browser automation

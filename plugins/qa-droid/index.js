@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolRequestSchema, ListToolsRequestSchema, ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { chromium } from 'playwright';
 
 // Create an MCP server with one custom tool: visit_and_report.  When
@@ -16,7 +17,7 @@ const server = new Server({ name: 'qa-droid', version: '1.0.0' }, { capabilities
 /**
  * Lists available tools for the QA-Droid server.
  */
-server.setRequestHandler('tools/list', async () => ({
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: 'visit_and_report',
@@ -32,14 +33,29 @@ server.setRequestHandler('tools/list', async () => ({
  * @param {import('@modelcontextprotocol/sdk/types').CallToolRequest} req - The incoming tool execution request.
  * @returns {Promise<import('@modelcontextprotocol/sdk/types').CallToolResult>} The result of the tool execution.
  */
-server.setRequestHandler('tools/call', async (req) => {
-  if (req.params.name === 'visit_and_report') {
-    const browser = await chromium.launch();
+server.setRequestHandler(CallToolRequestSchema, async (req) => {
+  if (req.params.name !== 'visit_and_report') {
+    throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${req.params.name}`);
+  }
+  const url = req.params.arguments?.url;
+  try {
+    if (typeof url !== 'string' || !['http:', 'https:'].includes(new URL(url).protocol)) {
+      throw new Error('Expected an HTTP or HTTPS URL');
+    }
+  } catch {
+    throw new McpError(ErrorCode.InvalidParams, 'url must be a valid HTTP or HTTPS URL');
+  }
+  let browser;
+  try {
+    browser = await chromium.launch();
     const page = await browser.newPage();
-    await page.goto(req.params.arguments.url);
+    await page.goto(url);
     const title = await page.title();
-    await browser.close();
     return { content: [ { type: 'text', text: `Visited page with title: ${title}` } ] };
+  } catch (error) {
+    return { isError: true, content: [{ type: 'text', text: `Could not visit page: ${error.message}` }] };
+  } finally {
+    await browser?.close();
   }
 });
 
