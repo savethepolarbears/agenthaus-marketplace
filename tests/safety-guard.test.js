@@ -96,7 +96,7 @@ test('a stalled upstream cannot accumulate unbounded notification input', { time
   await h.init();
   const exit = once(h.guard.child, 'exit');
   const params = { progressToken: 'fixture', progress: 1, message: 'x'.repeat(900000) };
-  for (let i = 0; i < 5; i++) h.send({ method: 'notifications/progress', params });
+  for (let i = 0; i < 8; i++) h.send({ method: 'notifications/progress', params });
   assert.ok(h.guard.child.stdin.writableLength <= 4 * MAX_FRAME);
   await exit;
   assert.match(h.stderr(), /Upstream input limit exceeded/);

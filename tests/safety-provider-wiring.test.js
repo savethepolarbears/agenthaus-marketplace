@@ -55,7 +55,8 @@ test('approval wiring selects a separate trusted target file for every server', 
 });
 test('generated Cursor route executes the real guard before upstream', { timeout: 5000 }, async t => {
   const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'guard-wiring-')));
-  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  let child;
+  t.after(() => { try { child?.kill(); } catch {} fs.rmSync(dir, { recursive: true, force: true }); });
   const policyFile = path.join(dir, 'policy.json'), log = path.join(dir, 'calls.jsonl');
   fs.writeFileSync(policyFile, JSON.stringify({ version: 1, rules: [{ id: 'read', tool: 'read', action: 'allow-read' }] }));
   const p = { name: 'fixture', hasMcp: true, manifest: { version: '1.0.0' }, mcpServers: {
@@ -65,8 +66,7 @@ test('generated Cursor route executes the real guard before upstream', { timeout
   const config = JSON.parse(generator.renderCursorMcp(plugin));
   const server = config.mcpServers.fixture;
   fs.writeFileSync(path.join(dir, 'mcp.json'), JSON.stringify(config));
-  const child = spawn(server.command, server.args, { env: { ...process.env, ...server.env }, stdio: ['pipe', 'pipe', 'pipe'], shell: false });
-  t.after(() => child.kill());
+  child = spawn(server.command, server.args, { env: { ...process.env, ...server.env }, stdio: ['pipe', 'pipe', 'pipe'], shell: false });
   const waiting = new Map();
   readFrames(child.stdout, m => { waiting.get(m.id)?.(m); waiting.delete(m.id); }, () => {});
   const send = m => child.stdin.write(JSON.stringify({ jsonrpc: '2.0', ...m }) + '\n');
@@ -87,7 +87,8 @@ test('operator broker refuses noninteractive execution without writing a receipt
 });
 test('a bare-node approval route pins the reviewed executable and prevents outer Node preloads', { timeout: 5000 }, async t => {
   const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'approval-wiring-')));
-  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  let child;
+  t.after(() => { try { child?.kill(); } catch {} fs.rmSync(dir, { recursive: true, force: true }); });
   const log = path.join(dir, 'calls.jsonl'), marker = path.join(dir, 'preload-executed'), preload = path.join(dir, 'preload.cjs');
   fs.writeFileSync(preload, `require('node:fs').writeFileSync(${JSON.stringify(marker)},'ran');`);
   const upstreamArgs = [path.resolve('tests/fixtures/mcp-upstream.js')];
@@ -112,8 +113,7 @@ test('a bare-node approval route pins the reviewed executable and prevents outer
   const guarded = generator.guardPlugin(plugin, options).plugin;
   const server = JSON.parse(generator.renderCursorMcp(guarded)).mcpServers.fixture;
   assert.equal(server.args[server.args.indexOf('--') + 1], process.execPath);
-  const child = spawn(server.command, server.args, { env: { ...process.env, NODE_OPTIONS: `--require ${preload}`, ...server.env }, stdio: ['pipe', 'pipe', 'pipe'] });
-  t.after(() => child.kill());
+  child = spawn(server.command, server.args, { env: { ...process.env, NODE_OPTIONS: `--require ${preload}`, ...server.env }, stdio: ['pipe', 'pipe', 'pipe'] });
   const waiters = new Map();
   readFrames(child.stdout, m => { waiters.get(m.id)?.(m); waiters.delete(m.id); }, () => assert.fail('invalid output'));
   const send = m => child.stdin.write(JSON.stringify(m) + '\n');

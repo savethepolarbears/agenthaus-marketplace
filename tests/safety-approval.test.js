@@ -14,7 +14,18 @@ const { runGuard, readFrames } = require('../src/safety-guard.js');
 
 function fixture(t) {
   const directory = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'agenthaus-approval-'))); fs.chmodSync(directory, 0o700);
-  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const guards = [], extras = [];
+  t.after(async () => {
+    for (const fn of extras) { try { await fn(); } catch {} }
+    for (const g of guards) {
+      if (g.child.exitCode === null && g.child.signalCode === null) {
+        const exit = once(g.child, 'exit');
+        g.stop('cleanup');
+        await exit;
+      }
+    }
+    fs.rmSync(directory, { recursive: true, force: true });
+  });
   const keys = crypto.generateKeyPairSync('ed25519');
   const publicKey = keys.publicKey.export({ type: 'spki', format: 'pem' });
   const privateKey = keys.privateKey.export({ type: 'pkcs8', format: 'pem' });
@@ -30,7 +41,7 @@ function fixture(t) {
     issued_at: new Date(now).toISOString(), expires_at: new Date(now + 60000).toISOString() };
   const receipt = signReceipt(payload, privateKey);
   const options = { publicKey, directory, request, policy, target, actor: payload.actor, provider: payload.provider, resourceScope: payload.resource_scope, now };
-  return { directory, publicKey, privateKey, request, policy, target, now, payload, receipt, options };
+  return { directory, guards, extras, publicKey, privateKey, request, policy, target, now, payload, receipt, options };
 }
 
 test('Ed25519 receipt is consumed once and replay is denied', t => {
@@ -115,8 +126,8 @@ test('target-bound launch pins cwd and environment without recording resolved se
   const input = new PassThrough(), output = new PassThrough(), diagnostics = new PassThrough();
   const result = new Promise(resolve => readFrames(output, resolve, () => assert.fail('invalid frame')));
   const guard = runGuard({ command: process.execPath, args: ['-e', code], policy: f.policy, target,
-    input, output, diagnostics, env: { ACCOUNT: 'unreviewed-account', OPERATOR_KEY: 'FAKE_TEST_SECRET', AMBIENT_CANARY: 'untrusted' } });
-  t.after(async () => { if (guard.child.exitCode === null && guard.child.signalCode === null) { const exit = once(guard.child, 'exit'); guard.stop('cleanup'); await exit; } });
+    input, output, diagnostics, env: { ...process.env, ACCOUNT: 'unreviewed-account', OPERATOR_KEY: 'FAKE_TEST_SECRET', AMBIENT_CANARY: 'untrusted' } });
+  f.guards.push(guard);
   input.write('{"jsonrpc":"2.0","id":"init","method":"initialize"}\n');
   assert.deepEqual((await result).result, { cwd: f.directory, literal: 'reviewed-account', secret: 'FAKE_TEST_SECRET', ambient: null });
   assert.doesNotMatch(JSON.stringify(target), /FAKE_TEST_SECRET/);
@@ -149,18 +160,22 @@ test('excessive TTL, unknown fields and malformed dates cannot be signed', t => 
 });
 test('unsafe or symlinked consumption directories fail closed', t => {
   const f = fixture(t), alias = f.directory + '-link';
-  fs.symlinkSync(f.directory, alias, process.platform === 'win32' ? 'junction' : 'dir'); t.after(() => fs.unlinkSync(alias));
+  fs.symlinkSync(f.directory, alias, process.platform === 'win32' ? 'junction' : 'dir');
+  f.extras.push(() => fs.rmSync(alias, { recursive: true, force: true }));
   assert.equal(consumeReceipt(f.receipt, { ...f.options, directory: alias }), false);
   if (process.platform !== 'win32') { fs.chmodSync(f.directory, 0o755); assert.equal(consumeReceipt(f.receipt, f.options), false); }
 });
 test('competing processes can consume one nonce only once', { timeout: 5000 }, async t => {
   const f = fixture(t);
   const modulePath = require.resolve('../src/approval-receipts.js');
-  const code = 'const fs=require("node:fs");const {consumeReceipt}=require(process.argv[1]);const d=JSON.parse(fs.readFileSync(0,"utf8"));console.log(consumeReceipt(d.receipt,d.options));';
+  const inputFile = path.join(os.tmpdir(), `agenthaus-consume-${crypto.randomUUID()}.json`);
+  fs.writeFileSync(inputFile, JSON.stringify({ receipt: f.receipt, options: f.options }));
+  f.extras.push(() => fs.rmSync(inputFile, { force: true }));
+  const code = 'const fs=require("node:fs");const {consumeReceipt}=require(process.argv[1]);const d=JSON.parse(fs.readFileSync(process.argv[2],"utf8"));console.log(consumeReceipt(d.receipt,d.options));';
   const consume = () => new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['-e', code, modulePath], { stdio: ['pipe', 'pipe', 'pipe'] }); let out = '';
+    const child = spawn(process.execPath, ['-e', code, modulePath, inputFile], { stdio: ['ignore', 'pipe', 'pipe'] }); let out = '';
+    f.extras.push(() => { try { child.kill(); } catch {} });
     child.stdout.on('data', b => { out += b; }); child.on('error', reject); child.on('exit', c => c === 0 ? resolve(out.trim()) : reject(new Error('consumer failed')));
-    child.stdin.end(JSON.stringify({ receipt: f.receipt, options: f.options }));
   });
   assert.deepEqual((await Promise.all([consume(), consume()])).sort(), ['false', 'true']);
 });
@@ -172,7 +187,7 @@ test('signed authorization is wired to the proxy; replay never reaches upstream'
   const inputB = new PassThrough(), outputB = new PassThrough(), stderrB = new PassThrough(), waitersB = new Map();
   const guardB = runGuard({ command: f.target.launch.command, args: f.target.launch.args, policy: f.policy, target: targetB,
     input: inputB, output: outputB, diagnostics: stderrB, authorize: createAuthorizer({ ...f.options, target: targetB, receiptFile }) });
-  t.after(async () => { if (guardB.child.exitCode === null && guardB.child.signalCode === null) { const exit = once(guardB.child, 'exit'); guardB.stop('cleanup'); await exit; } });
+  f.guards.push(guardB);
   readFrames(outputB, m => { waitersB.get(m.id)?.(m); waitersB.delete(m.id); }, () => assert.fail('invalid output'));
   const requestB = m => new Promise(resolve => { waitersB.set(m.id, resolve); inputB.write(JSON.stringify(m) + '\n'); });
   await requestB({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-11-25' } });
@@ -183,7 +198,7 @@ test('signed authorization is wired to the proxy; replay never reaches upstream'
   const authorizer = createAuthorizer({ ...f.options, receiptFile });
   const guard = runGuard({ command: process.execPath, args: [path.join(__dirname, 'fixtures/mcp-upstream.js')], policy: f.policy,
     input, output, diagnostics: stderr, env: { ...process.env, CALL_LOG: log }, target: f.target, authorize: authorizer });
-  t.after(async () => { if (guard.child.exitCode === null && guard.child.signalCode === null) { const exit = once(guard.child, 'exit'); guard.stop('cleanup'); await exit; } });
+  f.guards.push(guard);
   readFrames(output, m => { if (waiters.has(m.id)) { waiters.get(m.id)(m); waiters.delete(m.id); } }, () => assert.fail('invalid output'));
   const request = m => new Promise(resolve => { waiters.set(m.id, resolve); input.write(JSON.stringify(m) + '\n'); });
   await request({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-11-25' } });

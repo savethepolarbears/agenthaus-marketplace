@@ -93,6 +93,11 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
     child.stdout.destroy();
     child.stderr.destroy();
     input.destroy();
+    if (input === process.stdin) {
+      const exitTimer = setTimeout(() => process.exit(0), 100);
+      exitTimer.unref();
+      child.once('close', () => process.exit(0));
+    }
   }
   child.stderr.on('data', () => {}); // Drain without retaining/outputting arbitrary upstream text.
   child.stdin.on('error', () => stop('Upstream input failed'));
