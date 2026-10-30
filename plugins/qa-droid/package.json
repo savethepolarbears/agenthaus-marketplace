@@ -6,7 +6,7 @@
     "test": "node --test smoke.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.1",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "playwright": "1.64.1"
   },
   "overrides": {
