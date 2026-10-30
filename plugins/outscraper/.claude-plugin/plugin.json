@@ -17,6 +17,6 @@
     "./agents/data-researcher.md"
   ],
   "skills": [
-    "./skills/data-scraping/SKILL.md"
+    "./skills/data-scraping"
   ]
 }

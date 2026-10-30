@@ -30,7 +30,7 @@
     "./agents/workflow-automator.md"
   ],
   "skills": [
-    "./skills/apple-productivity/SKILL.md",
-    "./skills/apple-automation/SKILL.md"
+    "./skills/apple-productivity",
+    "./skills/apple-automation"
   ]
 }

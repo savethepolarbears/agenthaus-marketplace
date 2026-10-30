@@ -9,7 +9,7 @@ Every plugin requires `.claude-plugin/plugin.json` with these fields:
 ```json
 {
   "name": "plugin-name",           // Required: kebab-case identifier
-  "description": "What it does",   // Required: under 150 chars, action verb start
+  "description": "What it does",   // Required: human-readable description, minimum 10 characters
   "version": "1.0.0",             // Required: semver
   "author": "Author Name",        // Recommended
   "homepage": "https://...",       // Recommended
@@ -17,13 +17,13 @@ Every plugin requires `.claude-plugin/plugin.json` with these fields:
   "tags": ["category"],           // Array of category strings
   "commands": ["./commands/cmd.md"],  // Explicit paths, NOT globs
   "agents": ["./agents/agent.md"],
-  "skills": ["./skills/name/SKILL.md"],
+  "skills": ["./skills/name"],
   "hooks": ["./hooks/hooks.json"],
   "mcpServers": {}                 // Inline MCP server configs
 }
 ```
 
-> **Critical:** Use explicit file paths (`"./commands/deploy.md"`), never glob patterns (`"./commands/*.md"`).
+> **Critical:** Use explicit component paths, never globs. Skills use directory paths (`"./skills/name"`) containing SKILL.md; commands use explicit Markdown file paths. Installed Claude native validation verifies the current corpus.
 
 ## marketplace.json Registry
 
@@ -95,7 +95,7 @@ Hooks use object format with `hooks` key (NOT flat array):
     "PreToolUse": [
       {
         "matcher": "tool_name",
-        "command": "${CLAUDE_PLUGIN_ROOT}/hooks/script.sh"
+        "hooks": [{ "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/script.sh" }]
       }
     ],
     "PostToolUse": []
@@ -152,8 +152,20 @@ Remote servers use `"type": "http"` (or `"sse"`) with `url` and optional `header
 page title. Unknown tools and invalid URLs produce protocol errors; browser
 failures produce `isError: true` tool results. Every launched browser is closed
 in a `finally` block. `npm test` in that plugin runs the real STDIO/browser smoke
-test against a local HTTP fixture; CI covers Node 20, 22, and 24.
+test against a local HTTP fixture; CI is configured for Node 20, 22, and 24. Hosted results are separate evidence.
 
 ## Environment Variables
 
-See `.env.example` for the complete list. Key variables by plugin are documented in `AGENTS.md` under "Required Environment Variables by Plugin".
+See `.env.example` and each plugin README for required symbolic environment names. Never record secret values in a declaration, receipt or validation output.
+
+## Modular runtime contracts
+
+Native plugin manifests stay canonical. Optional agenthaus.json sidecars follow schemas/agenthaus-metadata.schema.json; requested permissions remain declarations, with missing fields unknown. Skill metadata is validated by src/skill-metadata.js. Capabilities follow schemas/capabilities.schema.json and expose stable identities/digests without full bodies; paging is hash-bound and byte-limited.
+
+Task/result envelopes follow schemas/handoff.schema.json. Actor strings identify declared participants; they do not authenticate OS identities. SQLite blackboard claims require current owner/fence on heartbeat and terminal transitions. CLI legacy plans are limited to4MiB on both preview and apply; preview cannot overwrite database/journal/legacy paths. Migration apply requires an explicitly stopped legacy owner, reviewed plan/resolutions and backup/readback.
+
+Reviewed locks follow schemas/content-lock.schema.json. Verification never renews them. Strict install/update/sync supports genuine copied Cursor/Codex/Copilot/Windsurf payloads, rejects unsupported derivations and validates source/destination before mutation. Dependencies, secrets and external derived provider configuration remain outside payload locks.
+
+Hook results follow schemas/hook-result.schema.json. Allowed requires successful launch/exit0 without timeout, signal or overflow. PreToolUse block/error maps to native denial; PostToolUse cannot undo an action. Required unsupported filesystem/network isolation rejects before launch. Independent-session descendants and Windows process-tree containment remain unsupported.
+
+Guard approval receipts follow schemas/approval-receipt.schema.json and bind the reviewed launch descriptor, request digest, actor/provider/scope, policy and expiry. Only validated correlation metadata is normalized for hashing/forwarding. Nonce replay fails closed. Independently protected operator storage is still a deployment acceptance requirement. See source APIs and README for exact executable CLI arguments; no live provider or production acceptance is inferred from these schemas.

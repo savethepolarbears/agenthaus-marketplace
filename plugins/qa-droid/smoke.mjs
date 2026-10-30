@@ -21,6 +21,8 @@ test('QA-Droid serves tools over STDIO and survives invalid and failed calls', {
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [fileURLToPath(new URL('./index.js', import.meta.url))],
+    // Allow an isolated validation cache without inheriting arbitrary credentials.
+    env: process.env.PLAYWRIGHT_BROWSERS_PATH ? { PLAYWRIGHT_BROWSERS_PATH: process.env.PLAYWRIGHT_BROWSERS_PATH } : {},
     stderr: 'pipe'
   });
   let stderr = '';

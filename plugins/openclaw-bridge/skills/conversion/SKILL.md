@@ -1,5 +1,5 @@
 ---
-name: agenthaus-to-openclaw
+name: conversion
 description: Convert AgentHaus plugins to OpenClaw skill format. Use when migrating plugin configurations between AgentHaus and OpenClaw platforms, mapping commands to actions, agents to personas, or MCP servers to tool providers. Covers env var syntax conversion and validation of converted output.
 ---
 

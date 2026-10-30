@@ -38,6 +38,6 @@
     "./agents/email-composer.md"
   ],
   "skills": [
-    "./skills/google-workspace-cli/SKILL.md"
+    "./skills/google-workspace-cli"
   ]
 }

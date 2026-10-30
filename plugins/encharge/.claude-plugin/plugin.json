@@ -30,6 +30,6 @@
     "./agents/marketing-ops.md"
   ],
   "skills": [
-    "./skills/marketing-automation/SKILL.md"
+    "./skills/marketing-automation"
   ]
 }

@@ -1,6 +1,6 @@
 ---
 name: seo-geo-rag-optimizer
-description: Audits and optimizes a repository, codebase, or blog for Traditional Search (Google/Bing), Generative Engine Optimization (GEO, AI search engines like Perplexity and ChatGPT), and LLM RAG ingestion (Cursor, Copilot, custom vector databases). Use when the user asks to optimize SEO, improve AI search visibility, generate llms.txt, create AI-FAQ.md, audit metadata variables, add JSON-LD structured data, or make a project more discoverable by AI systems. Executes six sequential phases: web research, content sweep, GEO content generation, RAG file generation, code enrichment, and discoverability improvement.
+description: "Audits and optimizes a repository, codebase, or blog for Traditional Search (Google/Bing), Generative Engine Optimization (GEO, AI search engines like Perplexity and ChatGPT), and LLM RAG ingestion (Cursor, Copilot, custom vector databases). Use when the user asks to optimize SEO, improve AI search visibility, generate llms.txt, create AI-FAQ.md, audit metadata variables, add JSON-LD structured data, or make a project more discoverable by AI systems. Executes six sequential phases: web research, content sweep, GEO content generation, RAG file generation, code enrichment, and discoverability improvement."
 ---
 
 # SEO, GEO & RAG Optimization Skill

@@ -19,6 +19,6 @@
     "./commands/migrate.md"
   ],
   "skills": [
-    "./skills/plugin-management/SKILL.md"
+    "./skills/plugin-management"
   ]
 }

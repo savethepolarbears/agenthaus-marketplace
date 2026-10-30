@@ -25,6 +25,6 @@
     }
   },
   "skills": [
-    "./skills/clickup-management/SKILL.md"
+    "./skills/clickup-management"
   ]
 }

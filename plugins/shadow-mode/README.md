@@ -13,7 +13,7 @@ Agents draft outputs to a review queue instead of executing directly. Useful for
 
 ## Prerequisites
 
-No external dependencies or environment variables required.
+Python 3 is required for digest generation and atomic queue publication. No credentials are required. Hook input is limited to 4 MiB; larger requests are blocked without a queue record or raw input logs.
 
 ## Installation
 
@@ -29,7 +29,7 @@ No external dependencies or environment variables required.
 /enable
 ```
 
-Once active, all Write, Edit, and Bash tool calls are intercepted and saved to `review_queue/` as JSON files instead of executing.
+Once active, all Write, Edit, and Bash tool calls are intercepted and recorded as digest-only JSON proposals in `review_queue/` instead of executing.
 
 ### Disable Shadow Mode
 
@@ -45,11 +45,10 @@ Returns to normal execution. Warns if there are unreviewed actions in the queue.
 /review
 ```
 
-Displays all pending actions with details and allows you to:
-- **Approve** individual actions (executes them)
-- **Reject** individual actions (moves to `review_queue/rejected/`)
-- **Skip** for later review
-- **Approve all** or **Reject all** for batch processing
+Displays safe proposal metadata. Each proposal requires fresh operator review of
+the original request and separate approval of the exact operation. Digests cannot
+reconstruct requests. Reject or skip unavailable requests; never replay legacy raw
+parameters or batch-approve unseen operations. See [review](commands/review.md).
 
 ## Architecture
 
@@ -72,7 +71,7 @@ commands/
 
 1. `/enable` creates a `.shadow-mode-enabled` marker file
 2. PreToolUse hooks check for this marker before each Write, Edit, or Bash call
-3. If the marker exists, the hook writes action details to `review_queue/{timestamp}-{tool}.json` and blocks execution (exit 1)
+3. If the marker exists, the hook atomically publishes a digest-only proposal to `review_queue/{random-id}.json` and blocks execution (exit 2)
 4. `/review` reads the queue and allows approve/reject decisions
 5. `/disable` removes the marker file
 
@@ -82,16 +81,20 @@ Each queued action is stored as JSON:
 
 ```json
 {
+  "schema_version": 2,
+  "id": "random-proposal-id",
   "tool": "Write",
-  "timestamp": "2025-01-15T10:30:00Z",
+  "timestamp": "2026-10-24T12:00:00+00:00",
   "status": "pending",
-  "input_file": "src/main.ts",
-  "input_command": ""
+  "request_sha256": "64 hexadecimal characters",
+  "requires_fresh_review": true
 }
 ```
 
 ### Limitations
 
 - Read operations (Read, Glob, Grep) are not intercepted -- shadow mode only affects mutations
-- The queue stores metadata about actions; full content reconstruction depends on the agent re-executing approved actions
+- The queue stores only digests and safe metadata. Fresh operator review of the original request is mandatory; metadata is not execution approval.
+- Hooks cover configured Claude Code events only and supply guidance, with no universal execution boundary or protection against same-user bypass.
+- Missing Python or storage failure blocks the action without claiming a queue record.
 - Shadow mode is project-scoped (the marker file is in the project root)

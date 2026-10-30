@@ -34,8 +34,8 @@
     "./agents/migration-specialist.md"
   ],
   "skills": [
-    "./skills/photo-management/SKILL.md",
-    "./skills/photo-migration/SKILL.md"
+    "./skills/photo-management",
+    "./skills/photo-migration"
   ],
   "hooks": [
     "./hooks/safety-guard.json"

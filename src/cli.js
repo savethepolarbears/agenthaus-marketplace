@@ -5,7 +5,7 @@ const path = require('node:path');
 const { discoverPlugins, PLUGINS_DIR } = require('./catalog.js');
 const { runDoctor } = require('./doctor.js');
 const { getProvider, detectAll, getAllProviders } = require('./providers/index.js');
-const { installPlugin, uninstallPlugin, updatePlugin, isInstalled } = require('./installer.js');
+const { installPlugin, uninstallPlugin, updatePlugin, isInstalled, isForeignInstallation } = require('./installer.js');
 const { cleanOrphanedCache, cleanStaleTempFiles, healDirectorySymlinks, repairInstalledHooks } = require('./sync.js');
 const { pruneStaleOwnership } = require('./providers/mcp-ownership.js');
 const ui = require('./ui.js');
@@ -23,6 +23,8 @@ function parseCliArgs(rawArgs) {
       verbose: { type: 'boolean', short: 'v', default: false },
       fix: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
+      'strict-integrity': { type: 'boolean', default: false },
+      'lock-file': { type: 'string' },
       help: { type: 'boolean', short: 'h', default: false },
       version: { type: 'boolean', default: false },
     },
@@ -56,7 +58,7 @@ function findPlugin(name) {
   return p;
 }
 
-async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user' }) {
+async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user', strictIntegrity = false, lockFile }) {
   if (!VALID_METHODS.includes(method)) {
     throw new Error(`Invalid --method '${method}'. Expected one of: ${VALID_METHODS.join(', ')}`);
   }
@@ -64,24 +66,25 @@ async function handleInstall({ target, plugin, all, method, dryRun, mode = 'user
 
   if (all) {
     const plugins = discoverPlugins();
+    if (strictIntegrity) preflightStrictMutation(plugins, provider, targetDir, { method, lockFile });
     for (const p of plugins) {
-      const res = installPlugin(p.path, targetDir, { method, dryRun, provider });
+      const res = installPlugin(p.path, targetDir, { method, dryRun, provider, strictIntegrity, lockFile });
       ui.info(`Plugin ${p.name}: ${res.status}`);
     }
   } else if (plugin) {
     const p = findPlugin(plugin);
-    const res = installPlugin(p.path, targetDir, { method, dryRun, provider });
+    const res = installPlugin(p.path, targetDir, { method, dryRun, provider, strictIntegrity, lockFile });
     ui.info(`Plugin ${p.name}: ${res.status}`);
   } else {
     if (!process.stdin.isTTY) throw new Error('Missing required --plugin flag');
     const plugins = discoverPlugins();
     const selected = await ui.promptSelect('Select plugin to install:', plugins.map(p => ({ name: p.name, value: p })));
-    const res = installPlugin(selected.path, targetDir, { method, dryRun, provider });
+    const res = installPlugin(selected.path, targetDir, { method, dryRun, provider, strictIntegrity, lockFile });
     ui.info(`Plugin ${selected.name}: ${res.status}`);
   }
 }
 
-async function handleUpdate({ target, plugin, all, dryRun, mode = 'user' }) {
+async function handleUpdate({ target, plugin, all, dryRun, mode = 'user', strictIntegrity = false, lockFile }) {
   const { provider, targetDir } = await resolveProviderTarget(target, mode);
 
   if (!all && !plugin) {
@@ -96,15 +99,17 @@ async function handleUpdate({ target, plugin, all, dryRun, mode = 'user' }) {
   }
 
   if (all) {
+    if (strictIntegrity) assertStrictProvider(provider);
     const installed = discoverPlugins().filter(p => isInstalled(p.path, targetDir, provider));
+    if (strictIntegrity) preflightStrictMutation(installed, provider, targetDir, { lockFile });
     if (installed.length === 0) ui.info(`No installed plugins found for ${provider.name}`);
     for (const p of installed) {
-      const res = updatePlugin(p.path, targetDir, { dryRun, provider });
+      const res = updatePlugin(p.path, targetDir, { dryRun, provider, strictIntegrity, lockFile });
       ui.info(`Plugin ${p.name}: ${res.status} ${res.fromVersion ? `(${res.fromVersion} -> ${res.toVersion})` : ''}`);
     }
   } else if (plugin) {
     const p = findPlugin(plugin);
-    const res = updatePlugin(p.path, targetDir, { dryRun, provider });
+    const res = updatePlugin(p.path, targetDir, { dryRun, provider, strictIntegrity, lockFile });
     ui.info(`Plugin ${p.name}: ${res.status} ${res.fromVersion ? `(${res.fromVersion} -> ${res.toVersion})` : ''}`);
   }
 }
@@ -153,6 +158,7 @@ function syncProvider(provider, mode, dryRun) {
     const actions = healDirectorySymlinks(targetDir, PLUGINS_DIR, { dryRun });
     for (const a of actions) ui.info(`Symlink ${provider.name}: ${a.type} ${a.path}`);
   }
+  refreshProviderRegistrations(provider, targetDirs, dryRun);
   for (const r of repairProviderHooks(provider, targetDirs, dryRun)) {
     ui.info(`Hook ${r.plugin}: repaired ${path.basename(r.hookFile)} (${r.actions.map(x => x.type).join(', ')})`);
   }
@@ -168,13 +174,88 @@ function syncProvider(provider, mode, dryRun) {
   }
 }
 
-async function handleSync({ target, all, dryRun, mode }) {
+function refreshProviderRegistrations(provider, targetDirs, dryRun) {
+  if (typeof provider.postInstall !== 'function') return;
+  const fs = require('node:fs'), catalog = new Map(discoverPlugins().map(p => [p.name, p]));
+  const plans = [];
+  for (const targetDir of targetDirs) {
+    if (!fs.existsSync(targetDir)) continue;
+    for (const entry of fs.readdirSync(targetDir, { withFileTypes: true })) {
+      const plugin = catalog.get(entry.name);
+      if (!plugin || (!entry.isDirectory() && !entry.isSymbolicLink()) || !isInstalled(plugin.path, targetDir, provider)) continue;
+      const installed = path.join(targetDir, entry.name);
+      if (isForeignInstallation(installed, plugin.path)) continue;
+      if (entry.isSymbolicLink()) {
+        try { if (fs.realpathSync(installed) !== fs.realpathSync(plugin.path)) continue; }
+        catch { continue; }
+      }
+      // Whole-directory symlinks need a distinct real source for Antigravity's conversion.
+      const source = entry.isSymbolicLink() ? plugin.path : installed;
+      if (typeof provider.preflightInstall === 'function') provider.preflightInstall(source, targetDir);
+      plans.push({ source, targetDir });
+    }
+  }
+  for (const plan of plans) provider.postInstall(plan.source, plan.targetDir, { dryRun });
+}
+
+function assertStrictProvider(provider) {
+  if (!provider || !new Set(['cursor', 'codex', 'copilot', 'windsurf']).has(provider.id)) throw new Error('Strict copied registration is unsupported for this provider');
+}
+function verifyStrictInstalled(directory) {
+  const verified = require('./integrity.js').verifyContentLock(directory, undefined, { installed: true });
+  if (!verified.ok) throw new Error(`Installed content integrity failed: ${verified.errors[0].code}`);
+  return verified.snapshot;
+}
+function preflightStrictMutation(plugins, provider, targetDir, { method, lockFile }) {
+  const fs = require('node:fs'); assertStrictProvider(provider);
+  if (method !== undefined && method !== 'copy') throw new Error('Strict installation requires a verified copy');
+  for (const plugin of plugins) {
+    const source = require('./integrity.js').preflightPlugin(plugin.path, { strictIntegrity: true, lockFile });
+    const destination = path.join(targetDir, plugin.name);
+    if (typeof provider.preflightInstall === 'function') provider.preflightInstall(plugin.path, targetDir);
+    try { fs.lstatSync(destination); }
+    catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    const installed = verifyStrictInstalled(destination);
+    if (method === 'copy' && source.tree_sha256 !== installed.tree_sha256) throw new Error('Strict install source differs from the installed payload; use a reviewed update');
+  }
+}
+
+function preflightStrictSync(providers, mode, lockFile) {
+  const fs = require('node:fs');
+  const supported = new Set(['cursor', 'codex', 'copilot', 'windsurf']);
+  const catalog = new Map(discoverPlugins().map(p => [p.name, p]));
+  const plans = [];
+  for (const provider of providers) {
+    if (!provider || !supported.has(provider.id)) throw new Error('Strict registration sync is unsupported for this provider');
+    for (const targetDir of targetDirsFor(provider, mode)) {
+      if (!fs.existsSync(targetDir)) continue;
+      for (const entry of fs.readdirSync(targetDir, { withFileTypes: true })) {
+        const installed = path.join(targetDir, entry.name);
+        if (!entry.isDirectory() || entry.isSymbolicLink() || !catalog.has(entry.name)) throw new Error('Strict sync requires a known copied installation');
+        require('./integrity.js').preflightPlugin(catalog.get(entry.name).path, { strictIntegrity: true, lockFile });
+        const snapshot = verifyStrictInstalled(installed);
+        if (typeof provider.preflightInstall === 'function') provider.preflightInstall(installed, targetDir);
+        plans.push({ provider, targetDir, snapshot });
+      }
+    }
+  }
+  return plans; // All selected inputs verified before the first provider write.
+}
+
+async function handleSync({ target, all, dryRun, mode, strictIntegrity = false, lockFile }) {
   assertMode(mode);
   if (!target && !all) {
     if (!process.stdin.isTTY) throw new Error('Missing required --target or --all flag');
     all = await ui.promptConfirm('Sync all providers?', true);
   }
 
+  if (strictIntegrity) {
+    const providers = all ? detectAll(process.cwd()) : [getProvider(target)];
+    const plans = preflightStrictSync(providers, mode, lockFile);
+    for (const plan of plans) require('./integrity.js').withVerifiedStage(plan.snapshot, stage => plan.provider.postInstall(stage, plan.targetDir, { dryRun }));
+    ui.info(`Verified registration sync: ${plans.length} installed plugins`);
+    return; // Locked payload repair and generic cleanup are not part of this mode.
+  }
   if (all) {
     for (const p of detectAll(process.cwd())) syncProvider(p, mode, dryRun);
     for (const a of pruneStaleOwnership({ dryRun })) ui.info(`State: ${a.type} ${a.path}`);
@@ -186,6 +267,11 @@ async function handleSync({ target, all, dryRun, mode }) {
 }
 
 async function runCli(rawArgs) {
+  if (require('./runtime-cli.js').FAMILIES.has(rawArgs[0])) {
+    try { await require('./runtime-cli.js').runRuntimeCli(rawArgs); }
+    catch (error) { ui.error(error.message); process.exitCode = 1; }
+    return;
+  }
   let parsed;
   try {
     parsed = parseCliArgs(rawArgs);
@@ -211,6 +297,10 @@ async function runCli(rawArgs) {
   const dryRun = values['dry-run'];
 
   try {
+    const strictIntegrity = values['strict-integrity'];
+    const lockFile = values['lock-file'] ? path.resolve(values['lock-file']) : undefined;
+    if (strictIntegrity && command === 'doctor' && values.fix) throw new Error('Strict doctor repair is unsupported; use verified registration sync');
+    if (strictIntegrity && !['install', 'update', 'sync', 'doctor'].includes(command)) throw new Error('Strict integrity is supported for install, update and sync');
     switch (command) {
       case 'list':
         const plugins = discoverPlugins();
@@ -252,16 +342,16 @@ async function runCli(rawArgs) {
         process.exit(docRes.fail_count > 0 ? 1 : 0);
         break;
       case 'install':
-        await handleInstall({ target: values.target, plugin: values.plugin, all: values.all, method: values.method, dryRun, mode: values.mode });
+        await handleInstall({ target: values.target, plugin: values.plugin, all: values.all, method: values.method, dryRun, mode: values.mode, strictIntegrity, lockFile });
         break;
       case 'uninstall':
         await handleUninstall({ target: values.target, plugin: values.plugin, all: values.all, dryRun, mode: values.mode });
         break;
       case 'update':
-        await handleUpdate({ target: values.target, plugin: values.plugin, all: values.all, dryRun, mode: values.mode });
+        await handleUpdate({ target: values.target, plugin: values.plugin, all: values.all, dryRun, mode: values.mode, strictIntegrity, lockFile });
         break;
       case 'sync':
-        await handleSync({ target: values.target, all: values.all, dryRun, mode: values.mode });
+        await handleSync({ target: values.target, all: values.all, dryRun, mode: values.mode, strictIntegrity, lockFile });
         break;
       default:
         if (command) {
@@ -290,6 +380,13 @@ Commands:
   update     Update installed plugins
   sync       Heal symlinks, repair hooks, purge stale caches and temp files
   doctor     Run diagnostic engine
+  skill      Validate or safely read a selected skill
+  capabilities  Build, page and benchmark lean skill discovery
+  permissions   Inspect declarations without granting access
+  lock       Explicitly renew or verify a reviewed content lock
+  unicode    Inspect deceptive Unicode with scoped exceptions
+  hook       Run an explicitly configured bounded hook or inspect limits
+  task       Coordinate typed local tasks with fenced SQLite leases
 
 Targets: antigravity, claude, codex, copilot, cursor, windsurf
 
@@ -303,6 +400,8 @@ Options:
   -v, --verbose           Verbose output
   --fix                   Fix issues automatically
   --dry-run               Dry run
+  --strict-integrity      Verify reviewed locks before install/update/sync
+  --lock-file <file>      Explicit lock for source verification
   -h, --help              Show help
   --version               Show version
 `);

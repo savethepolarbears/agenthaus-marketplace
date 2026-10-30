@@ -1,0 +1,210 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/savethepolarbears/agenthaus-marketplace/schemas/content-lock.schema.json",
+  "title": "AgentHaus reviewed plugin payload lock",
+  "description": "Deterministic content drift detection; not publisher authentication, runtime isolation, dependency attestation or an independent approval signature.",
+  "type": "object",
+  "required": [
+    "version",
+    "plugin",
+    "algorithm",
+    "exclusion_policy",
+    "exclusions",
+    "limitations",
+    "unicode_exceptions",
+    "derived",
+    "files",
+    "tree_sha256",
+    "executable_policy"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "enum": [
+        1
+      ]
+    },
+    "plugin": {
+      "type": "string",
+      "minLength": 1
+    },
+    "algorithm": {
+      "type": "string",
+      "enum": [
+        "sha256"
+      ]
+    },
+    "exclusion_policy": {
+      "type": "string",
+      "enum": [
+        "agenthaus-plugin-payload-v1"
+      ]
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "lock-self",
+          "secret-environment-files",
+          "node_modules",
+          ".git",
+          ".venv",
+          "venv",
+          "__pycache__"
+        ]
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "unicode_exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "code_point",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "code_point": {
+            "type": "string",
+            "pattern": "^U\\+[0-9A-F]{4,6}$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "derived": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "kind",
+          "sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "enum": [
+              ".agenthaus-install.json"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "installer-ownership-v1"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "path",
+              "type",
+              "size",
+              "sha256",
+              "executable"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "file"
+                ]
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "executable": {
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "description": "POSIX aggregate executable bit; null only with explicit unavailable-on-windows policy. ACL/owner/other mode bits are not attested."
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "path",
+              "type",
+              "target",
+              "sha256"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "symlink"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "tree_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "executable_policy": {
+      "type": "string",
+      "enum": [
+        "posix-executable-bit-v1",
+        "unavailable-on-windows"
+      ]
+    }
+  }
+}

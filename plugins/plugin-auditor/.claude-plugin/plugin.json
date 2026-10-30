@@ -20,6 +20,6 @@
     "./agents/security-reviewer.md"
   ],
   "skills": [
-    "./skills/audit-checks/SKILL.md"
+    "./skills/audit-checks"
   ]
 }

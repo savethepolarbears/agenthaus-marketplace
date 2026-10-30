@@ -23,6 +23,26 @@ const { isPlainObject, readJsonObject, writeJsonAtomic } = require('../fs-utils.
 
 const STATE_VERSION = 1;
 const LEGACY_OWNERSHIP_KEYS = ['_agenthaus_mcp', '_agenthaus_mcp_map'];
+const dictionary = value => Object.assign(Object.create(null), value || {});
+function validServer(server) {
+  if (!isPlainObject(server)) return false;
+  const remote = ['url','httpUrl','serverUrl'].filter(key => server[key] !== undefined);
+  if (server.command !== undefined) {
+    if (typeof server.command !== 'string' || !server.command.trim() || remote.length || (server.type !== undefined && server.type !== 'stdio')) return false;
+  } else if (!remote.length || remote.some(key => typeof server[key] !== 'string' || !server[key].trim()) || (server.type !== undefined && !['http','sse'].includes(server.type))) return false;
+  if (server.args !== undefined && (!Array.isArray(server.args) || server.args.some(value => typeof value !== 'string'))) return false;
+  if (server.cwd !== undefined && typeof server.cwd !== 'string') return false;
+  for (const key of ['env','headers']) if (server[key] !== undefined && (!isPlainObject(server[key]) || Object.values(server[key]).some(value => typeof value !== 'string'))) return false;
+  return true;
+}
+function validServers(servers) {
+  return isPlainObject(servers) && Object.entries(servers).every(([key,server]) => key.length > 0 && key.length <= 512 && !/[\x00-\x1f\x7f]/.test(key) && validServer(server));
+}
+
+function readProviderConfig(filePath, label, { dryRun = false } = {}) {
+  try { return readJsonObject(filePath, label, { dryRun }); }
+  catch { throw new Error(`Malformed ${label} or unavailable config; preserving existing registrations.`); }
+}
 
 function getStatePath() {
   if (process.env.AGENTHAUS_STATE_FILE) return path.resolve(process.env.AGENTHAUS_STATE_FILE);
@@ -50,8 +70,11 @@ function configIdFor(configPath) {
 }
 
 function loadState({ dryRun = false } = {}) {
-  const state = readJsonObject(getStatePath(), 'AgentHaus state', { dryRun });
-  if (!isPlainObject(state.mcp)) state.mcp = {};
+  let state;
+  try { state = readJsonObject(getStatePath(), 'AgentHaus state', { dryRun }); }
+  catch { throw new Error('Malformed or unavailable AgentHaus state; preserving existing registrations.'); }
+  if (validateState(state)) throw new Error('Malformed or unsupported AgentHaus state; preserving existing registrations.');
+  if (state.mcp === undefined) state.mcp = {};
   state.version = STATE_VERSION;
   return state;
 }
@@ -84,11 +107,12 @@ function readServersSnippet(filePath, label, serversKey = 'mcpServers') {
   try {
     parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (err) {
-    return warn(`Malformed MCP snippet (${err.message})`);
+    return warn('Malformed MCP snippet');
   }
   if (!isPlainObject(parsed)) return warn('Malformed MCP snippet: expected JSON object');
   if (parsed[serversKey] === undefined) return warn(`Snippet missing '${serversKey}'`);
   if (!isPlainObject(parsed[serversKey])) return warn(`Invalid '${serversKey}': expected JSON object`);
+  if (!validServers(parsed[serversKey])) return warn('Invalid MCP server definition');
   return { servers: parsed[serversKey], failed: false };
 }
 
@@ -114,7 +138,7 @@ function importLegacyOwnership(config, records) {
   for (const [plugin, keys] of Object.entries(legacyKeys)) {
     if (records[plugin] || !Array.isArray(keys)) continue;
     const pluginMap = isPlainObject(legacyMap[plugin]) ? legacyMap[plugin] : {};
-    const record = {};
+    const record = dictionary();
     // Legacy markers did not record whether a bare key was created by agenthaus or
     // adopted from an identical pre-existing user entry. Only namespaced keys
     // (<plugin>-...) are unambiguously ours; bare keys migrate as unmanaged so they
@@ -144,12 +168,13 @@ function importLegacyOwnership(config, records) {
  * Returns { changed, keys } where keys maps source key -> destination key.
  */
 function syncPluginServers({ configPath, pluginName, servers, label, serversKey = 'mcpServers', dryRun = false }) {
-  const config = readJsonObject(configPath, label, { dryRun });
+  if (typeof pluginName !== 'string' || !pluginName || pluginName.length > 128 || /[\x00-\x1f\x7f]/.test(pluginName) || !['mcpServers','servers'].includes(serversKey) || (servers !== null && !validServers(servers))) throw new Error('Invalid plugin or MCP server definition; preserving existing registrations.');
+  const config = readProviderConfig(configPath, label, { dryRun });
   const state = loadState({ dryRun });
   const configId = configIdFor(configPath);
-  const records = isPlainObject(state.mcp[configId]) ? { ...state.mcp[configId] } : {};
+  const records = dictionary(state.mcp[configId]);
   const migrated = importLegacyOwnership(config, records);
-  const previous = isPlainObject(records[pluginName]) ? records[pluginName] : {};
+  const previous = dictionary(records[pluginName]);
 
   if (servers === null && Object.keys(previous).length === 0 && !migrated) {
     return { changed: false, keys: {} };
@@ -158,7 +183,7 @@ function syncPluginServers({ configPath, pluginName, servers, label, serversKey 
     throw new Error(`'${serversKey}' in ${label} at ${configPath} must be an object. Aborting to preserve existing configuration.`);
   }
 
-  const entries = { ...(config[serversKey] || {}) };
+  const entries = dictionary(config[serversKey]);
   const entriesBefore = JSON.stringify(entries);
 
   // destination key -> managed flag held by other plugins (false if any owner reused a user entry)
@@ -184,7 +209,7 @@ function syncPluginServers({ configPath, pluginName, servers, label, serversKey 
   };
 
   const claimed = new Set();
-  const next = {};
+  const next = dictionary();
 
   for (const [sourceKey, srvConfig] of Object.entries(servers || {})) {
     let assignment = null;
@@ -280,7 +305,7 @@ function forgetPlugin(configPath, pluginName, { dryRun = false } = {}) {
   let state;
   try { state = loadState({ dryRun }); } catch { return; }
   const configId = configIdFor(configPath);
-  if (!isPlainObject(state.mcp[configId]) || !state.mcp[configId][pluginName]) return;
+  if (!isPlainObject(state.mcp[configId]) || !Object.hasOwn(state.mcp[configId],pluginName)) return;
   delete state.mcp[configId][pluginName];
   if (Object.keys(state.mcp[configId]).length === 0) delete state.mcp[configId];
   if (!dryRun) writeJsonAtomic(getStatePath(), state);
@@ -288,7 +313,7 @@ function forgetPlugin(configPath, pluginName, { dryRun = false } = {}) {
 
 /** Source key -> destination key for a plugin in a config (state file plus legacy markers). */
 function getPluginMapping(configPath, pluginName) {
-  const records = {};
+  const records = dictionary();
   try {
     const state = loadState({ dryRun: true });
     Object.assign(records, state.mcp[configIdFor(configPath)] || {});
@@ -343,6 +368,7 @@ function pruneStaleOwnership({ dryRun = false } = {}) {
 /** Structural validation of the state file for `doctor`. Returns an error string or null. */
 function validateState(state) {
   if (!isPlainObject(state)) return 'state must be a JSON object';
+  if (state.version !== undefined && state.version !== STATE_VERSION) return 'unsupported state version';
   if (state.mcp === undefined) return null;
   if (!isPlainObject(state.mcp)) return "'mcp' must be an object";
   for (const [configId, records] of Object.entries(state.mcp)) {
@@ -360,10 +386,12 @@ function validateState(state) {
 }
 
 module.exports = {
+  validServers,
   LEGACY_OWNERSHIP_KEYS,
   getStatePath,
   loadState,
   readServersSnippet,
+  readProviderConfig,
   resolvePluginRoot,
   syncPluginServers,
   removePluginServers,

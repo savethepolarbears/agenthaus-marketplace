@@ -1,46 +1,18 @@
 ---
 name: status
-description: Display the task board showing all pending, active, and completed tasks
+description: Read the legacy task board and separately report validated typed handoff evidence
 ---
 
-You are displaying the agent task board from the blackboard protocol.
+Read `.context/inbox/`, `.context/active/` and `.context/completed/` without modification. Missing directories are empty; malformed files are invalid, not completed. Show task ID, requirements summary, legacy status, assigned runtime actor, timestamps and result/error. `$ARGUMENTS` containing `json` requests the same scoped observation as JSON. Do not print secrets from inputs/outputs.
 
-Follow these steps:
+Legacy files remain the compatibility board until Phase 13. Label their format `legacy`; JSON parsing alone is not schema-v1 validation.
 
-1. **Read all task directories**:
-   - `.context/inbox/` -- pending tasks
-   - `.context/active/` -- in-progress tasks
-   - `.context/completed/` -- finished tasks (completed or failed)
+If the project explicitly enabled the SQLite blackboard, report its existing database as the authoritative execution state and legacy files as read-only historical compatibility. Capability probing must not create a database; absence/unavailable backend is unknown/unavailable, not an empty successful board. Read/list operations must not initialize missing state. Show current owner, fencing token, lease expiry and terminal result separately from process liveness; none proves an external effect succeeded.
 
-   If a directory does not exist, treat it as empty.
+For `.context/typed/<task_id>/` sidecars, use the marketplace checkout's `src/handoff.js`. `validateEnvelope(envelope,{projectRoot})` checks strict fields and current file digests. To prove a valid lifecycle, replay dispatch, claim and result through one `createHandoffSession({projectRoot})`, with the recorded actor for each operation. A standalone result cannot prove a correlated claim. Missing history/artifacts, changed digests, wrong actors/correlation and repeated results remain explicit failures or unknowns.
 
-2. **Parse each JSON file** in each directory and extract: `task_id`, `requirements` (truncated to 80 chars), `status`, `assigned_to`, `created_at`, `completed_at`.
+Standalone cached plugins do not contain the repository-root helper. Typed checks require a separately available marketplace repository runtime; without it, label typed validation unavailable while continuing read-only legacy status. Do not imply that this plugin bundles an executor or install a runtime implicitly.
 
-3. **Display the task board** in this format:
+Display typed and legacy state separately, with validation time and disagreements. Calculate counts/durations only from observed data. Status, valid digest, local fixture, live execution and production readback are separate evidence tiers. This command does not repair, retry, execute work or capture memory.
 
-```
-=== TASK BOARD ===
-
-PENDING ({count})
-| Task ID (short) | Requirements          | Created     |
-|------------------|-----------------------|-------------|
-| abc123...        | Fix the login ...     | 2 min ago   |
-
-IN PROGRESS ({count})
-| Task ID (short) | Requirements          | Assigned To    | Started     |
-|------------------|-----------------------|----------------|-------------|
-| def456...        | Build the API ...    | claude-agent-1 | 1 min ago   |
-
-COMPLETED ({count})
-| Task ID (short) | Requirements          | Result         | Duration    |
-|------------------|-----------------------|----------------|-------------|
-| ghi789...        | Update the docs ...  | Done: updated  | 3 min       |
-
-FAILED ({count})
-| Task ID (short) | Requirements          | Error          | Retries     |
-|------------------|-----------------------|----------------|-------------|
-```
-
-4. **Summary line**: Total tasks, breakdown by status, average completion time if available.
-
-If $ARGUMENTS contains "json", output the raw JSON instead of the formatted table.
+Optional MemPalace recall must be separately enabled and read-only. Disabled/unavailable recall falls back to native task/artifact state with `source: local-artifact-state`; do not infer absent remote facts or silently capture them.

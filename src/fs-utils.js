@@ -21,7 +21,7 @@ function readJsonObject(filePath, label, { dryRun = false } = {}) {
   try {
     parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (err) {
-    throw malformedError(filePath, label, err.message, dryRun);
+    throw malformedError(filePath, label, 'invalid JSON syntax', dryRun);
   }
   if (!isPlainObject(parsed)) {
     throw malformedError(filePath, label, 'expected a JSON object', dryRun);

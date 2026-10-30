@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentHaus Safety Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "rules"],
+  "properties": {
+    "version": { "const": 1 },
+    "rules": {
+      "type": "array", "maxItems": 256,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "tool", "action"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{1,64}$" },
+          "tool": { "type": "string", "pattern": "^[a-zA-Z0-9_./:-]{1,128}\\*?$|^\\*$" },
+          "action": { "enum": ["deny", "require-approval", "allow-read"] },
+          "resource_scope": { "type": "string", "minLength": 1, "maxLength": 512 }
+        }
+      }
+    }
+  }
+}

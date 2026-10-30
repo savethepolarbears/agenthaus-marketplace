@@ -18,6 +18,6 @@
     "./commands/create-page.md"
   ],
   "skills": [
-    "./skills/notion-management/SKILL.md"
+    "./skills/notion-management"
   ]
 }

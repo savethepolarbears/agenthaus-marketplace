@@ -5,6 +5,8 @@ const path = require('node:path');
 const os = require('node:os');
 const { isPlainObject, writeFileAtomic } = require('../fs-utils.js');
 const { renderCodexServer, renderServerBlock } = require('../codex-toml.js');
+const { parseToml, findManagedBlocks, serverKeys } = require('../toml-structure.js');
+const { validServers } = require('./mcp-ownership.js');
 
 function getConfigPath(targetDir) {
   return path.join(path.dirname(targetDir), 'config.toml');
@@ -17,23 +19,20 @@ function blockMarkers(pluginName) {
   };
 }
 
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-// Remove this plugin's managed block; returns the remaining text.
-function stripBlock(content, pluginName) {
-  const { start, end } = blockMarkers(pluginName);
-  const re = new RegExp(`\\n*${escapeRegExp(start)}[\\s\\S]*?${escapeRegExp(end)}\\n?`, 'g');
-  return content.replace(re, '\n');
-}
-
-// Server names declared as [mcp_servers.<name>] / [mcp_servers."<name>"] tables.
-function declaredServerKeys(content) {
-  const keys = new Set();
-  const re = /^\s*\[\s*mcp_servers\s*\.\s*(?:"((?:[^"\\]|\\.)*)"|'([^']*)'|([A-Za-z0-9_-]+))\s*[\].]/gm;
-  for (const m of content.matchAll(re)) keys.add(m[1] !== undefined ? JSON.parse(`"${m[1]}"`) : (m[2] ?? m[3]));
-  return keys;
+function boundedText(filePath) {
+  const fd = fs.openSync(filePath, 'r');
+  const limit = 4 * 1024 * 1024;
+  try {
+    const stat = fs.fstatSync(fd);
+    if (!stat.isFile() || stat.size > limit) throw new Error('Codex configuration file exceeds supported regular-file size limit.');
+    const buffer = Buffer.alloc(limit + 1);
+    let count = 0, read;
+    while (count < buffer.length && (read = fs.readSync(fd, buffer, count, buffer.length - count, null))) count += read;
+    if (count > limit) throw new Error('Codex configuration file exceeds size limit.');
+    const text = buffer.subarray(0,count).toString('utf8');
+    if (!Buffer.from(text).equals(buffer.subarray(0,count))) throw new Error('Codex configuration is not valid UTF-8.');
+    return text;
+  } finally { fs.closeSync(fd); }
 }
 
 function readPluginServers(sourceDir) {
@@ -45,12 +44,13 @@ function readPluginServers(sourceDir) {
   };
   let parsed;
   try {
-    parsed = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+    parsed = JSON.parse(boundedText(mcpPath));
   } catch (err) {
-    return fail(`Malformed .mcp.json (${err.message})`);
+    return fail('Malformed or unsupported .mcp.json');
   }
   if (!isPlainObject(parsed)) return fail('Malformed .mcp.json: expected JSON object');
   if (!isPlainObject(parsed.mcpServers)) return fail("Invalid 'mcpServers': expected JSON object");
+  if (!validServers(parsed.mcpServers)) return fail('Invalid MCP server definitions');
   return parsed.mcpServers;
 }
 
@@ -59,35 +59,33 @@ function readPluginServers(sourceDir) {
  * should not be touched (nothing to add and nothing to remove).
  */
 function planConfig(configPath, pluginName, servers, pluginRoot) {
+  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(pluginName)) throw new Error('Invalid Codex plugin ownership identity.');
   const exists = fs.existsSync(configPath);
-  const original = exists ? fs.readFileSync(configPath, 'utf8') : '';
-  const base = stripBlock(original, pluginName).replace(/\n{3,}/g, '\n\n').trimEnd();
-  const taken = declaredServerKeys(base);
-
+  const original = exists ? boundedText(configPath) : '';
+  const document = parseToml(original);
+  const blocks = findManagedBlocks(document);
+  const own = blocks.get(pluginName);
+  const base = own ? original.slice(0,own.start) + original.slice(own.end) : original;
+  const taken = serverKeys(parseToml(base));
   const rendered = [];
   for (const [key, server] of Object.entries(servers || {})) {
     let finalKey = key;
-    for (let n = 1; taken.has(finalKey); n++) {
-      finalKey = n === 1 ? `${pluginName}-${key}` : `${pluginName}-${key}-${n}`;
-    }
+    for (let n = 1; taken.has(finalKey); n++) finalKey = n === 1 ? `${pluginName}-${key}` : `${pluginName}-${key}-${n}`;
     if (finalKey !== key) console.log(`[warn] Codex: MCP server '${key}' conflicts with an existing entry; registered as '${finalKey}' for ${pluginName}`);
-    const r = renderCodexServer(finalKey, server, { pluginRoot });
-    if (!r.supported) {
-      console.warn(`[warn] Codex: ${r.notes.join('; ')}`);
-      continue;
-    }
-    taken.add(finalKey);
-    rendered.push(renderServerBlock(r));
+    const result = renderCodexServer(finalKey, server, { pluginRoot });
+    if (!result.supported) { console.warn(`[warn] Codex: ${result.notes.join('; ')}`); continue; }
+    taken.add(finalKey); rendered.push(renderServerBlock(result));
   }
-
   let next = base;
-  if (rendered.length > 0) {
-    const { start, end } = blockMarkers(pluginName);
-    next = `${base}${base ? '\n\n' : ''}${start}\n${rendered.join('\n\n')}\n${end}`;
+  if (rendered.length) {
+    const separator = own ? '\n'.repeat(own.separator) : (base ? (base.endsWith('\n') ? '\n' : '\n\n') : '');
+    const {start,end} = blockMarkers(pluginName);
+    const block = `${separator}${start}\n# agenthaus-separator-bytes: ${separator.length}\n${rendered.join('\n\n')}\n${end}\n`;
+    next = own ? original.slice(0,own.start) + block + original.slice(own.end) : base + block;
   }
-  next = next ? next + '\n' : '';
-  if (next === original || (!exists && next === '')) return null;
-  return next;
+  // Validate the complete candidate before any provider write (including AGENTS).
+  findManagedBlocks(parseToml(next));
+  return next === original || (!exists && !next) ? null : next;
 }
 
 function findOrCreateAgentsPath(cwd) {
@@ -120,8 +118,23 @@ module.exports = {
   getCapabilities() {
     return { mcp: 'via config.toml', hooks: false, commands: 'partial', skills: true };
   },
+  preflightInstall(sourceDir, targetDir) {
+    const pluginName = path.basename(sourceDir);
+    const servers = readPluginServers(sourceDir);
+    if (servers === undefined) throw new Error('Codex MCP source is malformed or unsupported; no provider writes are authorized.');
+    const configPath = getConfigPath(targetDir);
+    return { configPath, next: planConfig(configPath, pluginName, servers, path.join(targetDir, pluginName)) };
+  },
+  preflightUninstall(pluginName, targetDir) {
+    const configPath = getConfigPath(targetDir);
+    return { configPath, next: planConfig(configPath, pluginName, {}, null) };
+  },
   postInstall(sourceDir, targetDir, { dryRun = false } = {}) {
     const pluginName = path.basename(sourceDir);
+    const servers = readPluginServers(sourceDir);
+    if (servers === undefined) return;
+    const configPath = getConfigPath(targetDir);
+    const next = planConfig(configPath, pluginName, servers, path.join(targetDir, pluginName));
     const hasSkills = fs.existsSync(path.join(sourceDir, 'skills'));
     
     if (hasSkills) {
@@ -184,11 +197,7 @@ module.exports = {
       console.log(`[info] Codex: Reference skills in AGENTS.md: '${skillRef}'`);
     }
 
-    // Register MCP servers as [mcp_servers.<name>] tables in config.toml
-    const servers = readPluginServers(sourceDir);
-    if (servers === undefined) return;
-    const configPath = getConfigPath(targetDir);
-    const next = planConfig(configPath, pluginName, servers, path.join(targetDir, pluginName));
+    // The complete candidate was preflighted before any AGENTS/config writes.
     if (next !== null && !dryRun) {
       writeFileAtomic(configPath, next);
       if (path.resolve(path.dirname(configPath)) !== path.resolve(os.homedir(), '.codex')) {
@@ -210,18 +219,16 @@ module.exports = {
     }
 
     const agentsPath = findOrCreateAgentsPath(process.cwd());
-    const skillPattern = `${pluginName}/skills/`;
     if (fs.existsSync(agentsPath)) {
       try {
         const content = fs.readFileSync(agentsPath, 'utf8');
-        if (content.includes(skillPattern)) {
-          const updated = content
-            .split('\n')
-            .filter(line => !line.includes(skillPattern))
-            .join('\n');
-          if (!dryRun) {
-            writeFileAtomic(agentsPath, updated, { backup: false });
-          }
+        const suffix = `${pluginName}/skills/`;
+        const updated = content.replace(/^<!-- agenthaus:codex-skills -->\r?\n- Read skills from ([^\r\n]+)(?:\r?\n|$)/gm, (block, reference) => {
+          const normalized = reference.replace(/\\/g, '/');
+          return normalized === suffix || normalized.endsWith('/' + suffix) ? '' : block;
+        });
+        if (updated !== content && !dryRun) {
+          writeFileAtomic(agentsPath, updated, { backup: false });
         }
       } catch {}
     }

@@ -1,0 +1,153 @@
+{
+  "plugins": {
+    "activepieces": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "agent-handoff": {
+      "reason": "Versioned local contract and explicit optional-memory adapter; live service connectivity is separate.",
+      "status": "supported"
+    },
+    "agent-memory": {
+      "reason": "Versioned local contract and explicit optional-memory adapter; live service connectivity is separate.",
+      "status": "supported"
+    },
+    "apple-photos": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "apple-workflows": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "circuit-breaker": {
+      "reason": "Execution authority and task safety stay with the native owner; optional memory cannot grant write permission.",
+      "status": "not-applicable"
+    },
+    "clickup-tasks": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "cloudflare-platform": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "context7-docs": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "data-core": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "devops-flow": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "encharge": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "fleet-commander": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "github-integration": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "gog-workspace": {
+      "reason": "Execution authority and task safety stay with the native owner; optional memory cannot grant write permission.",
+      "status": "not-applicable"
+    },
+    "knowledge-synapse": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "marketplace-cli": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "markupgo": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "neon-db": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "neuronwriter": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "notfair-marketing": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "notion-workspace": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "openclaw-bridge": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "outscraper": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "playwright-testing": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "plugin-auditor": {
+      "reason": "Execution authority and task safety stay with the native owner; optional memory cannot grant write permission.",
+      "status": "not-applicable"
+    },
+    "qa-droid": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "seo-content-suite": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "seo-geo-rag": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "shadow-mode": {
+      "reason": "Execution authority and task safety stay with the native owner; optional memory cannot grant write permission.",
+      "status": "not-applicable"
+    },
+    "social-media": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "task-commander": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "textfocus": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "ux-ui": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "vercel-deploy": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "vistasocial-scheduler": {
+      "reason": "May consume optional read-only context using runtime:project:actor identity; native plugin artifacts remain the fallback.",
+      "status": "optional"
+    },
+    "wp-cli-fleet": {
+      "reason": "Execution authority and task safety stay with the native owner; optional memory cannot grant write permission.",
+      "status": "not-applicable"
+    }
+  },
+  "version": 1
+}

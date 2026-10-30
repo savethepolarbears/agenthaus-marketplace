@@ -1,40 +1,28 @@
 ---
 name: review
-description: Review and approve or reject queued shadow mode actions
+description: Review digest-only shadow proposals against freshly supplied original requests
 ---
 
-You are reviewing actions queued during shadow mode.
+Review JSON records in `review_queue/`, excluding `rejected/`. Report when empty.
 
-Follow these steps:
+1. Display only ID, timestamp, allowlisted tool, status and `request_sha256`.
+   Do not display or execute raw parameters found in legacy queue files: those
+   files may contain secrets. Treat legacy records as requiring fresh review.
+2. For each proposal, ask the operator to return to the original request in the
+   current session, or provide its intended operation again using secret-store
+   references. The digest cannot reconstruct a command or prove authorization.
+3. Inspect the fresh operation, exact target, arguments, authorization and current
+   state. If exact original request bytes are available in memory, compare their
+   SHA-256 with the record; a mismatch requires a new proposal and review.
+4. Offer **Review fresh request**, **Reject** (move to `rejected/`) or **Skip**.
+   Never replay a saved payload or batch-approve unknown operations. Approval of
+   metadata alone cannot authorize execution.
+5. Execute only after separate, fresh operator approval of the complete operation
+   through the provider's normal execution path. Do not silently disable the marker
+   to bypass interception. If the active hook blocks again, leave the record pending
+   and report that execution did not occur.
+6. Mark completed only after observed execution/readback; otherwise preserve pending
+   status. Summarize completed, rejected and skipped records without raw requests.
 
-1. **List queued actions**: Read all JSON files from `review_queue/` (excluding the `rejected/` subdirectory). If the directory is empty or does not exist, report "No actions queued for review" and stop.
-
-2. **Display each action** with details:
-```
-=== REVIEW QUEUE ({count} actions) ===
-
-[1] {timestamp} | Tool: Write
-    File: src/main.ts
-    Content preview: (first 5 lines of content)
-    ---
-
-[2] {timestamp} | Tool: Bash
-    Command: npm install express
-    ---
-
-[3] {timestamp} | Tool: Edit
-    File: package.json
-    Change: old_string -> new_string (preview)
-    ---
-```
-
-3. **Process each action**: For each queued action, present the options:
-   - **Approve**: Execute the action as originally intended (run the tool call with the saved parameters)
-   - **Reject**: Move the JSON file to `review_queue/rejected/`
-   - **Skip**: Leave in queue for later review
-   - **Approve all**: Execute all remaining queued actions
-   - **Reject all**: Move all remaining to rejected
-
-4. **Execute approved actions**: For each approved action, execute the original tool call and report success or failure.
-
-5. **Summary**: Display how many actions were approved, rejected, and skipped.
+Native hooks cover only configured Claude Code tool events and supply guidance;
+other providers, direct execution and same-user bypass remain outside this boundary.

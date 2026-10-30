@@ -18,6 +18,6 @@
     "./commands/remote.md"
   ],
   "skills": [
-    "./skills/conversion/SKILL.md"
+    "./skills/conversion"
   ]
 }

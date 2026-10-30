@@ -17,6 +17,6 @@
     "./agents/seo-writer.md"
   ],
   "skills": [
-    "./skills/seo-content/SKILL.md"
+    "./skills/seo-content"
   ]
 }

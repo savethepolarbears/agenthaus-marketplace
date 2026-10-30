@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentHaus Operator Approval Receipt v2",
+  "type": "object", "additionalProperties": false,
+  "required": ["payload", "signature"],
+  "properties": {
+    "signature": { "type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$" },
+    "payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["version", "receipt_id", "request_sha256", "policy_sha256", "target_sha256", "actor", "provider", "resource_scope", "issued_at", "expires_at", "nonce"],
+      "properties": {
+        "version": { "const": 2 },
+        "receipt_id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{16,128}$" },
+        "nonce": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{16,128}$" },
+        "request_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "policy_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "target_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "actor": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "provider": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "resource_scope": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "issued_at": { "type": "string", "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

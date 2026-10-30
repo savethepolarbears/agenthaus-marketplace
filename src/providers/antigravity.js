@@ -3,8 +3,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-const { readJsonObject, writeJsonAtomic } = require('../fs-utils.js');
-const { readServersSnippet, syncPluginServers, removePluginServers } = require('./mcp-ownership.js');
+const { writeJsonAtomic } = require('../fs-utils.js');
+const { readProviderConfig, readServersSnippet, resolvePluginRoot, syncPluginServers, removePluginServers } = require('./mcp-ownership.js');
 
 const GEMINI_LABEL = 'Gemini settings';
 const ANTIGRAVITY_LABEL = 'Antigravity MCP config';
@@ -31,7 +31,7 @@ function isAntigravityPresent(configPath) {
 // Antigravity accepts only `serverUrl` for remote servers ("url"/"httpUrl" are rejected).
 function toAntigravityServers(servers) {
   if (!servers) return servers;
-  const out = {};
+  const out = Object.create(null);
   for (const [key, srv] of Object.entries(servers)) {
     const remoteUrl = srv.serverUrl || srv.httpUrl || srv.url;
     if (!srv.command && remoteUrl) {
@@ -52,18 +52,19 @@ function syncAll(sourceDir, targetDir, { dryRun }) {
   const pluginName = path.basename(sourceDir);
   const { servers, failed } = loadPluginServers(sourceDir);
   if (failed) return false;
+  const installedServers = resolvePluginRoot(servers, ['${CLAUDE_PLUGIN_ROOT}'], path.join(targetDir, pluginName));
   const agConfigPath = getAntigravityConfigPath(targetDir);
   const agPresent = isAntigravityPresent(agConfigPath);
   // Read both destinations first so a malformed second config aborts before the first is written.
-  readJsonObject(getGeminiSettingsPath(targetDir), GEMINI_LABEL, { dryRun });
-  if (agPresent || fs.existsSync(agConfigPath)) readJsonObject(agConfigPath, ANTIGRAVITY_LABEL, { dryRun });
+  readProviderConfig(getGeminiSettingsPath(targetDir), GEMINI_LABEL, { dryRun });
+  if (agPresent || fs.existsSync(agConfigPath)) readProviderConfig(agConfigPath, ANTIGRAVITY_LABEL, { dryRun });
   const gemini = syncPluginServers({
-    configPath: getGeminiSettingsPath(targetDir), pluginName, servers, label: GEMINI_LABEL, dryRun
+    configPath: getGeminiSettingsPath(targetDir), pluginName, servers: installedServers, label: GEMINI_LABEL, dryRun
   });
   const antigravity = syncPluginServers({
     configPath: agConfigPath,
     pluginName,
-    servers: agPresent ? toAntigravityServers(servers) : null,
+    servers: agPresent ? toAntigravityServers(installedServers) : null,
     label: ANTIGRAVITY_LABEL,
     dryRun
   });

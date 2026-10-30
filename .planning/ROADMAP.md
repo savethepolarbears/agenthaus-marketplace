@@ -1,99 +1,180 @@
-# Roadmap: Milestone v2.0 — Unified CLI, Universal Runtime Guard & MemPalace Protocol
+# Roadmap: v2.1 — The Modular Agentic Runtime
 
 ## Overview
 
-Milestone v1.0 established the foundational 27-plugin cross-platform ecosystem. Milestone v2.0 expands the now 37-plugin marketplace with an autonomous developer toolchain: a unified zero-dependency CLI with self-healing cache repair, an MCP-level Universal Runtime Guard bringing human-in-the-loop safety to non-hook environments (Antigravity, Codex, Cursor, Copilot, Windsurf), and a standardized Multi-Agent Handoff protocol backed by the MemPalace shared memory hub.
+Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions, external MCP ownership, and provider lifecycle invariants. v2.0 is incomplete: its guard, handoff and integrity requirements move here with original Phase 6–8 ownership. New features continue at Phase 9. Phase 5 summaries exist but final verification is missing; BASE-01 renews that baseline in 06-01 before guard work.
 
 ## Phases
 
-- [x] **Phase 5: Unified CLI & Self-Healing Installer** - Build `bin/agenthaus.js` CLI with multi-provider detection, doctor diagnostics, and automated runtime cache self-healing (CLI-01, CLI-02, CLI-03, CLI-04).
-- [ ] **Phase 6: Universal Runtime Guard** - Implement the MCP safety interceptor for cross-platform destructive action confirmation and policy enforcement (GUARD-01, GUARD-02, GUARD-03, GUARD-04).
-- [ ] **Phase 7: Multi-Agent Handoff & MemPalace Protocol** - Standardize inter-agent task handoffs and integrate the local MemPalace shared memory hub across all 37 plugins (MEM-01, MEM-02, MEM-03, MEM-04).
-- [ ] **Phase 8: Cross-Platform Integrity & Documentation Refresh** - Wire CI health gates, verify zero cross-platform drift, and refresh documentation for Antigravity, Codex, Claude, Cursor, and Copilot (INFRA-01, INFRA-02, INFRA-03).
+- [ ] **Phase 6: Universal Runtime Guard — v2.0 Gap Closure** — Accept the existing CLI baseline and enforce fail-closed approvals at an MCP boundary.
+- [x] **Phase 7: Typed Handoffs & MemPalace — v2.0 Gap Closure** — Provide validated handoff envelopes and a local, reproducible coordination reference flow.
+- [x] **Phase 8: Integrity & Documentation — v2.0 Gap Closure** — Close legacy CI, generation, and documentation gaps with reproducible receipts.
+- [x] **Phase 9: Compatible Skill & Security Metadata** — Define standards-compatible metadata without breaking Claude plugin manifests.
+- [x] **Phase 10: Progressive Disclosure & Skill Read** — Generate deterministic lean discovery and safely retrieve full skills on demand.
+- [x] **Phase 11: Unicode Hygiene & Integrity Lock** — Detect deceptive source content and verify deterministic plugin tree integrity before mutation.
+- [x] **Phase 12: Typed Hook Contracts & Execution Boundaries** — Standardize hook outcomes while enforcing honest execution and environment boundaries.
+- [x] **Phase 13: Atomic Blackboard Coordination** — Prevent duplicate task execution with atomic leases and fenced completion.
+- [x] **Phase 14: Provider Structural Editing & Runtime Proof** — Preserve user configurations while proving the supported transport and lifecycle matrix.
 
 ## Phase Details
 
-### Phase 5: Unified CLI & Self-Healing Installer
+### Phase 6: Universal Runtime Guard — v2.0 Gap Closure
 
-**Goal**: Build a fast, zero-dependency Node.js CLI executable (`bin/agenthaus.js` / `@agenthaus/cli`) providing interactive discovery, multi-provider installation, doctor diagnostics, and automated runtime cache self-healing.
-**Depends on**: Milestone v1.0 completion
-**Requirements**: CLI-01, CLI-02, CLI-03, CLI-04
-**Success Criteria** (what must be TRUE):
+**Goal:** Accept the existing CLI baseline and enforce fail-closed approvals at an MCP boundary.
+**Depends on:** Existing Phase 5 implementation; baseline acceptance renewed in 06-01
+**Requirements:** BASE-01, GUARD-01, GUARD-02, GUARD-03, GUARD-04
+**Success Criteria:**
 
-  1. Running `bin/agenthaus.js list` displays all 37 plugins with version, category, and supported platform badges.
-  2. Running `bin/agenthaus.js doctor` evaluates provider health, hook schema compliance, and MCP binary accessibility across Antigravity, Claude Code, Codex CLI, Cursor, and Copilot.
-  3. Running `bin/agenthaus.js sync --all` automatically detects and purges stale caches and obsolete hook definitions from provider directories without manual intervention.
-  4. Plugins can be installed interactively or via `--target <provider>` with symlink and copy support.
+1. Existing CLI behavior is exercised and legacy Phase 5 verification is renewed without treating summaries as acceptance.
+2. A denied tool call never reaches a local fixture upstream; an authorized call reaches it exactly once.
+3. Malformed policies, receipt replay, wrong request/policy/identity, expiry, and unavailable approval all fail closed.
+4. Five plugin integrations declare their execution owner; direct tools outside the proxy remain explicitly unprotected.
 
-**Plans**: 2 plans
-**Wave 1**
+**Execution status:** Three plans implemented, including supplemental review remediation. 222 core tests and 37 plugin validations pass. Temporary real-provider and PTY approval/replay checks pass; deployed independent operator protection and hosted CI remain unverified. Phase verification stays `human_needed`.
 
-- [x] 05-01-PLAN.md — Build core CLI architecture, provider resolver, and doctor diagnostics
+**Plans:** 3 gap-closure plans
+- [x] 06-01-PLAN.md — tracer and core contract
+- [x] 06-02-PLAN.md — integration and adversarial coverage
+- [x] 06-03-PLAN.md — target-bound receipts and actual provider/PTY regression closure
 
-**Wave 2** *(blocked on Wave 1 completion)*
+### Phase 7: Typed Handoffs & MemPalace — v2.0 Gap Closure
 
-- [x] 05-02-PLAN.md — Implement self-healing sync engine, cache cleaner, and interactive installer
+**Goal:** Provide validated handoff envelopes and a local, reproducible coordination reference flow.
+**Depends on:** Phase 6
+**Requirements:** MEM-01, MEM-02, MEM-03, MEM-04
+**Success Criteria:**
 
-### Phase 6: Universal Runtime Guard
+1. Invalid envelopes and mismatched correlation or artifact digests stop the reference chain.
+2. All 37 discovered plugins have an explicit memory integration status; generated guidance is on demand.
+3. MemPalace unavailable/disabled cases preserve native-state fallback and perform no palace writes.
+4. Offline reference execution passes without credentials or external publication; live acceptance remains separate.
 
-**Goal**: Implement a cross-platform MCP safety interceptor (`agenthaus-safety-guard`) that provides destructive-action confirmation (HITL) across runtimes lacking native PreToolUse hooks (Antigravity, Codex, Cursor, Copilot, Windsurf).
-**Depends on**: Phase 5
-**Requirements**: GUARD-01, GUARD-02, GUARD-03, GUARD-04
-**Success Criteria** (what must be TRUE):
+**Plans:** 2 gap-closure plans
+- [x] 07-01-PLAN.md — tracer and core contract
+- [x] 07-02-PLAN.md — integration and adversarial coverage
 
-  1. Destructive tool actions (database drop, reset, deployment, deletion) trigger confirmation prompts on non-hook platforms.
-  2. Policy engine supports regex matching, dry-run flags, and configurable bypass thresholds.
-  3. Safety policies seamlessly protect `circuit-breaker`, `wp-cli-fleet`, `devops-flow`, `activepieces`, and `shadow-mode`.
+### Phase 8: Integrity & Documentation — v2.0 Gap Closure
 
-**Plans**: 2 plans
+**Goal:** Close legacy CI, generation, and documentation gaps with reproducible receipts.
+**Depends on:** Phase 6, Phase 7
+**Requirements:** INFRA-01, INFRA-02, INFRA-03
+**Success Criteria:**
 
-- [ ] 06-01-PLAN.md — Design and build MCP Safety Guard interceptor proxy and policy engine
-- [ ] 06-02-PLAN.md — Wire safety policies across all destructive-action plugins and test across providers
+1. CI runs isolated health checks without modifying the runner user profile or requiring vendor credentials.
+2. Two generation passes and existing drift tests produce identical outputs for all discovered plugins.
+3. Documentation lists supported paths, execution owners, approval limits, and fixture versus live evidence.
+4. Legacy requirement mapping is complete and evidence records exact source HEAD and scoped policy hashes.
 
-### Phase 7: Multi-Agent Handoff & MemPalace Protocol
+**Plans:** 2 gap-closure plans
+- [x] 08-01-PLAN.md — tracer and core contract
+- [x] 08-02-PLAN.md — integration and adversarial coverage
 
-**Goal**: Standardize an inter-agent task handoff schema (`agent-handoff`) and integrate the local MemPalace shared memory hub across all 37 marketplace plugins.
-**Depends on**: Phase 5, Phase 6
-**Requirements**: MEM-01, MEM-02, MEM-03, MEM-04
-**Success Criteria** (what must be TRUE):
+### Phase 9: Compatible Skill & Security Metadata
 
-  1. `agent-handoff` JSON envelope specification is formally defined, documented, and validated with JSON Schema.
-  2. All 37 plugin instructions provide MemPalace integration guidelines using canonical agent identity (`polar-bear:antigravity:agenthaus-marketplace`).
-  3. Workflow instructions include `/gsd-mempalace-recall` and `/gsd-mempalace-capture` integration patterns.
-  4. A reference pipeline (`seo-content-suite` $\to$ `vistasocial-scheduler` $\to$ `wp-cli-fleet`) executes with verified handoffs and MemPalace receipts.
+**Goal:** Define standards-compatible metadata without breaking Claude plugin manifests.
+**Depends on:** Phase 8
+**Requirements:** META-01, META-02, META-03
+**Success Criteria:**
 
-**Plans**: 2 plans
+1. All current canonical manifests retain valid explicit string paths and pass existing validation; current official directory-path semantics receive a real-loader compatibility review.
+2. All actual skill files are enumerated separately from the 177-entry commands/agents/skills index.
+3. Malformed metadata, unsafe paths, and undeclared permissions produce actionable diagnostics.
+4. Extensions are clearly AgentHaus metadata; declarations are never represented as runtime enforcement.
 
-- [ ] 07-01-PLAN.md — Define agent handoff envelope schema and validator
-- [ ] 07-02-PLAN.md — Standardize MemPalace MCP integration and build reference multi-agent pipeline
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 09-01-PLAN.md — implementation, adversarial coverage and root integration
 
-### Phase 8: Cross-Platform Integrity & Documentation Refresh
+### Phase 10: Progressive Disclosure & Skill Read
 
-**Goal**: Wire CI health gates, verify zero cross-platform drift, and refresh documentation for Antigravity, Codex, Claude, Cursor, and Copilot.
-**Depends on**: Phase 5, Phase 6, Phase 7
-**Requirements**: INFRA-01, INFRA-02, INFRA-03
-**Success Criteria** (what must be TRUE):
+**Goal:** Generate deterministic lean discovery and safely retrieve full skills on demand.
+**Depends on:** Phase 9
+**Requirements:** CTX-01, CTX-02, CTX-03, CTX-04
+**Success Criteria:**
 
-  1. GitHub Actions CI runs `agenthaus doctor` and verifies zero cache drift on every PR.
-  2. `scripts/generate-cross-platform.js` produces zero drift across all 37 plugins.
-  3. README, CONTRIBUTING, and per-plugin docs provide clear setup guides for Antigravity, Codex, Claude, Cursor, and Copilot.
+1. Two generation passes produce byte-identical manifests; skill bodies are absent from Tier-1 output.
+2. Every discovered skill remains reachable through paged discovery and safe read-by-identity.
+3. Provider files preserve unmanaged prose and bounded discovery; malformed markers fail without writes.
+4. Tokenizer identity, byte counts, baseline, corpus coverage, and routing test outcomes are recorded.
 
-**Plans**: 2 plans
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 10-01-PLAN.md — implementation, adversarial coverage and root integration
 
-- [ ] 08-01-PLAN.md — Add CI doctor checks, drift guards, and test automation
-- [ ] 08-02-PLAN.md — Comprehensive documentation refresh across all platforms and plugins
+### Phase 11: Unicode Hygiene & Integrity Lock
+
+**Goal:** Detect deceptive source content and verify deterministic plugin tree integrity before mutation.
+**Depends on:** Phase 9, Phase 10
+**Requirements:** SEC-01, SEC-02, LOCK-01, LOCK-02, LOCK-03
+**Success Criteria:**
+
+1. Bidi, hidden tag, and zero-width attack fixtures fail; allowed multilingual and literal demonstration fixtures pass only with scoped exceptions.
+2. Two lock generations are identical and exclusions cannot hide executable plugin payloads.
+3. Changed/missing/added payloads and escaping symlinks cause zero provider writes in strict mode.
+4. Lock renewal is explicit; normal verification cannot silently bless modified content.
+
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 11-01-PLAN.md — implementation, adversarial coverage and root integration
+
+### Phase 12: Typed Hook Contracts & Execution Boundaries
+
+**Goal:** Standardize hook outcomes while enforcing honest execution and environment boundaries.
+**Depends on:** Phase 6, Phase 11
+**Requirements:** HOOK-01, HOOK-02, HOOK-03
+**Success Criteria:**
+
+1. Claude hook adapters retain documented event-specific behavior; JSON logging cannot accidentally permit a blocked command.
+2. Canary secrets do not reach disallowed child environments or appear in logs and error paths.
+3. Timeouts terminate the process tree, output is bounded, and malformed hook results fail safely.
+4. Isolation capability tests distinguish environment cleaning from real filesystem/network protection.
+
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 12-01-PLAN.md — implementation, adversarial coverage and root integration
+
+### Phase 13: Atomic Blackboard Coordination
+
+**Goal:** Prevent duplicate task execution with atomic leases and fenced completion.
+**Depends on:** Phase 7, Phase 12
+**Requirements:** COORD-01, COORD-02, COORD-03
+**Success Criteria:**
+
+1. Two competing worker processes yield one enabled owner for each logical task.
+2. A reclaimed task rejects every write from its expired owner; heartbeat and completion honor the current fencing token.
+3. Crash/restart tests preserve task state and prevent duplicate completion acceptance.
+4. Legacy migration is idempotent and backup-backed; SQLite versus file locking is decided against tested platform support.
+
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 13-01-PLAN.md — implementation, adversarial coverage and root integration
+
+### Phase 14: Provider Structural Editing & Runtime Proof
+
+**Goal:** Preserve user configurations while proving the supported transport and lifecycle matrix.
+**Depends on:** Phase 8, Phase 10, Phase 11, Phase 12, Phase 13
+**Requirements:** PROV-01, PROV-02, PROV-03, PROV-04, E2E-01, E2E-02
+**Success Criteria:**
+
+1. User-owned/shared server fixtures survive every uninstall order and all existing lifecycle hardening tests pass.
+2. TOML edge-case fixtures preserve unrelated values/comments and malformed configurations produce zero writes.
+3. Local stdio/HTTP initialization and calls pass for documented compatible paths; unsupported provider cases remain explicit.
+4. All existing and new gates pass, with a receipt that cannot turn generated configuration or replayed evidence into live provider acceptance.
+
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 14-01-PLAN.md — implementation, adversarial coverage and root integration
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 5 → 6 → 7 → 8
+Phases7–14 passed criterion-level local verification on2026-10-25. Phase6 remains deferred/human_needed. Phase checkboxes reflect the supported local contract; milestone/deployment acceptance remains open. Current evidence: reports/autonomous-closeout/receipt.json.
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 5. Unified CLI & Self-Healing Installer | 0/2 | Pending | — |
-| 6. Universal Runtime Guard | 0/2 | Pending | — |
-| 7. Multi-Agent Handoff & MemPalace Protocol | 0/2 | Pending | — |
-| 8. Cross-Platform Integrity & Documentation Refresh | 0/2 | Pending | — |
+The user explicitly authorized continuing Phases7–14 while Phase6 acceptance stays open. Checked plan boxes mean local implementation, not deployment acceptance. Full gate outcomes and exact source/policy hashes are in reports/remaining-phases/receipt.json. No milestone completion is asserted.
 
----
-*Roadmap created: 2026-09-24 for Milestone v2.0*
+| Phase | Plans | Status | Local verification |
+|---|---|---|---|
+| 6 | 3/3 | Local implementation verified; independent operator acceptance open | No |
+| 7 | 2/2 | Typed handoffs, memory fallback and offline reference implemented | Passed |
+| 8 | 2/2 | Isolated health, deterministic generation and receipts implemented | Passed |
+| 9 | 1/1 | Metadata, permissions and native manifest compatibility implemented | Passed |
+| 10 | 1/1 | Capabilities, paging, safe read and benchmark implemented | Passed |
+| 11 | 1/1 | Unicode, reviewed locks and strict staging implemented | Passed |
+| 12 | 1/1 | Hook contracts and bounded execution implemented | Passed |
+| 13 | 1/1 | Atomic leases, fencing and migration implemented | Passed |
+| 14 | 1/1 | Structural config editing, lifecycle and protocol matrix implemented | Passed |
+
+Native execution observations cover one Claude Code stdio/HTTP fixture profile and one skill; other provider runtime discovery remains unverified. No deployment, hosted CI, vendor write or independent operator acceptance follows from local tests.

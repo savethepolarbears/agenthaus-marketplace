@@ -28,6 +28,6 @@
     "./agents/asset-designer.md"
   ],
   "skills": [
-    "./skills/asset-generation/SKILL.md"
+    "./skills/asset-generation"
   ]
 }

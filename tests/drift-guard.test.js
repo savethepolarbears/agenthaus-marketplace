@@ -69,9 +69,8 @@ describe('Drift Guard & Untracked Files Check', () => {
             fs.cpSync(path.join(repoRoot, 'scripts'), path.join(cleanFixtureDir, 'scripts'), {
                 recursive: true
             });
-            // The generator renders Codex TOML with the shared src/codex-toml.js module
-            fs.mkdirSync(path.join(cleanFixtureDir, 'src'), { recursive: true });
-            fs.copyFileSync(path.join(repoRoot, 'src', 'codex-toml.js'), path.join(cleanFixtureDir, 'src', 'codex-toml.js'));
+            // Copy shared generator dependencies, including opt-in safety wiring.
+            fs.cpSync(path.join(repoRoot, 'src'), path.join(cleanFixtureDir, 'src'), { recursive: true });
             if (fs.existsSync(path.join(repoRoot, 'skills_index.json'))) {
                 fs.copyFileSync(path.join(repoRoot, 'skills_index.json'), path.join(cleanFixtureDir, 'skills_index.json'));
             }
@@ -107,6 +106,25 @@ describe('Drift Guard & Untracked Files Check', () => {
             const lines = status ? status.split('\n') : [];
             const untracked = lines.filter(l => l.startsWith('??'));
             assert.deepStrictEqual(untracked, [], 'Generator should not produce untracked artifacts');
+
+            const { artifactSnapshot, compareArtifacts } = require('../scripts/check-runtime-health.js');
+            const generationEnv = { ...process.env, SOURCE_DATE_EPOCH: '1761264000' };
+            function generate() {
+                if (process.platform !== 'win32') {
+                    execSync('bash scripts/generate-skills-index.sh', { cwd: cleanFixtureDir, env: generationEnv, stdio: 'pipe' });
+                }
+                execSync('node scripts/generate-cross-platform.js', { cwd: cleanFixtureDir, env: generationEnv, stdio: 'pipe' });
+            }
+            generate(); const first = artifactSnapshot(cleanFixtureDir);
+            generate(); assert.equal(compareArtifacts(first, artifactSnapshot(cleanFixtureDir)).ok, true, 'Every artifact must be byte-identical across two complete generation passes');
+            const manifest = path.join(cleanFixtureDir, 'plugins/neon-db/.claude-plugin/plugin.json');
+            const changed = JSON.parse(fs.readFileSync(manifest, 'utf8')); changed.description += ' Changed fixture input.';
+            fs.writeFileSync(manifest, JSON.stringify(changed)); generate();
+            assert.equal(compareArtifacts(first, artifactSnapshot(cleanFixtureDir)).ok, false, 'A real input change must produce observable artifact drift');
+            const afterInput = artifactSnapshot(cleanFixtureDir);
+            fs.mkdirSync(path.join(cleanFixtureDir, 'reports'), { recursive: true });
+            fs.writeFileSync(path.join(cleanFixtureDir, 'reports/unrelated.md'), 'Unrelated report');
+            assert.equal(compareArtifacts(afterInput, artifactSnapshot(cleanFixtureDir)).ok, true, 'Reports are not generated provider inputs');
         } finally {
             fs.rmSync(cleanFixtureDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
         }

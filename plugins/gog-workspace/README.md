@@ -21,7 +21,7 @@ Manage your entire Google Workspace from the terminal — Gmail, Calendar, Drive
 * **Workspace Assistant agent** — Multi-service workflow orchestration (morning briefings, meeting prep, email-to-task pipelines)
 * **Email Composer agent** — Context-aware email drafting with tone matching and thread awareness
 * **Google Workspace CLI skill** — Comprehensive command reference automatically invoked when you mention Google services
-* **Safety hooks** — Pre-execution confirmation for send/delete operations and audit logging
+* **Advisory hooks** — Reminders for recognized send/delete command prefixes and metadata audit logging; these do not enforce confirmation or cover all command forms
 
 ### Installation
 
@@ -135,6 +135,6 @@ See [all releases](https://github.com/steipete/gogcli/releases) for the complete
 ### Customization
 
 Adjust the safety hooks in `hooks/hooks.json` to:
-- Add or remove pre-execution confirmations for specific operations
+- Add or remove advisory reminders for recognized operations; hooks do not enforce confirmation
 - Customize the audit log location and format
 - Add notifications for specific Gmail or Calendar events

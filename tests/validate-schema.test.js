@@ -330,3 +330,26 @@ describe('Plugin Manifest Schema Validation', () => {
     }
   });
 });
+
+describe('Generic JSON const and enum constraints', () => {
+  test('numeric, boolean, null, array and object enum reject distinct JSON values', () => {
+    for (const [value, options] of [[2,[1]],[false,[true]],[null,[false]],[[2,1],[[1,2]]],[{a:1},[{a:2}]],['1',[1]]]) {
+      assert.ok(validateValue(value,{enum:options}).length > 0);
+    }
+  });
+  test('const is enforced for every JSON type including null and false', () => {
+    for (const [value, fixed] of [[2,1],[true,false],[false,null],['b','a'],[[2], [1]],[{a:2},{a:1}]]) {
+      assert.ok(validateValue(value,{const:fixed}).length > 0);
+    }
+    assert.deepStrictEqual(validateValue(false,{const:false}),[]);
+    assert.deepStrictEqual(validateValue(null,{const:null}),[]);
+  });
+  test('deep JSON comparison ignores object key order but preserves array order and primitive types', () => {
+    const a={a:[1,{b:true,c:null}],z:'text'}, b={z:'text',a:[1,{c:null,b:true}]};
+    assert.deepStrictEqual(validateValue(a,{const:b}),[]);
+    assert.deepStrictEqual(validateValue(a,{enum:[b]}),[]);
+    assert.ok(validateValue([1,2],{const:[2,1]}).length>0);
+    assert.ok(validateValue({a:1},{enum:[{a:'1'}]}).length>0);
+    assert.deepStrictEqual(validateValue(0,{enum:[-0]}),[]);
+  });
+});

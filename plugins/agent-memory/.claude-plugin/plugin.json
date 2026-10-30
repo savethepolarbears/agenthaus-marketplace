@@ -19,7 +19,7 @@
     "./commands/forget.md"
   ],
   "skills": [
-    "./skills/memory-protocol/SKILL.md"
+    "./skills/memory-protocol"
   ],
   "mcpServers": {
     "postgres": {

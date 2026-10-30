@@ -16,10 +16,10 @@
     "api"
   ],
   "skills": [
-    "./skills/discover-capabilities/SKILL.md",
-    "./skills/design-flow-blueprint/SKILL.md",
-    "./skills/build-or-refactor-flow/SKILL.md",
-    "./skills/publish-enable-and-run/SKILL.md"
+    "./skills/discover-capabilities",
+    "./skills/design-flow-blueprint",
+    "./skills/build-or-refactor-flow",
+    "./skills/publish-enable-and-run"
   ],
   "agents": [
     "./agents/flow-architect.md",

@@ -23,4 +23,4 @@ Use /review to inspect and approve/reject queued actions.
 Use /disable to deactivate shadow mode.
 ```
 
-Note: The hooks in this plugin intercept Write, Edit, and Bash tool calls. While shadow mode is active, these actions will be logged to the review queue instead of executing.
+Note: The hooks in this plugin intercept Write, Edit, and Bash tool calls. While shadow mode is active, only safe metadata and a request digest will be recorded in the review queue instead of executing. Fresh operator review of the original request is required for subsequent execution.

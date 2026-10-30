@@ -14,7 +14,7 @@
     "research"
   ],
   "skills": [
-    "./skills/deep-research/SKILL.md"
+    "./skills/deep-research"
   ],
   "mcpServers": {
     "context7": {
@@ -24,7 +24,7 @@
         "@upstash/context7-mcp"
       ],
       "env": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_KEY}"
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
     },
     "notion": {
@@ -34,7 +34,7 @@
         "@modelcontextprotocol/server-notion"
       ],
       "env": {
-        "NOTION_API_KEY": "${NOTION_KEY}"
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
       }
     },
     "google-drive": {

@@ -1,64 +1,68 @@
 #!/usr/bin/env bash
-# Intercept destructive tool calls when shadow mode is active.
-# If shadow mode is enabled, queue the action for review instead of executing.
-# Exit 0 = allow, Exit 2 = block (Claude Code's blocking exit code; stderr is
-# returned to the model. Any other non-zero exit is a non-blocking hook error).
-
+# Claude Code PreToolUse: exit 0 allows; exit 2 blocks. Hooks are guidance,
+# not a universal execution boundary or protection against same-user bypass.
 set -euo pipefail
+[ -f .shadow-mode-enabled ] || exit 0
 
-MARKER_FILE=".shadow-mode-enabled"
-QUEUE_DIR="review_queue"
-
-# If shadow mode is not enabled, allow the action. Checked before reading stdin so
-# the common path stays cheap.
-if [ ! -f "$MARKER_FILE" ]; then
-    exit 0
+# Keep raw input exclusively in memory; never persist commands, paths, content,
+# arbitrary tool names, or alleged redacted versions. Missing dependencies and
+# storage failures must still return the blocking exit code.
+if ! command -v python3 >/dev/null 2>&1; then
+    echo 'SHADOW MODE: Python 3 unavailable; action blocked without a queue record.' >&2
+    exit 2
 fi
+if ! python3 - 3<&0 <<'PY'
+import datetime
+import hashlib
+import json
+import os
+import stat
+import tempfile
+import uuid
 
-# Claude Code delivers the tool call as JSON on STDIN. There is no $TOOL_INPUT,
-# $TOOL_INPUT_COMMAND or $TOOL_INPUT_FILE_PATH environment variable, and no
-# positional argument — every field below comes from that payload.
-STDIN_JSON="$(cat || true)"
-if command -v jq >/dev/null 2>&1; then
-    TOOL_NAME="$(printf '%s' "$STDIN_JSON" | jq -r '.tool_name // "unknown"' 2>/dev/null || echo unknown)"
-    INPUT_FILE="$(printf '%s' "$STDIN_JSON" | jq -r '.tool_input.file_path // ""' 2>/dev/null || true)"
-    INPUT_CMD="$(printf '%s' "$STDIN_JSON" | jq -r '.tool_input.command // ""' 2>/dev/null || true)"
-else
-    TOOL_NAME="unknown"
-    INPUT_FILE=""
-    INPUT_CMD=""
+try:
+    # Read only a bounded prefix; oversized requests are never parsed or queued.
+    input_limit = 4 * 1024 * 1024
+    raw = os.fdopen(3, 'rb').read(input_limit + 1)
+    if len(raw) > input_limit:
+        print('SHADOW MODE: 4 MiB input limit exceeded; action blocked without a queue record.', file=__import__('sys').stderr)
+        raise SystemExit(0)
+    try:
+        requested_tool = json.loads(raw).get('tool_name')
+    except (ValueError, AttributeError):
+        requested_tool = None
+    tool = requested_tool if requested_tool in ('Write', 'Edit', 'Bash') else 'unknown'
+    queue = 'review_queue'
+    os.makedirs(queue, mode=0o700, exist_ok=True)
+    if not stat.S_ISDIR(os.lstat(queue).st_mode):
+        raise ValueError('queue must be a directory, not a symlink')
+    entry = {
+        'schema_version': 2,
+        'id': uuid.uuid4().hex,
+        'tool': tool,
+        'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        'status': 'pending',
+        'request_sha256': hashlib.sha256(raw).hexdigest(),
+        'requires_fresh_review': True,
+    }
+    fd, temporary = tempfile.mkstemp(prefix='.pending-', dir=queue)
+    try:
+        with os.fdopen(fd, 'w') as output:
+            json.dump(entry, output)
+            output.write('\n')
+            output.flush()
+            os.fsync(output.fileno())
+        # Hard link publishes a complete record atomically and refuses overwrite.
+        destination = os.path.join(queue, entry['id'] + '.json')
+        os.link(temporary, destination)
+    finally:
+        os.unlink(temporary)
+    print('SHADOW MODE: Digest-only proposal queued. Fresh review of the original request is required.', file=__import__('sys').stderr)
+except Exception:
+    # Never echo exception text: OS errors can contain sensitive paths.
+    raise SystemExit(1)
+PY
+then
+    echo 'SHADOW MODE: Queue unavailable; action blocked without a queue record.' >&2
 fi
-# Keep the queue filename safe regardless of what the payload contained.
-TOOL_NAME="$(printf '%s' "$TOOL_NAME" | tr -cd '[:alnum:]._-')"
-[ -n "$TOOL_NAME" ] || TOOL_NAME="unknown"
-
-# Shadow mode is active -- queue the action
-mkdir -p "$QUEUE_DIR"
-
-TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-SAFE_TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
-QUEUE_FILE="${QUEUE_DIR}/${SAFE_TIMESTAMP}-${TOOL_NAME}.json"
-
-# Write action details to queue (safely construct JSON to prevent injection)
-if command -v jq >/dev/null 2>&1; then
-    jq -n \
-      --arg tool "$TOOL_NAME" \
-      --arg ts "$TIMESTAMP" \
-      --arg status "pending" \
-      --arg input_file "$INPUT_FILE" \
-      --arg input_cmd "$INPUT_CMD" \
-      '{tool: $tool, timestamp: $ts, status: $status, input_file: $input_file, input_command: $input_cmd}' > "$QUEUE_FILE"
-else
-    # Safe fallback using printf to avoid shell interpretation
-    printf '{\n  "tool": "%s",\n  "timestamp": "%s",\n  "status": "pending",\n  "input_file": "%s",\n  "input_command": "%s"\n}\n' \
-      "$(printf '%s' "$TOOL_NAME" | sed 's/["\]/\\&/g')" \
-      "$(printf '%s' "$TIMESTAMP" | sed 's/["\]/\\&/g')" \
-      "$(printf '%s' "$INPUT_FILE" | sed 's/["\]/\\&/g')" \
-      "$(printf '%s' "$INPUT_CMD" | sed 's/["\]/\\&/g')" > "$QUEUE_FILE"
-fi
-
-echo "SHADOW MODE: Action queued for review -> ${QUEUE_FILE}" >&2
-echo "Tool: ${TOOL_NAME}" >&2
-echo "Use /review to inspect and approve/reject queued actions." >&2
-
 exit 2

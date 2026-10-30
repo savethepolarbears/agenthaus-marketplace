@@ -17,6 +17,6 @@
     "./agents/qa-engineer.md"
   ],
   "skills": [
-    "./skills/e2e-testing/SKILL.md"
+    "./skills/e2e-testing"
   ]
 }
