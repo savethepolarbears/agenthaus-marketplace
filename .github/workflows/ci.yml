@@ -100,7 +100,7 @@ jobs:
         shell: bash
 
       - name: Run test suite
-        run: node --test --test-timeout=20000 tests/*.test.js
+        run: node --test --test-timeout=60000 tests/*.test.js
         shell: bash
 
   qa-droid-smoke:

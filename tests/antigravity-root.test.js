@@ -28,7 +28,7 @@ test('Gemini and Antigravity resolve cached plugin roots before storing MCP conf
   provider.postInstall(source, target);
   for (const file of [path.join(dir, 'project', '.gemini', 'settings.json'), path.join(dir, 'project', '.agents', 'mcp_config.json')]) {
     const entry = JSON.parse(fs.readFileSync(file, 'utf8')).mcpServers.outscraper;
-    assert.equal(entry.args[0], path.join(installed, 'node_modules', '@outscraper', 'mcp-server', 'dist', 'index.js'));
+    assert.equal(path.normalize(entry.args[0]), path.join(installed, 'node_modules', '@outscraper', 'mcp-server', 'dist', 'index.js'));
     assert.equal(entry.cwd, installed);
     assert.equal(entry.env.OUTSCRAPER_API_KEY, '${OUTSCRAPER_API_KEY}');
   }

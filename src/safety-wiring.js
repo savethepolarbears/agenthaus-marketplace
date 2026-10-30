@@ -32,7 +32,8 @@ function guardPlugin(plugin, options) {
       if (typeof targetFile !== 'string' || !path.isAbsolute(targetFile)) throw new Error('Trusted per-server target file required');
       const target = validateTarget(JSON.parse(fs.readFileSync(targetFile, 'utf8')));
       const reviewed = target.launch.command;
-      const bareMatch = !path.isAbsolute(command) && path.basename(command) === command && path.basename(reviewed) === command;
+      const stripExe = s => process.platform === 'win32' ? s.replace(/\.exe$/i, '') : s;
+      const bareMatch = !path.isAbsolute(command) && path.basename(command) === command && stripExe(path.basename(reviewed)) === stripExe(command);
       if (target.server !== name || (command !== reviewed && !bareMatch) || canonical(server.args || []) !== canonical(target.launch.args)) {
         throw new Error('Plugin configuration does not match trusted target');
       }
