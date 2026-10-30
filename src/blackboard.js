@@ -96,7 +96,7 @@ function openBlackboard(options = {}) {
   function pending(envelope) { const valid = validateEnvelope(envelope, { projectRoot: root }); if (valid.kind !== 'task' || valid.status !== 'pending') throw error('PENDING_TASK_REQUIRED'); return valid; }
   function ownership(params) {
     const id = taskId(params.taskId), owner = requireActor(params.owner), fence = fenceValue(params.fence);
-    return { id, owner, fence, where: `task_id=${text(id)} AND status='in_progress' AND owner=${text(owner)} AND fence=${fence} AND lease_until_ms>${clock}` };
+    return { id, owner, fence, where: `task_id=${text(id)} AND status='in_progress' AND consumer=${text(owner)} AND owner=${text(owner)} AND fence=${fence} AND lease_until_ms>${clock}` };
   }
   function finish(params, status) {
     const own = ownership(params), result = validateEnvelope(params.resultEnvelope, { projectRoot: root });
@@ -112,7 +112,7 @@ function openBlackboard(options = {}) {
       id = taskId(id); owner = requireActor(owner); leaseMs = leaseValue(leaseMs);
       const current = read({ taskId: id });
       if (current.ok) validateEnvelope(current.task.dispatch, { projectRoot: root });
-      return outcome(transaction(`UPDATE tasks SET status='in_progress',owner=${text(owner)},fence=fence+1,lease_until_ms=${clock}+${leaseMs} WHERE task_id=${text(id)} AND fence<9223372036854775807 AND (status='pending' OR (status='in_progress' AND lease_until_ms<=${clock})); ${selection(id)}`), 'LEASE_HELD');
+      return outcome(transaction(`UPDATE tasks SET status='in_progress',owner=${text(owner)},fence=fence+1,lease_until_ms=${clock}+${leaseMs} WHERE task_id=${text(id)} AND consumer=${text(owner)} AND fence<9223372036854775807 AND (status='pending' OR (status='in_progress' AND lease_until_ms<=${clock})); ${selection(id)}`), 'LEASE_HELD');
     },
     heartbeat(params) { const own = ownership(params), leaseMs = leaseValue(params.leaseMs); return outcome(transaction(`UPDATE tasks SET lease_until_ms=${clock}+${leaseMs} WHERE ${own.where}; ${selection(own.id)}`), 'STALE_LEASE'); },
     complete(params) { return finish(params, 'completed'); }, fail(params) { return finish(params, 'failed'); }, read,

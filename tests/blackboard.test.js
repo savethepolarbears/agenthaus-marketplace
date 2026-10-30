@@ -63,7 +63,8 @@ test('default lease, fenced completion and durable duplicate rejection', { skip:
   const f = fixture(t), board = openBlackboard(f.options);
   assert.equal(board.enqueue(f.task).ok, true);
   assert.equal(board.enqueue(f.task).status, 'already_enqueued');
-  const lease = board.claim({ taskId: f.task.task_id, owner: 'node:fixture:one' });
+  assert.equal(board.claim({ taskId: f.task.task_id, owner: 'node:fixture:attacker' }).ok, false);
+  const lease = board.claim({ taskId: f.task.task_id, owner: f.task.consumer });
   assert.equal(lease.ok, true); assert.equal(lease.fence, '1');
   assert.ok(lease.lease_until_ms > Date.now() + 58000);
   assert.equal(board.heartbeat({ taskId: f.task.task_id, owner: lease.owner, fence: lease.fence }).fence, '1');
@@ -77,20 +78,21 @@ test('claim rechecks input evidence and completion rejects a result older than d
   f.task.evidence = f.result('node:fixture:worker').evidence;
   board.enqueue(f.task);
   fs.writeFileSync(path.join(f.projectRoot, 'result.txt'), 'tampered');
-  assert.throws(() => board.claim({ taskId: f.task.task_id, owner: 'node:fixture:one' }), /digest/i);
+  assert.throws(() => board.claim({ taskId: f.task.task_id, owner: f.task.consumer }), /digest/i);
   fs.writeFileSync(path.join(f.projectRoot, 'result.txt'), 'fixture');
-  const lease = board.claim({ taskId: f.task.task_id, owner: 'node:fixture:one' });
+  const lease = board.claim({ taskId: f.task.task_id, owner: f.task.consumer });
   const result = { ...f.result(lease.owner), created_at: '2020-01-01T00:00:00.000Z' };
   assert.equal(board.complete({ taskId: f.task.task_id, owner: lease.owner, fence: lease.fence, resultEnvelope: result }).ok, false);
   assert.equal(board.read({ taskId: f.task.task_id }).task.status, 'in_progress');
 });
 test('expired owners cannot heartbeat or complete; reclaim increases fencing', { skip: !supported }, async t => {
   const f = fixture(t), board = openBlackboard(f.options); board.enqueue(f.task);
-  const first = board.claim({ taskId: f.task.task_id, owner: 'node:fixture:first', leaseMs: 150 });
+  const first = board.claim({ taskId: f.task.task_id, owner: f.task.consumer, leaseMs: 150 });
   await new Promise(resolve => setTimeout(resolve, 220));
   assert.equal(board.heartbeat({ taskId: f.task.task_id, owner: first.owner, fence: first.fence }).ok, false);
   assert.equal(board.complete({ taskId: f.task.task_id, owner: first.owner, fence: first.fence, resultEnvelope: f.result(first.owner) }).ok, false);
-  const second = openBlackboard(f.options).claim({ taskId: f.task.task_id, owner: 'node:fixture:second' });
+  assert.equal(openBlackboard(f.options).claim({ taskId: f.task.task_id, owner: 'node:fixture:attacker' }).ok, false);
+  const second = openBlackboard(f.options).claim({ taskId: f.task.task_id, owner: f.task.consumer });
   assert.equal(second.fence, '2');
   assert.equal(board.heartbeat({ taskId: f.task.task_id, owner: first.owner, fence: first.fence }).reason, 'STALE_LEASE');
   assert.equal(board.complete({ taskId: f.task.task_id, owner: second.owner, fence: second.fence, resultEnvelope: f.result(second.owner) }).ok, true);
@@ -102,7 +104,7 @@ test('real competing Node processes acquire exactly one lease', { skip: !support
     const child = spawn(process.execPath, ['-e', code, require.resolve('../src/blackboard.js'), JSON.stringify(f.options), JSON.stringify({ taskId: f.task.task_id, owner })]);
     let out = ''; child.stdout.on('data', b => { out += b; }); child.on('error', reject); child.on('exit', code => code === 0 ? resolve(JSON.parse(out)) : reject(Error('child failed')));
   });
-  const results = await Promise.all([claim('node:fixture:a'), claim('node:fixture:b')]);
+  const results = await Promise.all([claim(f.task.consumer), claim(f.task.consumer)]);
   assert.equal(results.filter(r => r.ok).length, 1);
   assert.equal(results.find(r => r.ok).fence, '1');
 });
@@ -131,7 +133,7 @@ test('SIGKILL of a proven uncommitted writer rolls back and restart preserves qu
 });
 test('a killed Node owner leaves a persisted lease that can be reclaimed only after expiry', { skip: !supported || process.platform === 'win32', timeout: 15000 }, async t => {
   const f = fixture(t); openBlackboard(f.options).enqueue(f.task);
-  const code = 'const b=require(process.argv[1]).openBlackboard(JSON.parse(process.argv[2]));console.log(JSON.stringify(b.claim({taskId:process.argv[3],owner:"node:fixture:crashed",leaseMs:300})));setInterval(()=>{},1000);';
+  const code = 'const b=require(process.argv[1]).openBlackboard(JSON.parse(process.argv[2]));console.log(JSON.stringify(b.claim({taskId:process.argv[3],owner:"node:fixture:worker",leaseMs:300})));setInterval(()=>{},1000);';
   const child = spawn(process.execPath, ['-e', code, require.resolve('../src/blackboard.js'), JSON.stringify(f.options), f.task.task_id]);
   t.after(() => child.kill());
   let text = '';
@@ -141,7 +143,7 @@ test('a killed Node owner leaves a persisted lease that can be reclaimed only af
   const reopened = openBlackboard(f.options);
   assert.equal(reopened.read({ taskId: f.task.task_id }).task.status, 'in_progress');
   await new Promise(resolve => setTimeout(resolve, 350));
-  const reclaimed = reopened.claim({ taskId: f.task.task_id, owner: 'node:fixture:replacement' });
+  const reclaimed = reopened.claim({ taskId: f.task.task_id, owner: f.task.consumer });
   assert.equal(reclaimed.fence, '2');
   assert.equal(reopened.complete({ taskId: f.task.task_id, owner: lease.owner, fence: lease.fence, resultEnvelope: f.result(lease.owner) }).ok, false);
 });
