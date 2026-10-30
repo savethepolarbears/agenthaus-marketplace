@@ -112,3 +112,8 @@ company/
 .private/
 private/
 .gsd-graph/
+.gsd/
+.taskplane/
+.trigger-tree/
+.worktrees/
+.claude/worktrees/

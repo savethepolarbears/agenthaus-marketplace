@@ -83,7 +83,6 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
     if (child.pid) {
       if (process.platform === 'win32') {
         try { child.kill(); } catch {}
-        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { shell: false, stdio: 'ignore' }).on('error', () => {});
       } else {
         try { process.kill(-child.pid, 'SIGTERM'); } catch {}
         const killTimer = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, 250);

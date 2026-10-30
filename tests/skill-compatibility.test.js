@@ -17,8 +17,9 @@ function check(t,reference,{scalar=false}={}) {
  fs.writeFileSync(path.join(dir,'scripts/run.sh'),definitions+'\nvalidate_plugin "$PLUGINS_DIR/sample"\nif [[ "$fail_count" -gt 0 ]]; then exit 1; fi\n');
  return spawnSync('bash',[path.join(dir,'scripts/run.sh')],{encoding:'utf8'});
 }
-test('local plugin validator accepts explicit native skill directory references',t=>{const r=check(t,'./skills/example');assert.equal(r.status,0,r.stdout+r.stderr);});
-test('local plugin validator rejects obsolete skill file references',t=>{const r=check(t,'./skills/example/SKILL.md');assert.equal(r.status,1,r.stdout+r.stderr);});
-test('local plugin validator rejects escaping skill directories',t=>{const r=check(t,'./../');assert.equal(r.status,1,r.stdout+r.stderr);});
+const skipWin={skip:process.platform==='win32'};
+test('local plugin validator accepts explicit native skill directory references',skipWin,t=>{const r=check(t,'./skills/example');assert.equal(r.status,0,r.stdout+r.stderr);});
+test('local plugin validator rejects obsolete skill file references',skipWin,t=>{const r=check(t,'./skills/example/SKILL.md');assert.equal(r.status,1,r.stdout+r.stderr);});
+test('local plugin validator rejects escaping skill directories',skipWin,t=>{const r=check(t,'./../');assert.equal(r.status,1,r.stdout+r.stderr);});
 
-test('local plugin validator checks scalar skill directory paths instead of skipping them',t=>{assert.equal(check(t,'./skills/example',{scalar:true}).status,0);assert.equal(check(t,'./skills/missing',{scalar:true}).status,1);assert.equal(check(t,'./skills/example/SKILL.md',{scalar:true}).status,1);});
+test('local plugin validator checks scalar skill directory paths instead of skipping them',skipWin,t=>{assert.equal(check(t,'./skills/example',{scalar:true}).status,0);assert.equal(check(t,'./skills/missing',{scalar:true}).status,1);assert.equal(check(t,'./skills/example/SKILL.md',{scalar:true}).status,1);});
