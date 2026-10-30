@@ -101,6 +101,7 @@ jobs:
 
       - name: Run test suite
         run: node --test
+        shell: bash
 
   qa-droid-smoke:
     name: QA-Droid MCP Smoke (Node ${{ matrix.node-version }})

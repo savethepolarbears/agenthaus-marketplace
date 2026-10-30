@@ -149,7 +149,7 @@ test('excessive TTL, unknown fields and malformed dates cannot be signed', t => 
 });
 test('unsafe or symlinked consumption directories fail closed', t => {
   const f = fixture(t), alias = f.directory + '-link';
-  fs.symlinkSync(f.directory, alias); t.after(() => fs.unlinkSync(alias));
+  fs.symlinkSync(f.directory, alias, process.platform === 'win32' ? 'junction' : 'dir'); t.after(() => fs.unlinkSync(alias));
   assert.equal(consumeReceipt(f.receipt, { ...f.options, directory: alias }), false);
   if (process.platform !== 'win32') { fs.chmodSync(f.directory, 0o755); assert.equal(consumeReceipt(f.receipt, f.options), false); }
 });

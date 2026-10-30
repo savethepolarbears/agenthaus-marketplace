@@ -65,6 +65,9 @@ async function runHook(config, {env=process.env,input=''}={}) {
   if (!['none','environment'].includes(config.requiredIsolation??'environment') || ((config.requireProcessTree??true) && isolation.process_tree==='unsupported')) return outcome('error','isolation');
   if (!(typeof input==='string' || Buffer.isBuffer(input)) || Buffer.byteLength(input)>INPUT_LIMIT) return outcome('error','input');
   const childEnv=Object.create(null);
+  if (process.platform==='win32') {
+    for (const k of ['SystemRoot','ComSpec']) if (typeof env?.[k]==='string' && !env[k].includes('\0')) childEnv[k]=env[k];
+  }
   let envBytes=0;
   for (const name of config.envAllowlist??[]) {
     if (env && Object.prototype.hasOwnProperty.call(env,name)) {
@@ -84,7 +87,7 @@ async function runHook(config, {env=process.env,input=''}={}) {
     const limit=config.outputLimitBytes??65536;
     function signal(signal) {
       if (!child.pid) return;
-      try { if (isolation.process_tree!=='unsupported') process.kill(-child.pid,signal); else child.kill(signal); } catch (error) { if (error.code!=='ESRCH') cause='cleanup'; }
+      try { if (isolation.process_tree!=='unsupported') process.kill(-child.pid,signal); else if (execution.exit_code===null && execution.signal===null) child.kill(signal); } catch (error) { if (error.code!=='ESRCH') cause='cleanup'; }
     }
     function finish(force=false) {
       if (settled || (!force && (!closed || !escalated))) return;

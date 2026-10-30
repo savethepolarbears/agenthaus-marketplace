@@ -110,7 +110,9 @@ describe('Drift Guard & Untracked Files Check', () => {
             const { artifactSnapshot, compareArtifacts } = require('../scripts/check-runtime-health.js');
             const generationEnv = { ...process.env, SOURCE_DATE_EPOCH: '1761264000' };
             function generate() {
-                execSync('bash scripts/generate-skills-index.sh', { cwd: cleanFixtureDir, env: generationEnv, stdio: 'pipe' });
+                if (process.platform !== 'win32') {
+                    execSync('bash scripts/generate-skills-index.sh', { cwd: cleanFixtureDir, env: generationEnv, stdio: 'pipe' });
+                }
                 execSync('node scripts/generate-cross-platform.js', { cwd: cleanFixtureDir, env: generationEnv, stdio: 'pipe' });
             }
             generate(); const first = artifactSnapshot(cleanFixtureDir);

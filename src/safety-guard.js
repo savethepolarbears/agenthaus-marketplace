@@ -82,7 +82,8 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
     pending.clear();
     if (child.pid) {
       if (process.platform === 'win32') {
-        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { shell: false, stdio: 'ignore' }).on('error', () => child.kill());
+        try { child.kill(); } catch {}
+        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { shell: false, stdio: 'ignore' }).on('error', () => {});
       } else {
         try { process.kill(-child.pid, 'SIGTERM'); } catch {}
         const killTimer = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} }, 250);
@@ -90,6 +91,8 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
       }
     }
     child.stdin.destroy();
+    child.stdout.destroy();
+    child.stderr.destroy();
     input.destroy();
   }
   child.stderr.on('data', () => {}); // Drain without retaining/outputting arbitrary upstream text.

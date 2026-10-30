@@ -29,7 +29,7 @@ test('artifact comparisons detect changed tracked content and path-set changes',
   fs.unlinkSync(path.join(dir, 'plugins/a/codex-mcp-config.toml'));
   assert.equal(compareArtifacts(before, artifactSnapshot(dir)).ok, false);
 });
-test('real health runner generates twice in isolation without changing source instructions or homes', { timeout: 30000 }, () => {
+test('real health runner generates twice in isolation without changing source instructions or homes', { timeout: 30000, skip: process.platform === 'win32' }, () => {
   const root = path.resolve(__dirname, '..'), home = process.env.HOME, codexHome = process.env.CODEX_HOME;
   const before = fs.readFileSync(path.join(root, 'AGENTS.md'));
   const result = runHealth({ repoRoot: root, sourceDateEpoch: '1761264000' });

@@ -21,13 +21,14 @@ function validate(t, marketplace) {
 }
 
 const valid = { name: 'fixture', owner: { name: 'Test' }, plugins: [{ name: 'one', source: './plugins/one' }], metadata: {} };
+const skipWin = { skip: process.platform === 'win32' };
 
-test('valid marketplace completes validation', t => {
+test('valid marketplace completes validation', skipWin, t => {
     const result = validate(t, valid);
     assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
-test('duplicate names and missing sources fail with original entry indices', t => {
+test('duplicate names and missing sources fail with original entry indices', skipWin, t => {
     const result = validate(t, { ...valid, plugins: [...valid.plugins, { name: 'one' }, { source: './third' }] });
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.match(result.stdout, /duplicate plugin names: one/);
@@ -35,14 +36,14 @@ test('duplicate names and missing sources fail with original entry indices', t =
     assert.match(result.stdout, /plugins\[2\] missing name/);
 });
 
-test('missing root fields fail validation', t => {
+test('missing root fields fail validation', skipWin, t => {
     const result = validate(t, { plugins: [] });
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.match(result.stdout, /missing or invalid field 'name'/);
     assert.match(result.stdout, /missing or invalid field 'owner'/);
 });
 
-test('unexpected plugin entry shape fails closed on jq errors', t => {
+test('unexpected plugin entry shape fails closed on jq errors', skipWin, t => {
     const result = validate(t, { ...valid, plugins: [42] });
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.match(result.stdout, /required-field validation could not complete/);

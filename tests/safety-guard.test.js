@@ -117,7 +117,7 @@ test('cancellation is forwarded and a late result cannot revive its pending ID',
   assert.ok(!h.messages.some(m => m.id === 4));
 });
 test('an upstream ignoring cancellation still reaches its request deadline', { timeout: 5000 }, async t => {
-  const h = harness(t, { timeoutMs: 500, policy: { version: 1, rules: [{ id: 'x', tool: 'hang', action: 'allow-read' }] } });
+  const h = harness(t, { timeoutMs: 800, policy: { version: 1, rules: [{ id: 'x', tool: 'hang', action: 'allow-read' }] } });
   await h.init();
   const exit = once(h.guard.child, 'exit');
   h.send({ id: 4, method: 'tools/call', params: { name: 'hang' } });

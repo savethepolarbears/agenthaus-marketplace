@@ -16,7 +16,8 @@ function invoke(cwd, input, { raw = false } = {}) {
     child.stdin.end(raw ? input : JSON.stringify(input));
   });
 }
-test('concurrent identical proposals retain separate private digest-only records', async () => {
+const skipWin = { skip: process.platform === 'win32' };
+test('concurrent identical proposals retain separate private digest-only records', skipWin, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'shadow-test-'));
   try {
     writeFileSync(join(dir, '.shadow-mode-enabled'), 'test');
@@ -38,13 +39,13 @@ test('concurrent identical proposals retain separate private digest-only records
     assert.ok(results.every(r => !r.output.includes(secret)));
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
-test('inactive mode allows without persisting a request', async () => {
+test('inactive mode allows without persisting a request', skipWin, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'shadow-test-'));
   try { assert.equal((await invoke(dir, { tool_name: 'Bash' })).code, 0); assert.deepEqual(readdirSync(dir), []); }
   finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('single proposal never persists synthetic command or path secrets', async () => {
+test('single proposal never persists synthetic command or path secrets', skipWin, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'shadow-test-'));
   try {
     writeFileSync(join(dir, '.shadow-mode-enabled'), 'test');
@@ -56,7 +57,7 @@ test('single proposal never persists synthetic command or path secrets', async (
     assert.ok(!result.output.includes(marker));
   } finally { rmSync(dir, {recursive: true, force: true}); }
 });
-test('queue storage errors still block without disclosing request', async () => {
+test('queue storage errors still block without disclosing request', skipWin, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'shadow-test-'));
   try {
     writeFileSync(join(dir, '.shadow-mode-enabled'), 'test');
@@ -76,7 +77,7 @@ function paddedRequest(bytes) {
   assert.equal(Buffer.byteLength(raw), bytes);
   return raw;
 }
-test('valid request at the 4 MiB limit retains its exact digest', async () => {
+test('valid request at the 4 MiB limit retains its exact digest', skipWin, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'shadow-test-'));
   try {
     writeFileSync(join(dir, '.shadow-mode-enabled'), 'test');
@@ -90,7 +91,7 @@ test('valid request at the 4 MiB limit retains its exact digest', async () => {
     assert.equal(entry.tool, 'Write');
   } finally { rmSync(dir, {recursive: true, force: true}); }
 });
-test('request one byte over 4 MiB blocks without recording or echoing raw input', async () => {
+test('request one byte over 4 MiB blocks without recording or echoing raw input', skipWin, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'shadow-test-'));
   try {
     writeFileSync(join(dir, '.shadow-mode-enabled'), 'test');

@@ -8,7 +8,9 @@ const { spawnSync } = require('node:child_process');
 const config = require('../plugins/wp-cli-fleet/hooks/hooks.json');
 const command = config.hooks.PostToolUse[0].hooks[0].command;
 
-test('WP audit records execution without command arguments or secret values', t => {
+const skipWin = { skip: process.platform === 'win32' };
+
+test('WP audit records execution without command arguments or secret values', skipWin, t => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wp-audit-'));
     t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
     const result = spawnSync('bash', ['-c', command], {
@@ -21,7 +23,7 @@ test('WP audit records execution without command arguments or secret values', t 
     assert.doesNotMatch(log, /FAKE_TEST_SECRET|user_pass|admin|user update/);
 });
 
-test('unrelated Bash calls do not create a WP audit log', t => {
+test('unrelated Bash calls do not create a WP audit log', skipWin, t => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wp-audit-'));
     t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
     const result = spawnSync('bash', ['-c', command], {

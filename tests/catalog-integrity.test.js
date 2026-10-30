@@ -27,42 +27,43 @@ function fixture(t) {
     return { dir, write, index, run };
 }
 function expectFailure(result) { assert.equal(result.status, 1, result.stdout + result.stderr); }
+const skipWin = { skip: process.platform === 'win32' };
 
-test('index rejects duplicate component IDs despite matching entry counts', t => {
+test('index rejects duplicate component IDs despite matching entry counts', skipWin, t => {
     const f = fixture(t); f.index.entries[1].id = f.index.entries[0].id; f.write('skills_index.json', f.index);
     expectFailure(f.run('validate_skills_index'));
 });
-test('index requires the generated inventory file', t => {
+test('index requires the generated inventory file', skipWin, t => {
     const f = fixture(t); fs.unlinkSync(path.join(f.dir, 'skills_index.json'));
     expectFailure(f.run('validate_skills_index'));
 });
-test('index rejects duplicate target paths despite distinct IDs', t => {
+test('index rejects duplicate target paths despite distinct IDs', skipWin, t => {
     const f = fixture(t); f.index.entries[1].path = f.index.entries[0].path; f.write('skills_index.json', f.index);
     expectFailure(f.run('validate_skills_index'));
 });
-test('index rejects equal-count paths pointing outside the actual component inventory', t => {
+test('index rejects equal-count paths pointing outside the actual component inventory', skipWin, t => {
     const f = fixture(t); f.index.entries[1].path = 'plugins/sample/skills/missing/SKILL.md'; f.write('skills_index.json', f.index);
     expectFailure(f.run('validate_skills_index'));
 });
-test('index rejects a single missing component instead of tolerating five', t => {
+test('index rejects a single missing component instead of tolerating five', skipWin, t => {
     const f = fixture(t); f.index.entries.pop(); f.write('skills_index.json', f.index);
     expectFailure(f.run('validate_skills_index'));
 });
-test('index rejects mismatched component metadata', t => {
+test('index rejects mismatched component metadata', skipWin, t => {
     const f = fixture(t); f.index.entries[1].type = 'command'; f.write('skills_index.json', f.index);
     expectFailure(f.run('validate_skills_index'));
 });
-test('index rejects malformed entries and a missing schema', t => {
+test('index rejects malformed entries and a missing schema', skipWin, t => {
     const f = fixture(t); f.index.entries[1] = {}; f.write('skills_index.json', f.index);
     expectFailure(f.run('validate_skills_index'));
     f.write('skills_index.json', { ...f.index, entries: [] });
     fs.rmSync(path.join(f.dir, 'schemas/skills-index.schema.json'), { force: true });
     expectFailure(f.run('validate_skills_index'));
 });
-test('valid typed index retains compatible legacy identities', t => {
+test('valid typed index retains compatible legacy identities', skipWin, t => {
     const f = fixture(t); const result = f.run('validate_skills_index'); assert.equal(result.status, 0, result.stdout + result.stderr);
 });
-test('generator produces unique typed IDs and preserves legacy IDs across component types', t => {
+test('generator produces unique typed IDs and preserves legacy IDs across component types', skipWin, t => {
     const f = fixture(t); f.write('scripts/generate-skills-index.sh', fs.readFileSync(path.join(root, 'scripts/generate-skills-index.sh'), 'utf8'));
     fs.unlinkSync(path.join(f.dir, 'skills_index.json'));
     const outside = path.join(f.dir, 'outside'); fs.mkdirSync(outside);
@@ -80,17 +81,17 @@ function mcpFixture(t, inline, external) {
     f.write('plugins/sample/README.md', 'Fixture');
     return f.run('validate_plugin "$PLUGINS_DIR/sample"');
 }
-test('MCP rejects conflicting symbolic credential references', t => {
+test('MCP rejects conflicting symbolic credential references', skipWin, t => {
     expectFailure(mcpFixture(t, { sample: { command: 'node', env: { TOKEN: '${OLD_TOKEN}' } } }, { sample: { command: 'node', env: { TOKEN: '${TOKEN}' } } }));
 });
-test('MCP rejects local script args rooted in the caller directory', t => {
+test('MCP rejects local script args rooted in the caller directory', skipWin, t => {
     const servers = { sample: { command: 'node', args: ['node_modules/example/index.js'] } };
     expectFailure(mcpFixture(t, servers, servers));
 });
-test('MCP rejects malformed remote transport', t => {
+test('MCP rejects malformed remote transport', skipWin, t => {
     expectFailure(mcpFixture(t, './.mcp.json', { sample: { type: 'http' } }));
 });
-test('MCP accepts matching rooted local script definitions', t => {
+test('MCP accepts matching rooted local script definitions', skipWin, t => {
     const servers = { sample: { command: 'node', args: ['${CLAUDE_PLUGIN_ROOT}/index.js'], env: { TOKEN: '${TOKEN}' } } };
     const result = mcpFixture(t, servers, servers); assert.equal(result.status, 0, result.stdout + result.stderr);
 });

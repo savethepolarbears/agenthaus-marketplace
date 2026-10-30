@@ -33,7 +33,8 @@ test('safe read uses current manifest identity and rejects traversal, missing en
  const root=fixture(t),a=buildCapabilities({pluginsDir:root});
  assert.match(readSkill(a,'alpha/example',{pluginsDir:root}).content,/BODY_SENTINEL_alpha/);
  for(const id of ['../example','alpha/../example','missing/example','alpha/absent'])assert.throws(()=>readSkill(a,id,{pluginsDir:root}));
- const file=path.join(root,'alpha/skills/example/SKILL.md');fs.unlinkSync(file);fs.symlinkSync(path.join(root,'beta/skills/example/SKILL.md'),file);
+ const file=path.join(root,'alpha/skills/example/SKILL.md');fs.unlinkSync(file);
+ try{fs.symlinkSync(path.join(root,'beta/skills/example/SKILL.md'),file);}catch{fs.rmdirSync(path.dirname(file));fs.symlinkSync(path.join(root,'beta/skills/example'),path.dirname(file),'junction');}
  assert.throws(()=>readSkill(a,'alpha/example',{pluginsDir:root}));
 });
 test('managed discovery preserves unrelated prose and rejects malformed markers without producing output',()=>{

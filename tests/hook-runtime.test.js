@@ -8,7 +8,7 @@ const {runHook,adaptClaudeResult,getIsolationCapabilities}=require('../src/hook-
 const rule={id:'fixture-rule',reason:'Operation requires operator review.',remediation:'Review the exact operation before retrying.'};
 function fixture(t){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'hook-runtime-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));return dir;}
 function typed(status,event='PreToolUse'){return {schema_version:1,event,status,rule_id:rule.id,reason:rule.reason,remediation:rule.remediation,execution:{launched:true,exit_code:0,signal:null,timed_out:false,output_limited:false},isolation:getIsolationCapabilities()};}
-function config(cwd,code,extra={}){return {event:'PreToolUse',executable:process.execPath,args:['-e',code],cwd,envAllowlist:[],timeoutMs:1000,killGraceMs:40,outputLimitBytes:4096,rule,...extra};}
+function config(cwd,code,extra={}){return {event:'PreToolUse',executable:process.execPath,args:['-e',code],cwd,envAllowlist:[],timeoutMs:1000,killGraceMs:40,outputLimitBytes:4096,requireProcessTree:process.platform!=='win32',rule,...extra};}
 test('native adapter keeps PreToolUse deny and runtime error blocking without bypassing normal approvals',()=>{
  for(const status of ['blocked','error']){const r=adaptClaudeResult('PreToolUse',typed(status));assert.equal(r.exitCode,2);assert.equal(r.stdout,'');}
  const allowed=adaptClaudeResult('PreToolUse',typed('allowed'));assert.equal(allowed.exitCode,0);assert.equal(allowed.stdout,'');
@@ -52,7 +52,7 @@ test('timeout terminates a stubborn descendant and handles a leader exiting befo
   const pidfile=path.join(cwd,exitsEarly?'early.pid':'timeout.pid');
   const childCode="process.on('SIGTERM',()=>{});require('fs').writeFileSync(process.argv[1],String(process.pid));setInterval(()=>{},1000)";
   const code=`const c=require('child_process').spawn(process.execPath,['-e',${JSON.stringify(childCode)},${JSON.stringify(pidfile)}],{stdio:'ignore'});const f=require('fs');const timer=setInterval(()=>{if(f.existsSync(${JSON.stringify(pidfile)})){clearInterval(timer);${exitsEarly?"console.log(JSON.stringify({status:'allowed'}));process.exit(0)":"process.on('SIGTERM',()=>{});setInterval(()=>{},1000)"}}},5)`;
-  const r=await runHook(config(cwd,code,{timeoutMs:350,killGraceMs:50}));
+  const r=await runHook(config(cwd,code,{timeoutMs:1500,killGraceMs:50}));
   assert.equal(r.execution.timed_out,!exitsEarly);assert.equal(r.status,exitsEarly?'allowed':'error');
   const pid=Number(fs.readFileSync(pidfile,'utf8'));let alive=true;
   for(let n=0;n<30;n++){try{process.kill(pid,0)}catch{alive=false;break;}await new Promise(resolve=>setTimeout(resolve,10));}

@@ -33,6 +33,11 @@ function resolveTargetLaunch(target, command, args, environment) {
   const launch = target.launch;
   if (command !== launch.command || canonical(args) !== canonical(launch.args)) throw new Error('Target launch mismatch');
   const env = Object.create(null);
+  if (process.platform === 'win32') {
+    for (const k of ['SystemRoot', 'ComSpec']) {
+      if (typeof environment?.[k] === 'string' && !environment[k].includes('\0')) env[k] = environment[k];
+    }
+  }
   for (const [name, entry] of Object.entries(launch.environment)) {
     const value = Object.hasOwn(entry, 'value') ? entry.value : environment[entry.secret_ref];
     if (typeof value !== 'string' || value.includes('\0')) throw new Error('Target environment unavailable');
