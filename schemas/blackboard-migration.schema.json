@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Legacy blackboard migration dry-run plan v1",
+  "description": "applyLegacyMigration recomputes the exact deterministic plan, rechecks source bytes and enforces explicit legacy-owner-stop and conflict resolutions.",
+  "type": "object", "additionalProperties": false,
+  "required": ["version", "project_root", "db_path", "actor_mapping", "sources", "imports", "conflicts", "source_hash", "plan_id"],
+  "properties": {
+    "version": { "const": 1 }, "project_root": { "type": "string" }, "db_path": { "type": "string" },
+    "actor_mapping": { "type": "object", "additionalProperties": false, "required": ["producer", "consumer"], "properties": { "producer": { "type": "string" }, "consumer": { "type": "string" } } },
+    "sources": { "type": "array", "maxItems": 1000, "items": { "type": "object", "additionalProperties": false, "required": ["path", "sha256", "legacy_id", "status"], "properties": { "path": { "type": "string" }, "sha256": { "$ref": "#/definitions/hash" }, "legacy_id": { "type": "string" }, "status": { "enum": ["pending", "in_progress", "completed", "failed"] } } } },
+    "imports": { "type": "array", "maxItems": 1000, "items": { "$ref": "handoff.schema.json" } },
+    "conflicts": { "type": "array", "maxItems": 1000, "items": { "type": "object", "additionalProperties": false, "required": ["legacy_id", "reason"], "properties": { "legacy_id": { "type": "string" }, "reason": { "const": "ACTIVE_OWNER_REQUIRES_RESOLUTION" } } } },
+    "source_hash": { "$ref": "#/definitions/hash" }, "plan_id": { "$ref": "#/definitions/hash" }
+  },
+  "definitions": { "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+}

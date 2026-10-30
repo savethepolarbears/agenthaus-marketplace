@@ -49,12 +49,12 @@
         "@modelcontextprotocol/server-slack"
       ],
       "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_TOKEN}",
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
         "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
       }
     }
   },
   "skills": [
-    "./skills/devops-workflow/SKILL.md"
+    "./skills/devops-workflow"
   ]
 }

@@ -41,18 +41,20 @@ jobs:
       - name: Run unit tests
         run: node --test tests/*.test.js
 
-      - name: Verify cross-platform generator consistency
-        run: |
-          node scripts/generate-cross-platform.js
-          DRIFT_STATUS=$(git status --porcelain --untracked-files=all -- \
-            '*claude-desktop-snippet.json' '*gemini-settings-snippet.json' \
-            '*windsurf-mcp-snippet.json' '*codex-mcp-config.toml' \
-            '.cursor' 'GEMINI.md' 'AGENTS.md' 'skills_index.json')
-          if [ -n "$DRIFT_STATUS" ]; then
-            echo "Generated files are out of sync or produced untracked artifacts:"
-            echo "$DRIFT_STATUS"
-            exit 1
-          fi
+      - name: Isolated runtime health and two-pass generator integrity
+        run: node scripts/check-runtime-health.js --out reports/phase08-runtime-health.json
+
+      - name: Verify exact-source local receipt
+        run: node scripts/check-runtime-health.js --verify reports/phase08-runtime-health.json
+
+      - name: Upload sanitized local evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: phase08-local-health
+          path: reports/phase08-runtime-health.json
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Guard against absolute file:// links in documentation
         run: |

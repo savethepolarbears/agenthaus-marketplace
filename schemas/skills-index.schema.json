@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/savethepolarbears/agenthaus-marketplace/schemas/skills-index.schema.json",
+  "title": "AgentHaus component index",
+  "description": "Version 2 uses plugin:type:component IDs. Consumers of v1 IDs should resolve legacy_id together with type; legacy_id alone can be ambiguous across component types.",
+  "type": "object",
+  "required": ["$schema", "version", "generated", "description", "entries"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "version": { "type": "string", "enum": ["2.0.0"] },
+    "generated": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "description": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "legacy_id", "plugin", "type", "name", "path"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*:(agent|skill|command):[a-zA-Z0-9_.-]+$" },
+          "legacy_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*:[a-zA-Z0-9_.-]+$" },
+          "plugin": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "type": { "type": "string", "enum": ["agent", "skill", "command"] },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "pattern": "^plugins/[a-z][a-z0-9-]*/(agents/[^/]+\\.md|commands/[^/]+\\.md|skills/[^/]+/SKILL\\.md)$" },
+          "platforms": { "type": "array", "items": { "type": "string", "enum": ["claude-code", "codex", "cursor", "gemini", "windsurf", "copilot"] } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

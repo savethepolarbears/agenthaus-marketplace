@@ -28,55 +28,40 @@ When activating shadow mode:
 
 ```
 Shadow Mode: ACTIVE
-All agent actions will be queued for review.
+Configured Write, Edit and Bash proposals will be recorded as digests for review.
 Use /shadow-mode:review to process the queue.
 ```
 
 ### 2. Action Queuing
 
-When shadow mode is active, agent actions are intercepted:
-
-1. **Capture**: The proposed action (file edit, command, API call) is serialized
-2. **Queue**: Saved as a timestamped file in `review_queue/`
-3. **Log**: Action type, target, description, and full payload are recorded
-
-#### Queue Entry Format
+Configured Claude Code Write, Edit and Bash events are blocked while the marker
+is active. The hook keeps request bytes in memory, records their SHA-256 digest,
+and atomically publishes a private, collision-resistant JSON file. No raw
+command, file path, content, or redacted payload is retained. Python 3 is required;
+missing dependencies or queue failures block without claiming a saved record.
 
 ```json
 {
-  "id": "action-20260315-120000",
-  "timestamp": "2026-03-15T12:00:00Z",
-  "type": "file_edit",
-  "target": "src/components/Header.tsx",
-  "description": "Add aria-label to navigation button",
-  "payload": {
-    "old_content": "...",
-    "new_content": "..."
-  },
-  "status": "pending"
+  "schema_version": 2,
+  "id": "random-proposal-id",
+  "tool": "Bash",
+  "timestamp": "2026-10-24T12:00:00+00:00",
+  "status": "pending",
+  "request_sha256": "64 hexadecimal characters",
+  "requires_fresh_review": true
 }
 ```
 
 ### 3. Review Queue
 
-When reviewing pending actions:
+Follow [the review procedure](../../commands/review.md). Show only safe metadata.
+Require the operator to review the original request afresh in the current session
+and separately approve its exact target and parameters. A digest does not permit
+reconstruction or replay. Never execute legacy raw payloads or approve all unseen
+operations. Reject or skip records whose original request is unavailable.
 
-1. **List pending**: Show all queued actions with summaries
-
-```markdown
-### Review Queue (3 pending)
-
-| # | Time | Type | Target | Description |
-|---|------|------|--------|-------------|
-| 1 | 12:00 | file_edit | Header.tsx | Add aria-label to nav |
-| 2 | 12:01 | bash | — | npm run test |
-| 3 | 12:02 | file_edit | api.ts | Add error handling |
-```
-
-2. **Review each action**: Show the full details and diff for each
-3. **Approve**: Execute the action and remove from queue
-4. **Reject**: Move to `review_queue/rejected/` with optional reason
-5. **Edit**: Modify the proposed action before approving
+Keep the marker active unless the operator explicitly changes mode. A newly
+blocked execution remains pending; report execution and durable readback separately.
 
 ### 4. Disable Shadow Mode
 
@@ -104,7 +89,7 @@ Use shadow mode for agent training:
 3. Review each proposed action:
    - **Approve**: Action was correct — reinforces good behavior
    - **Reject with feedback**: Action was wrong — add correction notes
-   - **Edit and approve**: Action was close — show the correct approach
+   - **Revise and review again**: Correct the original request and obtain fresh approval
 4. Analyze the approval/rejection ratio to measure agent accuracy
 5. Use rejected actions to improve prompts and instructions
 
@@ -121,7 +106,7 @@ Shadow mode works through PreToolUse hooks that intercept actions:
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/shadow-intercept.sh"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/shadow-intercept.sh"
           }
         ]
       }

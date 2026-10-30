@@ -60,6 +60,24 @@ test('approval unavailable, rejected or throwing blocks', { timeout: 5000 }, asy
   assert.equal(h.calls().filter(m => m.method === 'tools/call').length, 0);
   assert.equal(h.outputText().includes('CANARY_SECRET'), false);
 });
+test('malformed metadata never reaches approval or upstream and leaves the guard usable', { timeout: 5000 }, async t => {
+  let approvals = 0;
+  const h = harness(t, { policy: { version: 1, rules: [{ id: 'write', tool: '*', action: 'require-approval' }] },
+    authorize: () => { approvals++; return true; } });
+  await h.init();
+  let id = 0;
+  for (const meta of [null, [], { progressToken: {} }, { progressToken: true }, { 'claudecode/toolUseId': 3 }, { 'claudecode/toolUseId': 'x'.repeat(513) }]) {
+    assert.equal((await h.request(id++, 'tools/call', { name: 'delete', _meta: meta })).error?.code, -32602);
+  }
+  await h.request('still-usable', 'ping');
+  assert.equal(approvals, 0);
+  assert.equal(h.calls().filter(m => m.method === 'tools/call').length, 0);
+});
+test('read tool forwarding discards only correlation metadata and retains semantic metadata', { timeout: 5000 }, async t => {
+  const h = harness(t); await h.init();
+  await h.request(1, 'tools/call', { name: 'read', _meta: { progressToken: 1, 'claudecode/toolUseId': 'toolu_read', tenant: 'retained' } });
+  assert.deepEqual(h.calls().find(m => m.method === 'tools/call').params._meta, { tenant: 'retained' });
+});
 test('upstream error code and request ID survive without stderr/secret leakage', { timeout: 5000 }, async t => {
   const h = harness(t, { policy: { version: 1, rules: [{ id: 'x', tool: 'error', action: 'allow-read' }] } });
   await h.init(); const response = await h.request('error-id', 'tools/call', { name: 'error' });
@@ -71,6 +89,18 @@ test('timeout kills upstream and produces a bounded protocol error', { timeout: 
   await h.init(); const exit = once(h.guard.child, 'exit');
   assert.equal((await h.request(1, 'tools/call', { name: 'hang' })).error.code, -32001); await exit;
 });
+test('a stalled upstream cannot accumulate unbounded notification input', { timeout: 5000 }, async t => {
+  // This real child initializes but never reads stdin, so its pipe fills reliably.
+  const code = 'process.stdout.write(JSON.stringify({jsonrpc:"2.0",id:"init",result:{}})+"\\n");setInterval(()=>{},1000);';
+  const h = harness(t, { args: ['-e', code] });
+  await h.init();
+  const exit = once(h.guard.child, 'exit');
+  const params = { progressToken: 'fixture', progress: 1, message: 'x'.repeat(900000) };
+  for (let i = 0; i < 5; i++) h.send({ method: 'notifications/progress', params });
+  assert.ok(h.guard.child.stdin.writableLength <= 4 * MAX_FRAME);
+  await exit;
+  assert.match(h.stderr(), /Upstream input limit exceeded/);
+});
 test('duplicate in-flight IDs close the connection instead of forwarding twice', { timeout: 5000 }, async t => {
   const h = harness(t, { policy: { version: 1, rules: [{ id: 'x', tool: 'hang', action: 'allow-read' }] } });
   await h.init(); const exit = once(h.guard.child, 'exit');
@@ -79,12 +109,35 @@ test('duplicate in-flight IDs close the connection instead of forwarding twice',
   assert.ok(h.calls().filter(m => m.method === 'tools/call').length <= 1);
 });
 test('cancellation is forwarded and a late result cannot revive its pending ID', { timeout: 5000 }, async t => {
-  const h = harness(t, { policy: { version: 1, rules: [{ id: 'x', tool: 'hang', action: 'allow-read' }] } });
-  await h.init(); h.send({ id: 4, method: 'tools/call', params: { name: 'hang' } });
+  const h = harness(t);
+  await h.init(); h.send({ id: 4, method: 'tools/call', params: { name: 'read' } });
   h.send({ method: 'notifications/cancelled', params: { requestId: 4 } });
   await h.request(5, 'ping');
   assert.ok(h.calls().some(m => m.method === 'notifications/cancelled'));
   assert.ok(!h.messages.some(m => m.id === 4));
+});
+test('an upstream ignoring cancellation still reaches its request deadline', { timeout: 5000 }, async t => {
+  const h = harness(t, { timeoutMs: 500, policy: { version: 1, rules: [{ id: 'x', tool: 'hang', action: 'allow-read' }] } });
+  await h.init();
+  const exit = once(h.guard.child, 'exit');
+  h.send({ id: 4, method: 'tools/call', params: { name: 'hang' } });
+  h.send({ method: 'notifications/cancelled', params: { requestId: 4 } });
+  await exit;
+  assert.match(h.stderr(), /Request timed out/);
+  assert.ok(h.calls().some(m => m.method === 'notifications/cancelled'));
+  assert.ok(!h.messages.some(m => m.id === 4));
+});
+test('cancelled operations retain concurrency slots until upstream completes', { timeout: 5000 }, async t => {
+  const h = harness(t, { policy: { version: 1, rules: [{ id: 'x', tool: 'hang', action: 'allow-read' }] } });
+  await h.init();
+  for (let id = 0; id < 128; id++) {
+    h.send({ id, method: 'tools/call', params: { name: 'hang' } });
+    h.send({ method: 'notifications/cancelled', params: { requestId: id } });
+  }
+  const response = await h.request('overflow', 'ping');
+  assert.equal(response.error.code, -32000);
+  assert.equal(response.error.message, 'Too many requests');
+  assert.ok(!h.calls().some(m => m.id === 'overflow'));
 });
 test('oversized, invalid UTF-8, malformed JSON and batched frames fail closed', () => {
   for (const bytes of [Buffer.alloc(MAX_FRAME + 1, 65), Buffer.from([0xff, 10]), Buffer.from('{bad}\n'), Buffer.from('[]\n')]) {

@@ -21,9 +21,10 @@
     },
     "outscraper": {
       "args": [
-        "node_modules/@outscraper/mcp-server/dist/index.js"
+        "-y",
+        "outscraper-mcp@0.2.5"
       ],
-      "command": "node",
+      "command": "npx",
       "env": {
         "OUTSCRAPER_API_KEY": "${env:OUTSCRAPER_API_KEY}"
       }

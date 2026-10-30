@@ -18,6 +18,6 @@
     "./commands/kv.md"
   ],
   "skills": [
-    "./skills/cloudflare-deploy/SKILL.md"
+    "./skills/cloudflare-deploy"
   ]
 }

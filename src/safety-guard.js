@@ -49,14 +49,15 @@ function readFrames(stream, receive, fail) {
 }
 
 function runGuard({ command, args = [], policy, input = process.stdin, output = process.stdout,
-  diagnostics = process.stderr, timeoutMs = 30000, authorize = () => false, env = process.env }) {
+  diagnostics = process.stderr, timeoutMs = 30000, authorize = () => false, env = process.env, target }) {
   validatePolicy(policy);
   if (typeof command !== 'string' || !command || command.includes('\0') || !Array.isArray(args) ||
       args.some(a => typeof a !== 'string' || a.includes('\0')) || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 300000) {
     throw new Error('Invalid upstream configuration');
   }
+  const launch = target ? require('./approval-receipts.js').resolveTargetLaunch(target, command, args, env) : { env };
   // POSIX process group permits terminating children on disconnect/timeout.
-  const child = spawn(command, args, { shell: false, stdio: ['pipe', 'pipe', 'pipe'], env, detached: process.platform !== 'win32' });
+  const child = spawn(command, args, { shell: false, stdio: ['pipe', 'pipe', 'pipe'], ...launch, detached: process.platform !== 'win32' });
   const pending = new Map(), reverse = new Set();
   let stopped = false, initialized = false, ready = false, initPending = false;
   const send = m => {
@@ -64,12 +65,20 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
     if (!output.destroyed) output.write(JSON.stringify(m) + '\n');
   };
   const error = (id, code, message, data) => send({ jsonrpc: '2.0', id, error: { code, message, ...(data ? { data } : {}) } });
-  const forward = m => { if (!child.stdin.destroyed) child.stdin.write(JSON.stringify(m) + '\n'); };
+  const forward = m => {
+    if (stopped || child.stdin.destroyed) return;
+    const frame = JSON.stringify(m) + '\n';
+    if (child.stdin.writableLength + Buffer.byteLength(frame) > 4 * MAX_FRAME) {
+      stop('Upstream input limit exceeded');
+      return;
+    }
+    child.stdin.write(frame);
+  };
   function stop(reason) {
     if (stopped) return;
     stopped = true;
     diagnostics.write(`${reason}\n`); // Fixed messages only: upstream stderr never leaks credentials.
-    for (const [id, item] of pending) { clearTimeout(item.timer); error(id, -32001, 'Upstream unavailable'); }
+    for (const [id, item] of pending) { clearTimeout(item.timer); if (!item.cancelled) error(id, -32001, 'Upstream unavailable'); }
     pending.clear();
     if (child.pid) {
       if (process.platform === 'win32') {
@@ -104,7 +113,8 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
       } else if (m.method === 'notifications/cancelled') {
         const id = m.params?.requestId, item = pending.get(id);
         if (!item || item.method === 'initialize') return;
-        clearTimeout(item.timer); pending.delete(id);
+        // Cancellation is advisory: retain the deadline and slot until upstream finishes.
+        item.cancelled = true;
       } else if (!ready) return;
       forward(m); return;
     }
@@ -115,6 +125,8 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
       initPending = true;
     } else if (!ready) { error(m.id, -32000, 'Initialization required'); return; }
     if (m.method === 'tools/call') {
+      try { m = require('./approval-receipts.js').normalizeToolRequest(m); }
+      catch { error(m.id, -32602, 'Invalid tool metadata'); return; }
       const decision = evaluate(policy, m.params);
       let allowed = decision.action === 'allow-read';
       if (decision.action === 'require-approval') {
@@ -141,8 +153,9 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
       return;
     }
     const item = pending.get(m.id);
-    if (!item) return; // Late/cancelled responses are ignored.
+    if (!item) return; // Unknown/late responses are ignored.
     clearTimeout(item.timer); pending.delete(m.id);
+    if (item.cancelled) return;
     if (item.method === 'initialize') {
       initPending = false;
       if (!m.error) initialized = true;
@@ -158,19 +171,20 @@ function runGuard({ command, args = [], policy, input = process.stdin, output = 
 function main(argv = process.argv.slice(2)) {
   const { values, positionals } = parseArgs({ args: argv, allowPositionals: true, options: {
     policy: { type: 'string' }, actor: { type: 'string' }, provider: { type: 'string' },
-    'public-key': { type: 'string' }, 'receipt-dir': { type: 'string' }, 'receipt-file': { type: 'string' }
+    'public-key': { type: 'string' }, 'receipt-dir': { type: 'string' }, 'receipt-file': { type: 'string' }, target: { type: 'string' }
   } });
   if (!values.policy || !positionals.length) throw new Error('Usage: safety-guard --policy <file> -- <command> [args]');
   const policy = JSON.parse(fs.readFileSync(values.policy, 'utf8'));
-  const approvalFlags = ['public-key', 'receipt-dir', 'receipt-file', 'actor', 'provider'];
-  let authorize;
+  const approvalFlags = ['public-key', 'receipt-dir', 'receipt-file', 'actor', 'provider', 'target'];
+  let authorize, target;
   if (approvalFlags.some(k => values[k])) {
     if (!approvalFlags.every(k => values[k])) throw new Error('Incomplete approval configuration');
     const { createAuthorizer } = require('./approval-receipts.js');
+    target = JSON.parse(fs.readFileSync(values.target, 'utf8'));
     authorize = createAuthorizer({ publicKey: fs.readFileSync(values['public-key'], 'utf8'),
-      directory: values['receipt-dir'], receiptFile: values['receipt-file'], policy, actor: values.actor, provider: values.provider });
+      directory: values['receipt-dir'], receiptFile: values['receipt-file'], policy, target, actor: values.actor, provider: values.provider });
   }
-  runGuard({ command: positionals[0], args: positionals.slice(1), policy, ...(authorize ? { authorize } : {}) });
+  runGuard({ command: positionals[0], args: positionals.slice(1), policy, ...(authorize ? { authorize, target } : {}) });
 }
 
 if (require.main === module) {

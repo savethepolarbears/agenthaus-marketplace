@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('node:crypto');
+const { preflightPlugin, verifyContentLock, withVerifiedStage } = require('./integrity.js');
 
 function validateTargetSafety(targetDir) {
   if (!targetDir || typeof targetDir !== 'string') {
@@ -154,12 +156,13 @@ function isForeignInstallation(destPath, sourceDir) {
   return false;
 }
 
-function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = false, provider = null } = {}) {
+function installPluginUnchecked(sourceDir, targetDir, { method = 'symlink', dryRun = false, provider = null } = {}) {
   if (method !== 'symlink' && method !== 'copy') {
     throw new Error(`Unsupported method: ${method}`);
   }
   const safeTargetDir = validateTargetSafety(targetDir);
   const destPath = resolvePluginPath(safeTargetDir, path.basename(sourceDir));
+  if (provider && typeof provider.preflightInstall === 'function') provider.preflightInstall(sourceDir, safeTargetDir);
   if (isManagedProvider(provider)) {
     return provider.install(sourceDir, safeTargetDir, { dryRun });
   }
@@ -221,6 +224,7 @@ function installPlugin(sourceDir, targetDir, { method = 'symlink', dryRun = fals
 function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = null, sourceDir = null } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
   const destPath = resolvePluginPath(safeTargetDir, pluginName);
+  if (provider && typeof provider.preflightUninstall === 'function') provider.preflightUninstall(pluginName, safeTargetDir);
   if (isManagedProvider(provider)) {
     return provider.uninstall(pluginName, safeTargetDir, { dryRun, sourceDir });
   }
@@ -257,10 +261,11 @@ function uninstallPlugin(targetDir, pluginName, { dryRun = false, provider = nul
   return { status: 'removed', path: destPath };
 }
 
-function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } = {}) {
+function updatePluginUnchecked(sourceDir, targetDir, { dryRun = false, provider = null } = {}) {
   const safeTargetDir = validateTargetSafety(targetDir);
   const pluginName = path.basename(sourceDir);
   const destPath = resolvePluginPath(safeTargetDir, pluginName);
+  if (provider && typeof provider.preflightInstall === 'function') provider.preflightInstall(sourceDir, safeTargetDir);
   if (isManagedProvider(provider)) {
     return provider.update(sourceDir, safeTargetDir, { dryRun });
   }
@@ -443,6 +448,77 @@ function updatePlugin(sourceDir, targetDir, { dryRun = false, provider = null } 
   return { status: 'skipped', path: destPath };
 }
 
+function strictFailure(code) {
+  const error = new Error(`Strict installation unavailable: ${code}`);
+  error.code = code;
+  return error;
+}
+function assertStrictProvider(provider) {
+  if (!provider) return;
+  const builtIn = require('./providers/index.js').getProvider(provider.id);
+  // These adapters derive only files outside the copied plugin payload. Native
+  // marketplace and Antigravity in-plugin derivations need a separate reviewed route.
+  if (isManagedProvider(provider) || provider !== builtIn || !['cursor','codex','copilot','windsurf'].includes(provider.id)) {
+    throw strictFailure('UNSUPPORTED_STRICT_PROVIDER');
+  }
+}
+function strictCopy(sourceDir, targetDir, options, update) {
+  const snapshot = preflightPlugin(sourceDir, options); // Before every provider/refresh branch.
+  if (!update && (options.method || 'symlink') !== 'copy') throw strictFailure('UNSUPPORTED_STRICT_SYMLINK');
+  assertStrictProvider(options.provider);
+  const safeTarget = validateTargetSafety(targetDir);
+  const dest = resolvePluginPath(safeTarget, snapshot.plugin);
+  if (options.provider && typeof options.provider.preflightInstall === 'function') options.provider.preflightInstall(sourceDir, safeTarget);
+  let existing = false;
+  try {
+    const stat = fs.lstatSync(dest); existing = true;
+    if (stat.isSymbolicLink()) throw strictFailure('INSTALLED_SYMLINK');
+    if (!stat.isDirectory()) throw strictFailure('UNSUPPORTED_INSTALLED_PAYLOAD');
+    const result = verifyContentLock(dest, undefined, { installed: true });
+    if (!result.ok) {
+      const error = strictFailure(result.errors[0].code); error.errors = result.errors; throw error;
+    }
+  } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (update && !existing) return { status: 'not_found', path: dest, strict_integrity: true };
+  if (!update && existing) {
+    const matching = verifyContentLock(dest, snapshot.lock, { installed: true });
+    if (!matching.ok) throw strictFailure('INSTALLED_SOURCE_MISMATCH');
+  }
+  if (options.dryRun) return { status: existing ? 'updated' : 'installed', path: dest, strict_integrity: true, dry_run: true };
+  return withVerifiedStage(snapshot, stage => {
+    if (options.provider && typeof options.provider.preflightInstall === 'function') options.provider.preflightInstall(stage, safeTarget);
+    const backup = path.join(safeTarget, `.agenthaus-rollback-${crypto.randomUUID()}`);
+    let backedUp = false, wrote = false;
+    try {
+      fs.mkdirSync(safeTarget, { recursive: true });
+      if (existing) { fs.renameSync(dest, backup); backedUp = true; }
+      wrote = true; // cpSync may fail after creating only part of the destination.
+      fs.cpSync(stage, dest, { recursive: true, dereference: false, verbatimSymlinks: true });
+      fs.writeFileSync(path.join(dest, '.agenthaus-install.json'), JSON.stringify({ plugin: snapshot.plugin, managedBy: 'agenthaus' }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+      const result = verifyContentLock(dest, snapshot.lock, { installed: true });
+      if (!result.ok) throw strictFailure('INSTALLED_PAYLOAD_MISMATCH');
+      if (options.provider && typeof options.provider.postInstall === 'function') options.provider.postInstall(stage, safeTarget, { dryRun: false });
+      const readback = verifyContentLock(dest, snapshot.lock, { installed: true });
+      if (!readback.ok) throw strictFailure('UNSUPPORTED_INSTALLED_DERIVATION');
+      if (backedUp) fs.rmSync(backup, { recursive: true, force: true });
+      return { status: existing ? 'updated' : 'installed', path: dest, strict_integrity: true, tree_sha256: snapshot.tree_sha256,
+        provider_derivation: options.provider ? 'external-configs-not-content-locked' : 'none' };
+    } catch (error) {
+      if (wrote) fs.rmSync(dest, { recursive: true, force: true });
+      if (backedUp) fs.renameSync(backup, dest);
+      throw error;
+    }
+  });
+}
+function installPlugin(sourceDir, targetDir, options = {}) {
+  if (!options.strictIntegrity) return installPluginUnchecked(sourceDir, targetDir, options);
+  return strictCopy(sourceDir, targetDir, options, false);
+}
+function updatePlugin(sourceDir, targetDir, options = {}) {
+  if (!options.strictIntegrity) return updatePluginUnchecked(sourceDir, targetDir, options);
+  return strictCopy(sourceDir, targetDir, options, true);
+}
+
 function isInstalled(sourceDir, targetDir, provider = null) {
   const pluginName = path.basename(sourceDir);
   if (provider && typeof provider.isInstalled === 'function') {
@@ -457,6 +533,7 @@ function isInstalled(sourceDir, targetDir, provider = null) {
 }
 
 module.exports = {
+  isForeignInstallation,
   validateTargetSafety,
   resolvePluginPath,
   isInstalled,

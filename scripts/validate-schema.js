@@ -423,6 +423,16 @@ function isValidEmail(val) {
  * Lightweight, zero-dependency JSON Schema validator for Draft-07 schemas
  * used across AgentHaus marketplace plugin manifests.
  */
+// JSON equality: object member order is immaterial; arrays remain ordered.
+function equalJson(a, b) {
+  if (a === b) return true;
+  if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && equalJson(a[key], b[key]));
+}
+
 function validateValue(val, schema, jsonPath = '') {
   const errors = [];
   if (!schema || typeof schema !== 'object') return errors;
@@ -444,6 +454,14 @@ function validateValue(val, schema, jsonPath = '') {
       errors.push(`${jsonPath || 'root'}: expected type ${types.join('|')}, got ${Array.isArray(val) ? 'array' : typeof val}`);
       return errors;
     }
+  }
+
+  // Generic JSON constraints apply to every JSON type, not just strings.
+  if (Array.isArray(schema.enum) && !schema.enum.some(candidate => equalJson(val, candidate))) {
+    errors.push(`${jsonPath || 'root'}: value "${val}" not in enum [${schema.enum.join(', ')}]`);
+  }
+  if (Object.prototype.hasOwnProperty.call(schema, 'const') && !equalJson(val, schema.const)) {
+    errors.push(`${jsonPath || 'root'}: value does not match const`);
   }
 
   // 2. String constraints
@@ -471,9 +489,6 @@ function validateValue(val, schema, jsonPath = '') {
           errors.push(`${jsonPath || 'root'}: "${val}" is not a valid RFC-compliant URI`);
         }
       }
-    }
-    if (schema.enum && !schema.enum.includes(val)) {
-      errors.push(`${jsonPath || 'root'}: value "${val}" not in enum [${schema.enum.join(', ')}]`);
     }
   }
 

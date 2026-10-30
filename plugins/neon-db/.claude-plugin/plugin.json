@@ -17,6 +17,6 @@
     "./commands/query.md"
   ],
   "skills": [
-    "./skills/neon-database/SKILL.md"
+    "./skills/neon-database"
   ]
 }

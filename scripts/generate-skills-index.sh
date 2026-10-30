@@ -8,15 +8,20 @@ OUTPUT="$ROOT_DIR/skills_index.json"
 
 echo "Generating skills_index.json..."
 
+cd "$ROOT_DIR"
 python3 << 'PYEOF'
 import os, re, json, sys
-from datetime import date
+from datetime import datetime, timezone
+
+if "SOURCE_DATE_EPOCH" in os.environ and (not re.fullmatch(r"[0-9]+", os.environ["SOURCE_DATE_EPOCH"]) or int(os.environ["SOURCE_DATE_EPOCH"]) > 253402300799):
+    raise ValueError("Invalid SOURCE_DATE_EPOCH")
 
 plugins_dir = sys.argv[1] if len(sys.argv) > 1 else "plugins"
 output_file = sys.argv[2] if len(sys.argv) > 2 else "skills_index.json"
 
 files = []
-for root, dirs, fnames in sorted(os.walk(plugins_dir)):
+for root, dirs, fnames in os.walk(plugins_dir):
+    dirs[:] = sorted(d for d in dirs if d != "node_modules")
     for f in sorted(fnames):
         path = os.path.join(root, f)
         rel = path
@@ -64,11 +69,13 @@ for filepath, ftype in files:
         file_id = os.path.splitext(parts[-1])[0]
 
     entry = {
-        "id": f"{plugin_name}:{file_id}",
+        "id": f"{plugin_name}:{ftype}:{file_id}",
+        "legacy_id": f"{plugin_name}:{file_id}",
         "plugin": plugin_name,
         "type": ftype,
         "name": name,
-        "path": filepath
+        "path": filepath,
+        "platforms": ['claude-code', 'codex', 'cursor', 'gemini', 'windsurf']
     }
     if description:
         entry["description"] = description
@@ -77,14 +84,14 @@ for filepath, ftype in files:
 
 index = {
     "$schema": "https://github.com/savethepolarbears/agenthaus-marketplace/schemas/skills-index.schema.json",
-    "version": "1.0.0",
-    "generated": str(date.today()),
+    "version": "2.0.0",
+    "generated": datetime.fromtimestamp(int(os.environ["SOURCE_DATE_EPOCH"]), timezone.utc).date().isoformat() if "SOURCE_DATE_EPOCH" in os.environ else datetime.now(timezone.utc).date().isoformat(),
     "description": "Lightweight skill index for progressive disclosure. Agents load this at startup; full SKILL.md content is loaded on demand.",
     "entries": entries
 }
 
 with open(output_file, "w") as f:
-    json.dump(index, f, indent=2)
+    json.dump(index, f, indent=2, sort_keys=True, ensure_ascii=False)
     f.write("\n")
 
 print(f"Generated {output_file} with {len(entries)} entries ({sum(1 for e in entries if e['type']=='agent')} agents, {sum(1 for e in entries if e['type']=='skill')} skills, {sum(1 for e in entries if e['type']=='command')} commands)")

@@ -49,25 +49,29 @@ validate_marketplace() {
 
   # Check required fields
   local errors
-  errors="$(jq -r '
+  if ! errors="$(jq -r '
+    . as $marketplace |
     [
       (if has("name") then empty else "name" end),
       (if has("owner") then (if .owner | has("name") then empty else "owner.name" end) else "owner" end),
       (if has("plugins") then (if (.plugins | type) == "array" then empty else "plugins (must be array)" end) else "plugins" end)
     ] |
-    if has("plugins") and (.plugins | type) == "array" then
+    if ($marketplace.plugins | type) == "array" then
       . + [
-        (.plugins | map(select(has("name") | not)) | to_entries | map("plugins[" + (.key|tostring) + "] missing name")[]),
-        (.plugins | map(select(has("source") | not)) | to_entries | map("plugins[" + (.key|tostring) + "] missing source")[]),
+        ($marketplace.plugins | to_entries[] | select(.value | has("name") | not) | "plugins[" + (.key|tostring) + "] missing name"),
+        ($marketplace.plugins | to_entries[] | select(.value | has("source") | not) | "plugins[" + (.key|tostring) + "] missing source"),
         (
-          .plugins | map(select(has("name")).name) |
+          $marketplace.plugins | map(select(has("name")).name) |
           reduce .[] as $item ({}; .[$item] += 1) |
           to_entries | map(select(.value > 1).key) |
           if length > 0 then "duplicate plugin names: " + join(", ") else empty end
         )
       ]
     else . end | join("|")
-  ' "$MARKETPLACE" 2>/dev/null)" || true
+  ' "$MARKETPLACE" 2>/dev/null)"; then
+    log_fail "marketplace.json: required-field validation could not complete"
+    return 1
+  fi
 
   if [[ -n "$errors" ]]; then
     IFS='|' read -ra errs <<< "$errors"
@@ -197,10 +201,33 @@ except Exception as e:
   # 6. Check referenced files in commands, agents, skills, hooks arrays
   for array_field in commands agents skills hooks; do
     local files
-    files="$(jq -r ".${array_field}[]? | strings" "$manifest" 2>/dev/null)" || true
+    files="$(jq -r ".${array_field} | if type == \"string\" then . elif type == \"array\" then .[] | strings else empty end" "$manifest" 2>/dev/null)" || true
 
     if [[ -n "$files" ]]; then
       while IFS= read -r ref_file; do
+        if [[ "$array_field" == "skills" ]]; then
+          if python3 - "$dir" "$ref_file" <<'PYSKILLPATH'
+import pathlib, sys
+root = pathlib.Path(sys.argv[1]).resolve()
+ref = sys.argv[2]
+if not (ref.startswith("./") or ref == ".") or ".." in pathlib.PurePosixPath(ref).parts:
+    sys.exit(1)
+try:
+    target = (root / ref).resolve(strict=True)
+    target.relative_to(root)
+    if not target.is_dir():
+        sys.exit(1)
+except (ValueError, OSError):
+    sys.exit(1)
+PYSKILLPATH
+          then
+            log_pass "Referenced skill directory '${ref_file}' exists within plugin"
+          else
+            log_fail "Referenced skill directory '${ref_file}' missing, unsafe, or obsolete file path"
+            failed=1
+          fi
+          continue
+        fi
         if [[ ! -f "$dir/$ref_file" ]]; then
           log_fail "Referenced file '${ref_file}' (${array_field}) not found"
           failed=1
@@ -219,6 +246,50 @@ except Exception as e:
       failed=1
     else
       log_pass ".mcp.json is valid JSON"
+      local mcp_validation
+      if ! mcp_validation="$(python3 - "$manifest" "$mcp_file" <<'PYMCP'
+import json, pathlib, re, sys
+manifest = json.loads(pathlib.Path(sys.argv[1]).read_text())
+config = json.loads(pathlib.Path(sys.argv[2]).read_text())
+servers = config.get("mcpServers") if isinstance(config, dict) else None
+errors = []
+if not isinstance(servers, dict):
+    errors.append("mcpServers must be an object")
+else:
+    inline = manifest.get("mcpServers")
+    if isinstance(inline, dict) and inline != servers:
+        errors.append("inline mcpServers differs from canonical .mcp.json")
+    for name, server in servers.items():
+        if not isinstance(server, dict):
+            errors.append(name + ": server must be an object")
+            continue
+        if "command" in server:
+            if not isinstance(server["command"], str) or not server["command"]:
+                errors.append(name + ": command must be a nonempty string")
+            if server.get("type", "stdio") != "stdio":
+                errors.append(name + ": command transport must be stdio")
+            args = server.get("args", [])
+            if not isinstance(args, list) or any(not isinstance(arg, str) for arg in args):
+                errors.append(name + ": args must be a string array")
+            else:
+                for value in [server["command"], *args]:
+                    if isinstance(value, str) and (value.startswith(("node_modules/", "./")) or re.match(r"^(scripts|hooks|mcp)/", value)):
+                        errors.append(name + ": local executable path must use ${CLAUDE_PLUGIN_ROOT}")
+        elif server.get("type") not in ("http", "sse") or not isinstance(server.get("url"), str) or not re.match(r"^https?://[^/]+", server["url"]):
+            errors.append(name + ": remote transport requires http/sse type and an HTTP(S) URL")
+        env = server.get("env", {})
+        if not isinstance(env, dict) or any(not isinstance(value, str) for value in env.values()):
+            errors.append(name + ": env must map names to strings")
+if errors:
+    print("; ".join(errors))
+    sys.exit(1)
+PYMCP
+)"; then
+        log_fail ".mcp.json validation: ${mcp_validation}"
+        failed=1
+      else
+        log_pass ".mcp.json transport, paths and manifest declarations agree"
+      fi
     fi
   fi
 
@@ -480,8 +551,8 @@ validate_skills_index() {
   echo -e "\n${BOLD}Validating skills_index.json${NC}"
 
   if [[ ! -f "$index_file" ]]; then
-    log_warn "skills_index.json not found at repo root — run scripts/generate-skills-index.sh"
-    warn_count=$((warn_count + 1))
+    log_fail "skills_index.json not found at repo root — run scripts/generate-skills-index.sh"
+    fail_count=$((fail_count + 1))
     return
   fi
   log_pass "skills_index.json exists"
@@ -493,22 +564,56 @@ validate_skills_index() {
   fi
   log_pass "skills_index.json is valid JSON"
 
-  # Count actual files vs index entries (excluding dependencies)
-  local actual_count
-  actual_count="$(find "$PLUGINS_DIR" ! -path "*/node_modules/*" \( -path "*/agents/*.md" -o -path "*/skills/*/SKILL.md" -o -path "*/commands/*.md" \) | wc -l | tr -d ' ')"
-
-  local index_count
-  index_count="$(jq -r '.entries | length' "$index_file" 2>/dev/null)" || index_count=0
-
-  local diff=$((actual_count - index_count))
-  if [[ "$diff" -lt 0 ]]; then diff=$((-diff)); fi
-
-  if [[ "$diff" -gt 5 ]]; then
-    log_warn "skills_index.json has ${index_count} entries but found ${actual_count} files (diff: ${diff}) — regenerate with scripts/generate-skills-index.sh"
-    warn_count=$((warn_count + 1))
-  else
-    log_pass "skills_index.json entry count (${index_count}) matches file count (${actual_count})"
+  local index_schema="$ROOT_DIR/schemas/skills-index.schema.json"
+  if [[ ! -f "$index_schema" ]]; then
+    log_fail "schemas/skills-index.schema.json not found"
+    fail_count=$((fail_count + 1))
+    return
   fi
+  local schema_result
+  if ! schema_result="$(node "$SCRIPT_DIR/validate-schema.js" "$index_file" "$index_schema" 2>&1)"; then
+    log_fail "skills_index.json schema violation: ${schema_result}"
+    fail_count=$((fail_count + 1))
+    return
+  fi
+  local integrity_result
+  if ! integrity_result="$(python3 - "$ROOT_DIR" "$index_file" <<'PYINDEX'
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+entries = json.loads(pathlib.Path(sys.argv[2]).read_text())["entries"]
+actual = {}
+for kind, pattern in (("agent", "*/agents/*.md"), ("command", "*/commands/*.md"), ("skill", "*/skills/*/SKILL.md")):
+    for path in (root / "plugins").glob(pattern):
+        if path.is_file():
+            rel = path.relative_to(root).as_posix()
+            component = path.parent.name if kind == "skill" else path.stem
+            actual[rel] = (path.relative_to(root).parts[1], kind, component)
+errors, ids, paths = [], set(), set()
+for entry in entries:
+    component_id, rel = entry["id"], entry["path"]
+    if component_id in ids: errors.append("duplicate component ID: " + component_id)
+    if rel in paths: errors.append("duplicate component path: " + rel)
+    ids.add(component_id)
+    paths.add(rel)
+    if rel not in actual:
+        errors.append("path is not an indexed component: " + rel)
+        continue
+    plugin, kind, component = actual[rel]
+    if (entry["plugin"], entry["type"], entry["id"], entry["legacy_id"]) != (plugin, kind, f"{plugin}:{kind}:{component}", f"{plugin}:{component}"):
+        errors.append("component metadata disagrees with path: " + rel)
+for rel in sorted(set(actual) - paths): errors.append("unindexed component: " + rel)
+if len(entries) != len(actual): errors.append(f"entry count {len(entries)} differs from component count {len(actual)}")
+if errors:
+    print("; ".join(errors))
+    sys.exit(1)
+print(f"{len(entries)} unique component IDs and paths exactly cover {len(actual)} files")
+PYINDEX
+)"; then
+    log_fail "skills_index.json integrity: ${integrity_result}"
+    fail_count=$((fail_count + 1))
+    return
+  fi
+  log_pass "skills_index.json: ${integrity_result}"
 }
 
 # -------------------------------------------------------------------

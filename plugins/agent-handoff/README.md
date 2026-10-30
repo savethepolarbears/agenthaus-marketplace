@@ -98,3 +98,9 @@ The move operation serves as a simple mutex -- if a file is gone from `inbox/`, 
 ### Hooks
 
 A PostToolUse hook logs all task file writes to `.context/audit.log` for traceability.
+
+## Typed offline reference
+
+`node scripts/run-handoff-reference.js` (repository root) runs three synthetic SEO/social/WordPress stages without credentials, publication or scheduling. Each dispatch/claim/result is validated by `src/handoff.js`; the output includes a correlation ID, three digest-checked artifacts and a persisted actor/envelope trace that can be independently revalidated. Identities describe declared actors; they do not authenticate a provider or enforce atomic ownership. Phase13 owns durable leases and migration.
+
+`node scripts/validate-memory-integrations.js reports/phase-07-memory-matrix.json` covers every discovered plugin. Optional recall falls back to native task state on disabled/unavailable memory. Capturing is a separate operation requiring explicit boolean opt-in; tests inject a fixture adapter and do not write to MemPalace or vendor services. Live reference-flow acceptance remains separate.

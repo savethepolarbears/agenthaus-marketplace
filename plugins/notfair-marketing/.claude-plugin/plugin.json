@@ -34,9 +34,9 @@
     "creative-fatigue"
   ],
   "skills": [
-    "./skills/notfair-seo/SKILL.md",
-    "./skills/notfair-google-ads/SKILL.md",
-    "./skills/notfair-meta-ads/SKILL.md"
+    "./skills/notfair-seo",
+    "./skills/notfair-google-ads",
+    "./skills/notfair-meta-ads"
   ],
   "mcpServers": {
     "google-ads": {

@@ -3,67 +3,56 @@ gsd_state_version: "1.0"
 milestone: v2.1
 milestone_name: The Modular Agentic Runtime
 current_phase: 6
-current_phase_name: Universal Runtime Guard — v2.0 Gap Closure
-status: awaiting_human_verification
-stopped_at: Phase 6 implementation tested; human validation required before Phase 7
-last_updated: "2026-10-05T20:40:01.260Z"
-last_activity: 2026-10-05
-last_activity_desc: Phase 6 implemented and tested; human verification pending
-state_head: b7b6eb7ae92bffde5c2379a60a2fb60cbc7bd6a1
+current_phase_name: Universal Runtime Guard — acceptance deferred
+status: verifying
+stopped_at: Phases 7–14 local verification passed; Phase 6 deployment acceptance deferred
+last_updated: "2026-10-25T08:45:54.963534+00:00"
+last_activity: 2026-10-25
+last_activity_desc: User reaffirmed Phase 6 acceptance deferral and continuation of other phases; Phases 7–14 already locally verified
+state_head: 2dbccdbd624de0dc5de71bf0380425e5c0a5bb7e
 progress:
   total_phases: 9
-  completed_phases: 0
-  total_plans: 6
-  completed_plans: 2
-  percent: 0
+  completed_phases: 8
+  total_plans: 13
+  completed_plans: 13
+  percent: 89
+implementation_plan_percent: 100
 ---
 
 # Project State
 
-## Project Reference
+## Current position
 
-See: .planning/PROJECT.md (updated 2026-10-05)
+Phases6–14 have local implementations. Phase7–14 continuation was explicitly authorized while Phase6 acceptance remains open. Plan completion measures local implementation; eight later phases have passed their supported local contracts; Phase6 and milestone deployment acceptance remain open. Do not close/archive the milestone from these local gates.
 
-**Core value:** Every plugin works reliably on every supported AI coding agent
-**Current focus:** Validate Phase 6 provider/operator evidence before executing Phases 7–8.
+Source branch: feat/modular-runtime-phase-6. HEAD: 2dbccdbd624de0dc5de71bf0380425e5c0a5bb7e. Latest fetched origin/main: 4b528d19b07c27598ed274b59663418310421531, included in HEAD. Source patches remain uncommitted and unpushed. Preserve unrelated .gsd/.taskplane/.trigger-tree work.
 
-## Current Position
+## Explicit continuation exception
 
-Phase: 6 (Universal Runtime Guard — v2.0 Gap Closure)
-Plan: 2/2 — implemented and tested; phase acceptance pending
-Status: awaiting_human_verification
-Last activity: 2026-10-05 — v2.1 defined; legacy Phases 6–8 gap plans prepared
+User: “Continue Phases 7–14 while keeping Phase 6 acceptance open.” This authorizes implementation and local verification despite the Phase6 deployment dependency. It does not accept Phase6, enable external automation, authorize vendor writes/OAuth, or turn fixtures into production evidence.
 
-## Performance Metrics
+Reaffirmed 2026-10-25: “maybe keep this phase open and proceed with the other phases”. The user has not configured separate operator accounts and does not currently want to pursue them. Keep Phase 6 UAT partial and acceptance deferred; do not infer a security waiver or require Phase 6 closure before independent qualification work in other phases.
 
-**Velocity:**
+## Implementation and verification
 
-- Total plans completed: 2
-- Average duration: ~10 min
-- Total execution time: ~20 min
+Typed handoffs/optional memory, isolated health/receipts, compatible skill metadata, paged capabilities/read, Unicode/content locks, typed hook execution, SQLite fenced leases/migration and structural provider preservation are implemented. Root CLI integration and adversarial review fixes are included. See each phase SUMMARY/VERIFICATION and reports/remaining-phases/review.md with receipt.json for exact current check outcomes.
 
-**By Phase:**
+Scoped workers shared this dirty checkout; root integrated the CLI and final gates. No isolated worktree, typed executor, commit or hosted evidence is invented. A temporary Codex test fixture's instruction spill was corrected and the exact original AGENTS.md preimage restored; the final suite must preserve it.
 
-| Phase              | Plans | Total   | Avg/Plan |
-| ------------------ | ----- | ------- | -------- |
-| 01-source-audit    | 2     | ~20 min | ~10 min  |
-| 02-generator-build | 2     | ~31 min | ~15 min  |
+## Acceptance boundaries
 
-**Recent Trend:**
+- Phase6 remains human_needed: independently protected operator key/configuration/nonce storage and actual enabled execution owner require deployment evidence. Same-user PTY/real-client functionality does not establish that boundary.
+- Actual native execution covers one temporary Claude Code stdio/HTTP fixture profile and one skill load. Other clients, real vendor credentials, MemPalace backend and production effects remain unverified.
+- Local adapter fixtures cover configuration/lifecycle behavior. Unsupported TOML forms fail closed; hook environment cleaning is not filesystem/network isolation; SQLite fencing protects board acceptance rather than physical exactly-once effects.
+- Hosted CI, Node20/other OS qualification and previously unavailable public npm references remain explicit gaps. One enabled execution owner is required before external automation.
+- Source locks were exercised on disposable fixtures, not renewed automatically for the catalog. No real legacy state was migrated.
+- .planning/ and reports/ remain intentionally ignored except tracked ROADMAP/STATE. No force-add of private artifacts.
 
-- Last 5 plans: 01-01 (~12 min), 01-02 (~8 min), 02-01 (~9 min), 02-02 (~22 min)
-- Trend: moderate (implementation work)
+## Next action
 
-*Updated after each plan completion*
-| Phase 02-generator-build P01 | 9 | 2 tasks | 1 files |
-| Phase 02-generator-build P02 | 22 | 2 tasks | 15 files |
-| Phase 03-generation-run P01 | 15 | 2 tasks | 114 files |
-| Phase 03-generation-run P02 | 5 | 2 tasks | 8 files |
-| Phase 04-documentation-refresh P02 | 2 | 1 tasks | 1 files |
-| Phase 04 P01 | 2 | 2 tasks | 2 files |
-| Phase 04-documentation-refresh P03 | 8 | 1 tasks | 27 files |
+Phases 7–14 already have local verification passes. Continue their independent native-client and supported-host qualification using exact revision/policy receipts; preserve existing passing local checks. The proposal in reports/remaining-phases/next-milestone.md does not require closing Phase 6 before this independent work under the user's reaffirmed exception. Keep Phase 6 and milestone deployment acceptance open. New phases require an agreed scope; do not invent implementation work or infer authorization for provider-profile changes, production effects or publication.
 
-## Accumulated Context
+## Preserved decisions
 
 ### Decisions
 
@@ -94,39 +83,33 @@ Recent decisions affecting current work:
 - [Phase 04-documentation-refresh]: apple-photos assigned to new 'media' category — not 'utility', reflects media asset management domain
 - [Phase 04-03]: Commands row labeled Commands/Agents when plugin has agents; MCP shows none for Codex CLI; Hooks shows none (not n/a) on non-Claude-Code platforms when present
 
-### Pending Todos
 
-None yet.
+## Session continuity
 
-### Blockers/Concerns
+Checkpoint: reports/remaining-phases/checkpoint.json. Aggregate local evidence: reports/autonomous-closeout/receipt.json. Source Goal: none. No thread transfer or archival was performed.
 
-- [Phase 1]: SKILL.md multiline descriptions break discovery silently — do not run Prettier on SKILL.md files
-- [Phase 2]: Verify gray-matter YAML parser handles all current frontmatter patterns before committing to it
-- [Phase 3]: Windsurf project-scoped MCP config path unconfirmed — direct users to global config with caveat
+## Deferred Verification
 
-## Session Continuity
+| Phase | Status | Reason | Resume command |
+|---|---|---|---|
+| 6 | verification_deferred_human | User explicitly keeps Phase6 acceptance open; independently protected operator custody and enabled execution owner not observed | $gsd-verify-work 6 |
 
-Last session: 2026-10-05
-Stopped at: Phase 6 human verification gate
-Resume file: reports/modular-runtime-handoff.md
+## Autonomous re-entry — 2026-10-25
 
-## Milestone Progress
+Phases7–14 passed32local success criteria and31requirements, with source fingerprints and deployment exclusions.13plans/13summaries are implemented. Phase6 is omitted from the autonomous queue under the explicit continuation exception, not silently accepted. Milestone audit remains gaps_found; complete/archive/cleanup must not run. Current architecture/API docs now describe actual modules and CI configuration rather than a removed storefront.
 
-Total Phases: 9
-Progress: [░░░░░░░░░░] 0%
-Total Plans in Phase: 2
+## Post-verification hooks — 2026-10-25
 
-## Acceptance Boundaries
+Nyquist maps cover31local requirements; retroactive ASVS1 security register is independently verified21/21closed after two Codex fixes. Fresh core424/424and plugin37/37gates pass. MemPalace status was observed but private artifact transmission was rejected by automatic approval review; optional capture skipped pending specific payload/destination authorization. No filing occurred; see reports/autonomous-closeout/mempalace-export-plan.json. UI review is inapplicable to these CLI/runtime phases. Milestone completion/archive/cleanup remains gated by deferred Phase6 acceptance.
 
-- v2.0 archived as superseded with gaps, never accepted by this planning operation.
-- Missing Phase 5 verification renewed by BASE-01 in 06-01.
-- Phase 6 plans implemented; Phase 6 human acceptance pending. Phase 7–8 plans ready; Phases 9–14 require planning.
-- Baseline local tests passed; real-provider discovery, approval UX, external receipts and exact-head CI remain unverified.
-- Gitcrawl DB and live GitHub metadata unavailable; no issue/PR disposition inferred.
-- .planning/ and reports/ are intentionally ignored except existing tracked ROADMAP/STATE; no force-add of private artifacts.
+## Approved MemPalace artifact export — 2026-10-25
 
-## Current Autonomous Gate
+User explicitly approved the10-summary export plan. All10exact approved artifacts were filed under agenthaus-marketplace/milestones, with SHA256-equal readback and independent verification through a fresh read-only local MCP process. The registered connector/reconnect returned Transport closed; the installed one-shot MCP server was verified against the same palace. No saved configuration or daemon changes were made.
 
-Requested range: 6–8. Phase 6 code shipped in 6d24e30, 22e75bc, 4b135ca, b7b6eb7. All 181 tests and all 37 plugins pass locally. Status: human_needed. BASE-01, GUARD-02 and GUARD-04 require real provider discovery, operator-terminal approval UX, and protected operator identity/key/nonce storage evidence. Exact-head remote CI remains unverified separately. Phases 7–8 have not executed.
+Automatic approval review rejected derived knowledge-graph writes as additional scope. No KG facts were added; a separate8-fact proposal is prepared under reports/autonomous-closeout/mempalace-kg-plan.json. Phase6 acceptance remains deferred/open; no deployment or milestone archive follows. Export evidence: reports/autonomous-closeout/mempalace-export-receipt.json and mempalace-export-readback.json. This dated observation supersedes the earlier blocked artifact-capture status, preserving that history.
 
-Resume: `$gsd-verify-work 6`, then `$gsd-autonomous --from 7 --to 8` after Phase 6 acceptance. Validation question is pending; no deferral or acceptance inferred. Local reports and planning evidence are ignored intentionally. `.gsd/dispatch-isolation-sentinel.json` is an untracked GSD routing artifact created during this run.
+## Approved KG mirror — 2026-10-25
+
+User separately approved the exact8-fact MemPalace KG proposal. Eight additive local-verification facts for Phases7–14 were recorded with duplicate checks, requested source provenance and exact subject/predicate/object/date readback. A fresh read-only MCP process independently confirmed8/8. No supersede, invalidation, deletion, other-project changes or automation enablement occurred. Phase6 acceptance remains deferred/open.
+
+Evidence: reports/autonomous-closeout/mempalace-kg-receipt.json and mempalace-kg-readback.json. The query API exposes SPO/date fields but not stored source_file/source_drawer_id columns; provenance was supplied to the write API and is recorded in the receipt. This approved completion supersedes the earlier blocked KG status while preserving that history.

@@ -28,10 +28,10 @@
     "./agents/content-planner.md"
   ],
   "skills": [
-    "./skills/scheduling-sop/SKILL.md",
-    "./skills/content-creation/SKILL.md",
-    "./skills/greece-cluster/SKILL.md",
-    "./skills/profile-lookup/SKILL.md",
-    "./skills/rate-limit-guard/SKILL.md"
+    "./skills/scheduling-sop",
+    "./skills/content-creation",
+    "./skills/greece-cluster",
+    "./skills/profile-lookup",
+    "./skills/rate-limit-guard"
   ]
 }

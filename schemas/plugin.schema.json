@@ -95,7 +95,7 @@
           "items": { "type": "string" }
         }
       ],
-      "description": "Relative paths to skill Markdown files (skills/<name>/SKILL.md)"
+      "description": "Explicit relative skill directory paths (skills/<name>); directories contain SKILL.md or child skill directories"
     },
     "openapi": {
       "type": "string",

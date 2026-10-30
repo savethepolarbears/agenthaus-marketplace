@@ -1,82 +1,33 @@
 # Architecture Overview
 
-Persistent context for AI agents working in this repository. Read this file before starting large tasks.
+AgentHaus Marketplace distributes37canonical Claude plugins and a zero-dependency CommonJS CLI in bin/agenthaus.js and src/. There is no agenthaus-web directory in this checkout. Provider settings are derived adapters; plugin manifests remain canonical for this repository catalog. Global project/capability registration remains governed by the provider-neutral workspace registry.
 
-## Repository Purpose
+## Components and reuse boundaries
 
-AgentHaus Marketplace is a collection of **37 plugins** for Claude Code and Claude Cowork. The repository distributes a CommonJS CLI in bin/agenthaus.js and src/; the historical storefront is excluded from distribution.
+| Component | Source and responsibility |
+|---|---|
+|Catalog|src/catalog.js discovers actual plugin directories; .claude-plugin/marketplace.json registers37plugins.|
+|CLI|bin/agenthaus.js → src/cli.js; legacy installer/doctor/sync routes are preserved. src/runtime-cli.js dispatches on-demand skill,capabilities,permissions,lock,unicode,hook and task commands.|
+|Provider lifecycle|src/installer.js reuses built-in provider adapters; provider preflight precedes target mutation. src/providers/mcp-ownership.js is the shared JSON ownership/collision authority.|
+|Structural config|src/toml-structure.js validates a bounded conservative TOML subset; src/codex-toml.js renders native tables; src/providers/codex.js preserves unmanaged text and marked ownership. Unsupported forms fail closed.|
+|Typed handoff and coordination|src/handoff.js validates envelopes/correlation/evidence. src/blackboard.js reuses that validation with capability-tested SQLite CLI transactions,60-second leases and fencing. No database dependency is installed by the CLI.|
+|Optional memory|src/memory-integrations.js provides explicit37-plugin statuses and enabled/opt-in controls. Recall failure falls back to native state; memory cannot grant execution authority.|
+|Discovery and metadata|src/skill-metadata.js enumerates48skills independently of the177-component index. src/capabilities.js reuses those descriptors for deterministic paged manifests and safe body reads. AgentHaus sidecars remain separate from native manifests.|
+|Integrity|src/unicode-hygiene.js and src/integrity.js validate reviewed payload bytes, executable metadata and contained paths. Installer/strict sync reuse private verified staging. Lock renewal is explicit.|
+|Execution guard|src/safety-wiring.js wraps configured stdio routes using src/safety-guard.js and shared policy/request/receipt validation. Independent operator protection and deployment acceptance remain open in Phase6.|
+|Hook execution|src/hook-runtime.js provides typed event adapters, bounded shell-free spawning and an explicit environment. Environment cleaning is not filesystem/network isolation.|
+|Evidence|src/workflow-receipt.js binds HEAD, scoped policy hashes and worktree bytes. scripts/check-runtime-health.js generates twice and runs doctor/comparators in a disposable source/profile fixture. Receipts are local unsigned evidence.|
 
-## High-Level Structure
+## Dependency flow
 
-```text
-agenthaus-marketplace/
-├── agenthaus-web/          # Next.js 16 storefront (frontend)
-├── plugins/                # 37 plugin directories (the product)
-├── .agent/                 # Agent configuration (rules, skills, workflows, memory-bank)
-├── .claude-plugin/         # Marketplace registry (marketplace.json)
-├── schemas/                # JSON schemas for validation
-├── scripts/                # Automation scripts (validate-plugins.sh)
-├── reports/                # Project reports and documentation
-└── AGENTS.md               # Universal AI assistant instructions (symlinked)
-```
+The CLI is the composition root. Capabilities reuse skill metadata; blackboard reuses handoff validation; install/update/strict sync reuse integrity snapshots and existing provider adapters; all JSON providers share ownership logic and atomic filesystem helpers. The existing CommonJS runtime and schemas are retained instead of introducing a framework, alternate catalog or duplicate provider authority.
 
-## Component Relationships
+Plugin hooks remain native to Claude Code. Other provider adapters do not emulate hooks or independent approval UX. Standalone cached plugins do not bundle the repository runtime modules; advanced runtime commands require this checkout. Provider config fixtures and local stdio/HTTP servers are distinct from observed native-client discovery.
 
-```mermaid
-graph TD
-    A[Plugin Directory] --> B[plugin.json manifest]
-    A --> C[Commands .md]
-    A --> D[Agents .md]
-    A --> E[Skills SKILL.md]
-    A --> F[Hooks hooks.json]
-    A --> G[MCP Config .mcp.json]
-    B --> H[marketplace.json registry]
-    H --> I[agenthaus-web storefront]
-    I --> J[Plugin cards & catalog]
-```
+## Validation and acceptance
 
-## Plugin Anatomy
+.github/workflows/ci.yml defines plugin validation, unit tests, isolated health/drift receipts, Node20/22/24 across Linux/macOS/Windows, QA-Droid smoke, dependency audit and secret scanning. These are configured hosted jobs, not evidence that the current uncommitted tree passed hosted CI.
 
-Each plugin lives in `plugins/<name>/` and follows this structure:
+Phases7–14 have local implementations; criterion-level verification and exact source binding live under .planning/phases/ and reports/autonomous-closeout/. Phase6 is explicitly deferred under the user's instruction to continue later phases while keeping its acceptance open. One temporary Claude Code profile exercised local stdio/HTTP reads/denial and one skill loaded; other native providers and real vendor credentials/effects remain unverified. Do not accept or archive the milestone while Phase6 is open.
 
-| Component | Path | Format | Required |
-| ----------- | ------ | -------- | ---------- |
-| Manifest | `.claude-plugin/plugin.json` | JSON | Yes |
-| README | `README.md` | Markdown | Yes |
-| Commands | `commands/*.md` | Markdown + YAML frontmatter | No |
-| Agents | `agents/*.md` | Markdown + YAML frontmatter | No |
-| Skills | `skills/<name>/SKILL.md` | Markdown + YAML frontmatter | No |
-| Hooks | `hooks/hooks.json` | JSON (object with `hooks` key) | No |
-| MCP Config | `.mcp.json` | JSON with `mcpServers` | No |
-
-## Data Flow
-
-1. **Plugin creation** → Files in `plugins/<name>/`
-2. **Validation** → `scripts/validate-plugins.sh` checks structure + JSON
-3. **Registration** → Entry added to `.claude-plugin/marketplace.json`
-4. **Storefront** → `agenthaus-web/` reads plugin data and renders catalog
-5. **Installation** → End users install via `/plugin install <name>`
-
-## Web Storefront Stack
-
-- **Framework:** Next.js 16.0.0 (App Router, React 19)
-- **Styling:** Tailwind CSS 4.0.0
-- **Database:** Neon Serverless Postgres
-- **Icons:** Lucide React
-- **Deployment:** Requires `DATABASE_URL` env var
-
-## CI/CD Pipeline
-
-GitHub Actions (`.github/workflows/validate.yml`):
-
-1. **validate-plugins** — Runs `validate-plugins.sh` against all plugins
-2. **validate-json** — Checks JSON syntax of marketplace.json, all plugin.json, .mcp.json, hooks.json
-3. **lint-web** — Installs, lints, and builds the web storefront
-
-## Plugin Categories
-
-`content` · `devops` · `cloud` · `deployment` · `knowledge` · `docs` · `rag` · `productivity` · `qa` · `testing` · `database` · `utility` · `ux` · `orchestration` · `safety` · `memory` · `training` · `security` · `integration` · `seo` · `media`
-
-## Active Development Milestone (2026-10-05)
-
-v2.1 “The Modular Agentic Runtime” has 36 requirements across Phases 6–14. Six gap plans cover original v2.0 Phases 6–8. New work covers compatible metadata, progressive disclosure, Unicode/integrity, hook execution boundaries, atomic coordination and provider runtime proof. These are planned architecture additions, not implemented modules. See .planning/ROADMAP.md. Phase 5 implementation exists but final acceptance is pending renewal in 06-01.
+Source locks detect drift rather than authenticate publishers. SQLite fencing protects accepted board state rather than physical exactly-once effects. Exactly one enabled execution owner must be observed before operating each real automation; local fixtures do not establish production ownership.

@@ -27,6 +27,6 @@
     "./agents/wp-site-inspector.md"
   ],
   "skills": [
-    "./skills/wp-cli-operations/SKILL.md"
+    "./skills/wp-cli-operations"
   ]
 }

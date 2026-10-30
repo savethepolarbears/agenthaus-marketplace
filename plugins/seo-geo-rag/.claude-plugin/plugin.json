@@ -20,7 +20,7 @@
     "discoverability"
   ],
   "skills": [
-    "./skills/seo-geo-rag-optimizer/SKILL.md"
+    "./skills/seo-geo-rag-optimizer"
   ],
   "commands": [
     "./commands/audit.md",

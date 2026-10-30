@@ -10,7 +10,7 @@
     "playwright": "1.64.1"
   },
   "overrides": {
-    "fast-uri": ">=3.1.8",
+    "fast-uri": "^3.1.9",
     "hono": ">=4.13.8",
     "@hono/node-server": ">=1.19.17",
     "ip-address": ">=10.7.2",

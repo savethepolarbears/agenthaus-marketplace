@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "plugin": "openclaw-bridge",
+  "skills": {
+    "conversion": {
+      "aliases": [
+        "agenthaus-to-openclaw"
+      ]
+    }
+  }
+}

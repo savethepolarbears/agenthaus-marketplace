@@ -18,6 +18,6 @@
     "./commands/pr.md"
   ],
   "skills": [
-    "./skills/github-workflow/SKILL.md"
+    "./skills/github-workflow"
   ]
 }

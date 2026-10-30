@@ -22,6 +22,6 @@
     "./agents/fleet-monitor.md"
   ],
   "skills": [
-    "./skills/fleet-management/SKILL.md"
+    "./skills/fleet-management"
   ]
 }

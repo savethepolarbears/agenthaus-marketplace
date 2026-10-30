@@ -7,14 +7,14 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 ## Phases
 
 - [ ] **Phase 6: Universal Runtime Guard — v2.0 Gap Closure** — Accept the existing CLI baseline and enforce fail-closed approvals at an MCP boundary.
-- [ ] **Phase 7: Typed Handoffs & MemPalace — v2.0 Gap Closure** — Provide validated handoff envelopes and a local, reproducible coordination reference flow.
-- [ ] **Phase 8: Integrity & Documentation — v2.0 Gap Closure** — Close legacy CI, generation, and documentation gaps with reproducible receipts.
-- [ ] **Phase 9: Compatible Skill & Security Metadata** — Define standards-compatible metadata without breaking Claude plugin manifests.
-- [ ] **Phase 10: Progressive Disclosure & Skill Read** — Generate deterministic lean discovery and safely retrieve full skills on demand.
-- [ ] **Phase 11: Unicode Hygiene & Integrity Lock** — Detect deceptive source content and verify deterministic plugin tree integrity before mutation.
-- [ ] **Phase 12: Typed Hook Contracts & Execution Boundaries** — Standardize hook outcomes while enforcing honest execution and environment boundaries.
-- [ ] **Phase 13: Atomic Blackboard Coordination** — Prevent duplicate task execution with atomic leases and fenced completion.
-- [ ] **Phase 14: Provider Structural Editing & Runtime Proof** — Preserve user configurations while proving the supported transport and lifecycle matrix.
+- [x] **Phase 7: Typed Handoffs & MemPalace — v2.0 Gap Closure** — Provide validated handoff envelopes and a local, reproducible coordination reference flow.
+- [x] **Phase 8: Integrity & Documentation — v2.0 Gap Closure** — Close legacy CI, generation, and documentation gaps with reproducible receipts.
+- [x] **Phase 9: Compatible Skill & Security Metadata** — Define standards-compatible metadata without breaking Claude plugin manifests.
+- [x] **Phase 10: Progressive Disclosure & Skill Read** — Generate deterministic lean discovery and safely retrieve full skills on demand.
+- [x] **Phase 11: Unicode Hygiene & Integrity Lock** — Detect deceptive source content and verify deterministic plugin tree integrity before mutation.
+- [x] **Phase 12: Typed Hook Contracts & Execution Boundaries** — Standardize hook outcomes while enforcing honest execution and environment boundaries.
+- [x] **Phase 13: Atomic Blackboard Coordination** — Prevent duplicate task execution with atomic leases and fenced completion.
+- [x] **Phase 14: Provider Structural Editing & Runtime Proof** — Preserve user configurations while proving the supported transport and lifecycle matrix.
 
 ## Phase Details
 
@@ -30,11 +30,12 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Malformed policies, receipt replay, wrong request/policy/identity, expiry, and unavailable approval all fail closed.
 4. Five plugin integrations declare their execution owner; direct tools outside the proxy remain explicitly unprotected.
 
-**Execution status:** Both plans implemented; 181 tests and 37 plugins pass locally. Phase verification is `human_needed`; real provider/operator acceptance is pending.
+**Execution status:** Three plans implemented, including supplemental review remediation. 222 core tests and 37 plugin validations pass. Temporary real-provider and PTY approval/replay checks pass; deployed independent operator protection and hosted CI remain unverified. Phase verification stays `human_needed`.
 
-**Plans:** 2 gap-closure plans
+**Plans:** 3 gap-closure plans
 - [x] 06-01-PLAN.md — tracer and core contract
 - [x] 06-02-PLAN.md — integration and adversarial coverage
+- [x] 06-03-PLAN.md — target-bound receipts and actual provider/PTY regression closure
 
 ### Phase 7: Typed Handoffs & MemPalace — v2.0 Gap Closure
 
@@ -49,8 +50,8 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 4. Offline reference execution passes without credentials or external publication; live acceptance remains separate.
 
 **Plans:** 2 gap-closure plans
-- [ ] 07-01-PLAN.md — tracer and core contract
-- [ ] 07-02-PLAN.md — integration and adversarial coverage
+- [x] 07-01-PLAN.md — tracer and core contract
+- [x] 07-02-PLAN.md — integration and adversarial coverage
 
 ### Phase 8: Integrity & Documentation — v2.0 Gap Closure
 
@@ -65,8 +66,8 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 4. Legacy requirement mapping is complete and evidence records exact source HEAD and scoped policy hashes.
 
 **Plans:** 2 gap-closure plans
-- [ ] 08-01-PLAN.md — tracer and core contract
-- [ ] 08-02-PLAN.md — integration and adversarial coverage
+- [x] 08-01-PLAN.md — tracer and core contract
+- [x] 08-02-PLAN.md — integration and adversarial coverage
 
 ### Phase 9: Compatible Skill & Security Metadata
 
@@ -80,7 +81,8 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Malformed metadata, unsafe paths, and undeclared permissions produce actionable diagnostics.
 4. Extensions are clearly AgentHaus metadata; declarations are never represented as runtime enforcement.
 
-**Plans:** Not yet created; research-backed phase boundary defined.
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 09-01-PLAN.md — implementation, adversarial coverage and root integration
 
 ### Phase 10: Progressive Disclosure & Skill Read
 
@@ -94,7 +96,8 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Provider files preserve unmanaged prose and bounded discovery; malformed markers fail without writes.
 4. Tokenizer identity, byte counts, baseline, corpus coverage, and routing test outcomes are recorded.
 
-**Plans:** Not yet created; research-backed phase boundary defined.
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 10-01-PLAN.md — implementation, adversarial coverage and root integration
 
 ### Phase 11: Unicode Hygiene & Integrity Lock
 
@@ -108,7 +111,8 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Changed/missing/added payloads and escaping symlinks cause zero provider writes in strict mode.
 4. Lock renewal is explicit; normal verification cannot silently bless modified content.
 
-**Plans:** Not yet created; research-backed phase boundary defined.
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 11-01-PLAN.md — implementation, adversarial coverage and root integration
 
 ### Phase 12: Typed Hook Contracts & Execution Boundaries
 
@@ -122,7 +126,8 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Timeouts terminate the process tree, output is bounded, and malformed hook results fail safely.
 4. Isolation capability tests distinguish environment cleaning from real filesystem/network protection.
 
-**Plans:** Not yet created; research-backed phase boundary defined.
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 12-01-PLAN.md — implementation, adversarial coverage and root integration
 
 ### Phase 13: Atomic Blackboard Coordination
 
@@ -136,7 +141,8 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Crash/restart tests preserve task state and prevent duplicate completion acceptance.
 4. Legacy migration is idempotent and backup-backed; SQLite versus file locking is decided against tested platform support.
 
-**Plans:** Not yet created; research-backed phase boundary defined.
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 13-01-PLAN.md — implementation, adversarial coverage and root integration
 
 ### Phase 14: Provider Structural Editing & Runtime Proof
 
@@ -150,18 +156,25 @@ Approved 2026-10-05. Preserve Claude-native manifests, CommonJS CLI conventions,
 3. Local stdio/HTTP initialization and calls pass for documented compatible paths; unsupported provider cases remain explicit.
 4. All existing and new gates pass, with a receipt that cannot turn generated configuration or replayed evidence into live provider acceptance.
 
-**Plans:** Not yet created; research-backed phase boundary defined.
+**Plans:** One scoped implementation plan; locally verified; deployment acceptance remains separate.
+- [x] 14-01-PLAN.md — implementation, adversarial coverage and root integration
 
 ## Progress
 
-| Phase | Plans | Status | Completed |
+Phases7–14 passed criterion-level local verification on2026-10-25. Phase6 remains deferred/human_needed. Phase checkboxes reflect the supported local contract; milestone/deployment acceptance remains open. Current evidence: reports/autonomous-closeout/receipt.json.
+
+The user explicitly authorized continuing Phases7–14 while Phase6 acceptance stays open. Checked plan boxes mean local implementation, not deployment acceptance. Full gate outcomes and exact source/policy hashes are in reports/remaining-phases/receipt.json. No milestone completion is asserted.
+
+| Phase | Plans | Status | Local verification |
 |---|---|---|---|
-| 6 | 0/2 | Planned | — |
-| 7 | 0/2 | Planned | — |
-| 8 | 0/2 | Planned | — |
-| 9 | 0/TBD | Pending planning | — |
-| 10 | 0/TBD | Pending planning | — |
-| 11 | 0/TBD | Pending planning | — |
-| 12 | 0/TBD | Pending planning | — |
-| 13 | 0/TBD | Pending planning | — |
-| 14 | 0/TBD | Pending planning | — |
+| 6 | 3/3 | Local implementation verified; independent operator acceptance open | No |
+| 7 | 2/2 | Typed handoffs, memory fallback and offline reference implemented | Passed |
+| 8 | 2/2 | Isolated health, deterministic generation and receipts implemented | Passed |
+| 9 | 1/1 | Metadata, permissions and native manifest compatibility implemented | Passed |
+| 10 | 1/1 | Capabilities, paging, safe read and benchmark implemented | Passed |
+| 11 | 1/1 | Unicode, reviewed locks and strict staging implemented | Passed |
+| 12 | 1/1 | Hook contracts and bounded execution implemented | Passed |
+| 13 | 1/1 | Atomic leases, fencing and migration implemented | Passed |
+| 14 | 1/1 | Structural config editing, lifecycle and protocol matrix implemented | Passed |
+
+Native execution observations cover one Claude Code stdio/HTTP fixture profile and one skill; other provider runtime discovery remains unverified. No deployment, hosted CI, vendor write or independent operator acceptance follows from local tests.

@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentHaus typed hook result, not an OS sandbox claim",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event",
+    "status",
+    "rule_id",
+    "reason",
+    "remediation",
+    "execution",
+    "isolation"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "event": {
+      "type": "string",
+      "enum": [
+        "PreToolUse",
+        "PostToolUse",
+        "unsupported"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "blocked",
+        "error"
+      ]
+    },
+    "rule_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "remediation": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "launched",
+        "exit_code",
+        "signal",
+        "timed_out",
+        "output_limited"
+      ],
+      "properties": {
+        "launched": {
+          "type": "boolean"
+        },
+        "exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "signal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timed_out": {
+          "type": "boolean"
+        },
+        "output_limited": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "isolation": {
+      "type": "object",
+      "required": [
+        "backend",
+        "environment",
+        "filesystem",
+        "network",
+        "process_tree",
+        "limits",
+        "platform"
+      ],
+      "properties": {
+        "backend": {
+          "type": "string",
+          "const": "environment"
+        },
+        "environment": {
+          "type": "boolean",
+          "const": true
+        },
+        "filesystem": {
+          "type": "boolean",
+          "const": false
+        },
+        "network": {
+          "type": "boolean",
+          "const": false
+        },
+        "process_tree": {
+          "type": "string",
+          "enum": [
+            "posix-process-group",
+            "unsupported"
+          ]
+        },
+        "limits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "platform": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -17,6 +17,6 @@
     "./commands/deploy.md"
   ],
   "skills": [
-    "./skills/vercel-deployment/SKILL.md"
+    "./skills/vercel-deployment"
   ]
 }

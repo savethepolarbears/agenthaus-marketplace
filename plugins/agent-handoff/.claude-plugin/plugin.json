@@ -19,6 +19,6 @@
     "./commands/status.md"
   ],
   "skills": [
-    "./skills/blackboard-protocol/SKILL.md"
+    "./skills/blackboard-protocol"
   ]
 }

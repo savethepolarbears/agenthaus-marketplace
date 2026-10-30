@@ -16,6 +16,6 @@
     "./commands/docs.md"
   ],
   "skills": [
-    "./skills/doc-lookup/SKILL.md"
+    "./skills/doc-lookup"
   ]
 }

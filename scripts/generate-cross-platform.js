@@ -7,6 +7,11 @@ const { guardPlugin } = require('../src/safety-wiring.js');
 
 const PLUGINS_DIR = path.resolve(__dirname, '..', 'plugins');
 
+// Preserve arbitrary own dictionary keys without invoking Object.prototype setters.
+function setOwn(object, key, value) {
+  Object.defineProperty(object, key, { value, enumerable: true, writable: true, configurable: true });
+}
+
 // ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
@@ -21,7 +26,7 @@ function parseFrontmatter(content) {
   const fm = {};
   for (const line of match[1].split('\n')) {
     const m = line.match(/^([\w-]+):\s*["']?(.+?)["']?\s*$/);
-    if (m) fm[m[1]] = m[2];
+    if (m) setOwn(fm, m[1], m[2]);
   }
   return fm;
 }
@@ -37,7 +42,7 @@ function stableStringify(obj) {
       const result = {};
       for (let i = 0; i < sortedKeys.length; i++) {
         const k = sortedKeys[i];
-        result[k] = value[k];
+        setOwn(result, k, value[k]);
       }
       return result;
     }
@@ -127,9 +132,9 @@ function transformEnvVars(pluginOrObj, format) {
     for (const [key, srv] of Object.entries(obj)) {
       if (!srv.command && srv.url) {
         const { type, url, ...rest } = srv;
-        out[key] = type === 'sse' ? { ...rest, url } : { ...rest, httpUrl: url };
+        setOwn(out, key, type === 'sse' ? { ...rest, url } : { ...rest, httpUrl: url });
       } else {
-        out[key] = srv;
+        setOwn(out, key, srv);
       }
     }
     return out;
@@ -452,7 +457,9 @@ function injectSkillsPlatforms(plugins, errors) {
   for (const entry of data.entries) {
     entry.platforms = ['claude-code', 'codex', 'cursor', 'gemini', 'windsurf'].sort();
   }
-  data.generated = new Date().toISOString().slice(0, 10);
+  const epoch = process.env.SOURCE_DATE_EPOCH;
+  if (epoch !== undefined && !/^\d+$/.test(epoch)) throw new Error('Invalid SOURCE_DATE_EPOCH');
+  data.generated = new Date(epoch === undefined ? Date.now() : Number(epoch) * 1000).toISOString().slice(0, 10);
 
   writeIfChanged(indexPath, stableStringify(data));
   console.log('[skills_index] platforms field injected');

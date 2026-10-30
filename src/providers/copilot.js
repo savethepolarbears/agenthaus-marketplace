@@ -23,7 +23,7 @@ function loadPluginServers(sourceDir, targetDir) {
   const { servers, failed } = readServersSnippet(path.join(sourceDir, '.cursor', 'mcp.json'), 'Copilot');
   if (failed || !servers) return { servers, failed };
   const resolved = resolvePluginRoot(servers, [`\${workspaceFolder}/plugins/${pluginName}`], path.join(targetDir, pluginName));
-  const typed = {};
+  const typed = Object.create(null);
   for (const [key, srv] of Object.entries(resolved)) {
     if (srv.type) typed[key] = srv;
     else typed[key] = { type: srv.command ? 'stdio' : 'http', ...srv };

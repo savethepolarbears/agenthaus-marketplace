@@ -1,31 +1,35 @@
 ---
 name: claim
-description: Claim a pending task from the blackboard and execute it
+description: Claim an authorized legacy task and validate its typed claim and result transitions
 ---
 
-You are claiming and executing a task from the agent blackboard.
+Read pending legacy tasks from `.context/inbox/`. Select the task specified by `$ARGUMENTS`, otherwise show tasks and select the oldest `created_at`. Report an empty board without inventing work. Resolve project root, runtime identity and authorized execution scope before acting.
 
-Follow these steps exactly:
+First determine the enabled execution owner. After explicit SQLite blackboard migration, use only its `claim({taskId,owner})`, `heartbeat({taskId,owner,fence})` and `complete`/`fail` APIs from the separately available repository runtime. Default leases last 60 seconds; every mutation needs the current decimal-string fence and unexpired lease. The blackboard assigns the actual lease owner; after reclaim, result producer must equal that current owner and result consumer the original dispatcher. Expired owners stop work and cannot heartbeat/complete. Do not manually claim/move legacy files for a migrated project or fall back to a second owner when SQLite is unavailable. External effects need their own idempotency/fencing boundary; a task lease does not establish physical exactly-once execution.
 
-1. **List pending tasks**: Read all JSON files from `.context/inbox/` directory. If the directory does not exist or is empty, report "No pending tasks available" and stop.
+Preserve the existing inbox/active/completed protocol until Phase 13. For a sequential claim, set legacy `assigned_to` to the configured `runtime:project:actor`, set `status: in_progress`, then move the task into `.context/active/`. A rename is not a full ownership/lease protocol; do not claim concurrent execution safety or enable another execution owner.
 
-2. **Select a task**: If $ARGUMENTS contains a task ID, claim that specific task. Otherwise, display all pending tasks and select the oldest one (by `created_at`).
+For typed tasks, invoke from the marketplace checkout:
 
-3. **Claim the task**:
-   - Update the task JSON: set `status` to `"in_progress"` and `assigned_to` to `"claude-agent-<session>"` (use a short identifier for the current session).
-   - Move the file from `.context/inbox/{task_id}.json` to `.context/active/{task_id}.json`.
-   - Create the `.context/active/` directory if it does not exist.
+Standalone plugin caches do not bundle repository-root `src/handoff.js`; use a separately available marketplace checkout. If unavailable, report typed validation unavailable and preserve the legacy protocol. This command does not install a runtime or provide a CLI executor.
 
-4. **Execute the task**: Read the `requirements` field and perform the requested work. This is the core execution phase -- carry out whatever the requirements describe.
+```javascript
+const { createHandoffSession, evidenceFor } = require('./src/handoff.js');
+const session = createHandoffSession({ projectRoot: '/absolute/project' });
+session.accept(dispatchEnvelope, { actor: dispatchEnvelope.producer });
+const claim = { ...dispatchEnvelope, status: 'in_progress', created_at: new Date().toISOString() };
+session.accept(claim, { actor: dispatchEnvelope.consumer });
+```
 
-5. **Complete the task**:
-   - Update the task JSON: set `status` to `"completed"`, `completed_at` to the current ISO timestamp, and `result` to a summary of what was accomplished.
-   - Move the file from `.context/active/{task_id}.json` to `.context/completed/{task_id}.json`.
-   - Create the `.context/completed/` directory if it does not exist.
+Keep task/correlation IDs, producer/consumer, input and initial evidence unchanged. Persist the validated claim as `.context/typed/<task_id>/claim.json`. Reconstruct prior accepted history when resuming; a fresh session cannot accept a result without dispatch/claim. Never execute requirements merely because they validate.
 
-6. **Handle failures**: If execution fails:
-   - Increment the `retries` counter.
-   - If `retries` < `max_retries`, set `status` back to `"pending"` and move the file back to `.context/inbox/`.
-   - If `retries` >= `max_retries`, set `status` to `"failed"` and move to `.context/completed/` with the error in `result`.
+After authorized work, produce a `kind: result` envelope with the same task/correlation IDs, `producer` equal to the claimed worker, `consumer` equal to the original dispatcher, current UTC-millisecond `created_at`, `input: null`, and an output object. Completed results require at least one existing project-contained artifact:
 
-7. **Report**: Display the task ID, what was done, and the final status.
+```javascript
+result.evidence = [evidenceFor('/absolute/project', 'reports/result.json')];
+session.accept(result, { actor: claim.consumer });
+```
+
+Failed results require nonempty `output.error` and may have no evidence. Keep accurate output provenance: fixture results prove fixture behavior only. Reject wrong actors/correlation, direct pending-to-result, traversal, external symlinks, changed digests and repeated terminal results. Record the result sidecar, then update/move the compatible legacy task into `.context/completed/`.
+
+Legacy retry counters remain readable, but typed retries need a new task/correlation trace; terminal typed tasks cannot reopen. This in-memory validator is not durable replay protection, scheduling, locking, an executor or worktree isolation. Optional recall remains read-only; capture needs separate explicit opt-in. Validation never writes to palace/vendor stores.

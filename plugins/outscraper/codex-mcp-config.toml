@@ -2,6 +2,6 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.outscraper]
-command = "node"
-args = ["node_modules/@outscraper/mcp-server/dist/index.js"]
+command = "npx"
+args = ["-y", "outscraper-mcp@0.2.5"]
 env_vars = ["OUTSCRAPER_API_KEY"]

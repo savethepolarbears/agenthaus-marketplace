@@ -17,6 +17,6 @@
     "./commands/configure.md"
   ],
   "skills": [
-    "./skills/safety-guardrails/SKILL.md"
+    "./skills/safety-guardrails"
   ]
 }

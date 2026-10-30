@@ -19,6 +19,6 @@
     "./commands/review.md"
   ],
   "skills": [
-    "./skills/shadow-review/SKILL.md"
+    "./skills/shadow-review"
   ]
 }

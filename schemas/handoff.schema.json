@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentHaus typed handoff envelope v1",
+  "description": "src/handoff.js also enforces real dates, JSON bounds, project containment, digests, actors, correlation, transitions and duplicate results.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "task_id", "correlation_id", "producer", "consumer", "created_at", "status", "input", "output", "evidence"],
+  "properties": {
+    "schema_version": { "const": 1 }, "kind": { "enum": ["task", "result"] },
+    "task_id": { "$ref": "#/definitions/uuid" }, "correlation_id": { "$ref": "#/definitions/uuid" },
+    "producer": { "$ref": "#/definitions/actor" }, "consumer": { "$ref": "#/definitions/actor" },
+    "created_at": { "type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$" },
+    "status": { "enum": ["pending", "in_progress", "completed", "failed"] },
+    "input": { "type": ["object", "null"] }, "output": { "type": ["object", "null"] },
+    "evidence": { "type": "array", "maxItems": 128, "items": { "$ref": "#/definitions/evidence" } }
+  },
+  "oneOf": [
+    { "properties": { "kind": { "const": "task" }, "status": { "enum": ["pending", "in_progress"] }, "input": { "type": "object" }, "output": { "type": "null" } } },
+    { "properties": { "kind": { "const": "result" }, "status": { "const": "completed" }, "input": { "type": "null" }, "output": { "type": "object", "minProperties": 1 }, "evidence": { "minItems": 1 } } },
+    { "properties": { "kind": { "const": "result" }, "status": { "const": "failed" }, "input": { "type": "null" }, "output": { "type": "object", "required": ["error"], "properties": { "error": { "type": "string", "minLength": 1, "maxLength": 4096, "pattern": "\\S" } } } } }
+  ],
+  "definitions": {
+    "uuid": { "type": "string", "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$" },
+    "actor": { "type": "string", "pattern": "^[a-zA-Z0-9_.-]{1,64}:[a-zA-Z0-9_.-]{1,64}:[a-zA-Z0-9_.-]{1,64}$" },
+    "evidence": {
+      "type": "object", "additionalProperties": false, "required": ["artifact_path", "sha256"],
+      "properties": {
+        "artifact_path": { "type": "string", "minLength": 1, "maxLength": 4096, "description": "Existing project-relative regular file; runtime rejects traversal and external symlink escapes." },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}
