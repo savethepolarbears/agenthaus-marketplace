@@ -17,9 +17,23 @@ fi
 
 # Only gate commands that actually look like a deploy/publish.
 # Match deploy/publish verbs as whole words at a command position so that e.g.
-# `git push` to a feature branch or `cat release-notes.md` is not gated.
-DEPLOY_RE='(^|[;&|[:space:]])((npm|pnpm|yarn)[[:space:]]+publish|wrangler[[:space:]]+(deploy|publish|pages[[:space:]]+deploy)|vercel([[:space:]]+deploy)?[[:space:]]+--prod|netlify[[:space:]]+deploy[[:space:]]+--prod|fly[[:space:]]+deploy|kubectl[[:space:]]+(apply|rollout)|helm[[:space:]]+(upgrade|install)|terraform[[:space:]]+apply|gh[[:space:]]+release[[:space:]]+create|git[[:space:]]+push[[:space:]].*(main|master|production|prod)([[:space:]]|$)|git[[:space:]]+push[[:space:]].*--tags|[a-z0-9_.-]*deploy[a-z0-9_.-]*\.sh|make[[:space:]]+(deploy|release))'
-printf '%s\n' "$CMD" | grep -qiE "$DEPLOY_RE" || exit 0
+# `cat release-notes.md` is not gated; git pushes are resolved by git_intent.py.
+DEPLOY_RE='(^|[;&|[:space:]])((npm|pnpm|yarn)[[:space:]]+publish|wrangler[[:space:]]+(deploy|publish|pages[[:space:]]+deploy)|vercel([[:space:]]+deploy)?[[:space:]]+--prod|netlify[[:space:]]+deploy[[:space:]]+--prod|fly[[:space:]]+deploy|kubectl[[:space:]]+(apply|rollout)|helm[[:space:]]+(upgrade|install)|terraform[[:space:]]+apply|gh[[:space:]]+release[[:space:]]+create|[a-z0-9_.-]*deploy[a-z0-9_.-]*\.sh|make[[:space:]]+(deploy|release))'
+IS_DEPLOY=no
+printf '%s\n' "$CMD" | grep -qiE "$DEPLOY_RE" && IS_DEPLOY=yes
+# git push: resolve the effective destination (including a bare `git push` that
+# follows the branch's upstream) instead of looking for branch names in the text.
+if [ "$IS_DEPLOY" = no ] && printf '%s\n' "$CMD" | grep -qE '(^|[;&|(][[:space:]]*|[[:space:]])git([[:space:]]+-c[[:space:]]+[^[:space:]]+)*[[:space:]]+push([[:space:]]|$)'; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if command -v python3 >/dev/null 2>&1; then
+        PUSH="$(python3 -I "$SCRIPT_DIR/git_intent.py" push-protected "$CMD" 2>/dev/null || echo UNKNOWN)"
+    else
+        PUSH=UNKNOWN
+    fi
+    # Protected target, or unknown: treat as a deploy (fail closed).
+    [ "$PUSH" = no ] || IS_DEPLOY=yes
+fi
+[ "$IS_DEPLOY" = yes ] || exit 0
 
 # Check if this breaker is disabled
 CONFIG_FILE=".circuit-breaker-config.json"

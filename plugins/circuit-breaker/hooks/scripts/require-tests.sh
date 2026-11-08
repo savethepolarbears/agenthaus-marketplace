@@ -22,66 +22,21 @@ if [ -f "$CONFIG_FILE" ]; then
     fi
 fi
 
-# Files the commit will contain: what is already staged, plus (a) tracked changes
-# for `git commit -a/--all`, and (b) exactly the paths each chained `git add`
-# would stage, found with `git add --dry-run` on shlex-split arguments (never
-# shell-evaluated). Untracked files outside those adds never count. If parsing
-# fails we fall back to the staged set, which fails closed.
-STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
+# Files the commit will record, following git's semantics (staged files,
+# chained `git add`, `commit -a`, and `git commit <pathspec>` which commits only
+# those paths). git_intent.py splits the command with shlex and never runs it
+# through a shell. If the contents cannot be determined, block (fail closed).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -n "$CMD" ] && command -v python3 >/dev/null 2>&1; then
-    EXTRA_FILES="$(CMD="$CMD" python3 - <<'PYSEL' 2>/dev/null || true
-import os, shlex, subprocess
-cmd = os.environ.get("CMD", "")
-try:
-    lexer = shlex.shlex(cmd, posix=True, punctuation_chars=";&|")
-    lexer.whitespace_split = True
-    tokens = list(lexer)
-except ValueError:
-    raise SystemExit(0)
-segments, cur = [], []
-for tok in tokens:
-    if tok and set(tok) <= set(";&|"):
-        if cur:
-            segments.append(cur)
-        cur = []
-    else:
-        cur.append(tok)
-if cur:
-    segments.append(cur)
-def git_sub(seg):
-    if len(seg) >= 2 and seg[0] == "git":
-        i = 1
-        while i < len(seg) and seg[i].startswith("-"):
-            i += 2 if seg[i] in ("-C", "-c") else 1
-        if i < len(seg):
-            return seg[i], seg[i + 1:]
-    return None, []
-out = set()
-for seg in segments:
-    sub, args = git_sub(seg)
-    if sub == "add":
-        flags = [a for a in args if a.startswith("-") and a != "--"]
-        paths = [a for a in args if not a.startswith("-") or a == "--"]
-        paths = [a for a in paths if a != "--"]
-        r = subprocess.run(["git", "add", "--dry-run", *flags, "--", *paths] if paths else ["git", "add", "--dry-run", *flags],
-                           capture_output=True, text=True, timeout=10)
-        if r.returncode == 0:
-            for line in r.stdout.splitlines():
-                if line.startswith("add '") and line.endswith("'"):
-                    out.add(line[5:-1])
-    elif sub == "commit":
-        if any(a in ("-a", "--all") or (a.startswith("-") and not a.startswith("--") and "a" in a[1:].split("m")[0]) for a in args):
-            r = subprocess.run(["git", "diff", "--name-only"], capture_output=True, text=True, timeout=10)
-            if r.returncode == 0:
-                out.update(l for l in r.stdout.splitlines() if l)
-        break
-for f in sorted(out):
-    print(f)
-PYSEL
-)"
-    if [ -n "$EXTRA_FILES" ]; then
-        STAGED_FILES=$(printf '%s\n%s\n' "$STAGED_FILES" "$EXTRA_FILES" | sed '/^$/d' | sort -u)
-    fi
+    STAGED_FILES="$(python3 -I "$SCRIPT_DIR/git_intent.py" commit-set "$CMD" 2>/dev/null || echo UNKNOWN)"
+else
+    STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
+fi
+if [ "$STAGED_FILES" = "UNKNOWN" ]; then
+    echo "CIRCUIT BREAKER: Could not determine which files this commit records" >&2
+    echo "(interactive add, pathspec from stdin, git -C, or unparseable quoting). Stage files and run a plain 'git commit'." >&2
+    echo "Override: disable this breaker with /configure disable require-tests" >&2
+    exit 2
 fi
 
 if [ -z "$STAGED_FILES" ]; then

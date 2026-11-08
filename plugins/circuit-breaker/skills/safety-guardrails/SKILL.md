@@ -26,6 +26,7 @@ Prevents deployments outside business hours (Monday-Friday, 9 AM - 5 PM local ti
 **How it works:**
 
 - Intercepts deployment tool calls via PreToolUse hooks
+- Resolves `git push` destinations the way git does (`hooks/scripts/git_intent.py`), so a bare `git push` from a branch tracking `main` is gated and a feature-branch push is not
 - Checks the current day and time against the allowed window
 - Blocks the deployment with a clear message if outside hours
 - Can be overridden by disabling the breaker
@@ -37,7 +38,8 @@ Ensures test files are included in staged changes before allowing commits.
 **How it works:**
 
 - Intercepts git commit operations via PreToolUse hooks
-- Scans staged files for test patterns (`*.test.*`, `*.spec.*`)
+- Computes exactly what the commit records (staged files, chained `git add`, `-a`, `--amend`, and `git commit <paths>`, which commits only those paths) and scans it for test patterns (`*.test.*`, `*.spec.*`)
+- Blocks when the commit contents cannot be determined (fail closed)
 - Blocks the commit if no test files are staged alongside code changes
 - Encourages test-driven development practices
 
