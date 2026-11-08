@@ -31,9 +31,9 @@ IS_DEPLOY=no
 printf '%s\n' "$CMD" | grep -qiE "$DEPLOY_RE" && IS_DEPLOY=yes
 # git push: resolve the effective destination (including a bare `git push` that
 # follows the branch's upstream) instead of looking for branch names in the text.
-# Cheap prefilter on the words `git` and `push`; git_intent.py parses global
+# Cheap prefilter on the word `git` (aliases can hide `push`); git_intent.py parses global
 # options (-C, -c, --no-pager, ...), `cd dir &&` and env prefixes.
-if [ "$IS_DEPLOY" = no ] && printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]_-])git([^[:alnum:]_-]|$)' && printf '%s' "$CMD" | grep -qE '(^|[[:space:]])push([[:space:]]|$)'; then
+if [ "$IS_DEPLOY" = no ] && printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]_-])git([^[:alnum:]_-]|$)'; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     if command -v python3 >/dev/null 2>&1; then
         PUSH="$(python3 -I "$SCRIPT_DIR/git_intent.py" push-protected "$CMD" 2>/dev/null || echo UNKNOWN)"

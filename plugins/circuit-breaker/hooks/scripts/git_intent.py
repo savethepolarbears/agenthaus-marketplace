@@ -27,6 +27,9 @@ UNKNOWN = "UNKNOWN"
 NOCOMMIT = "NOCOMMIT"
 # Working directory for git calls; follows `cd` segments and `git -C`.
 CWD = [os.getcwd()]
+# The shell's working directory, moved only by `cd`/`pushd`; `git -C` applies to
+# a single git invocation, so each segment starts again from here.
+SHELL_CWD = [os.getcwd()]
 # `git -c key=value` overrides seen on the current git segment (lower-cased keys).
 CONFIG = {}
 
@@ -82,11 +85,13 @@ def segments(cmd):
     return segs
 
 
-def chdir(path):
+def chdir(path, shell=False):
     target = os.path.normpath(os.path.join(CWD[0], os.path.expanduser(path)))
     if not os.path.isdir(target):
         raise Unknown("cannot resolve directory " + path)
     CWD[0] = target
+    if shell:
+        SHELL_CWD[0] = target
 
 
 # Global git options that take a separate value.
@@ -114,6 +119,7 @@ def git_sub(seg):
     """
     i = 0
     CONFIG.clear()
+    CWD[0] = SHELL_CWD[0]
     while True:
         while i < len(seg) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]):
             if seg[i].startswith(("GIT_CONFIG", "GIT_DIR=", "GIT_WORK_TREE=", "GIT_INDEX_FILE=")):
@@ -132,7 +138,7 @@ def git_sub(seg):
             continue
         break
     if i < len(seg) and seg[i] in ("cd", "pushd") and i + 1 < len(seg):
-        chdir(seg[i + 1])
+        chdir(seg[i + 1], shell=True)
         return None, []
     if i >= len(seg) or os.path.basename(seg[i]) != "git":
         first = os.path.basename(seg[i]) if i < len(seg) else ""
@@ -159,7 +165,35 @@ def git_sub(seg):
         i += 2 if opt in GIT_VALUE_OPTS else 1
     if i >= len(seg):
         return None, []
-    return seg[i], seg[i + 1:]
+    return resolve_alias(seg[i], seg[i + 1:])
+
+
+def resolve_alias(sub, args):
+    """Expand git aliases (`alias.ci=commit`) the way git does.
+
+    Builtins cannot be shadowed by aliases, so known subcommands are returned
+    as-is. A shell alias (`!...`) can do anything, so it is UNKNOWN.
+    """
+    for _ in range(10):
+        if sub in KNOWN_SUBS:
+            return sub, args
+        value = CONFIG.get("alias." + sub.lower())
+        if value is None:
+            r = subprocess.run(["git", "config", "--get", "alias." + sub], capture_output=True,
+                               text=True, timeout=15, cwd=CWD[0])
+            value = r.stdout.strip() if r.returncode == 0 else None
+        if value is None:
+            return sub, args
+        if value.startswith("!"):
+            raise Unknown("git " + sub + " is a shell alias")
+        try:
+            words = shlex.split(value)
+        except ValueError as exc:
+            raise Unknown(str(exc))
+        if not words:
+            return sub, args
+        sub, args = words[0], words[1:] + list(args)
+    raise Unknown("alias loop")
 
 
 # git commit options that consume the next argument (long forms may also use =).
@@ -234,21 +268,32 @@ INDEX_NEUTRAL = {"status", "diff", "log", "show", "branch", "rev-parse", "ls-fil
                  "reflog", "help", "version", "var", "cat-file", "for-each-ref"}
 
 
+KNOWN_SUBS = INDEX_NEUTRAL | {"add", "commit", "push", "reset", "restore", "rm", "mv", "stash",
+                              "checkout", "switch", "merge", "rebase", "pull", "cherry-pick",
+                              "revert", "am", "apply", "tag", "init", "clone"}
+
+
 def commit_set(cmd):
     staged = None
-    saw_add, unconditional = False, True
+    saw_add, unconditional, dirty, found = False, True, None, None
     for seg, op in segments(cmd):
         if op is not None and op != "&&":
             unconditional = False
         sub, args = git_sub(seg)
         if sub is not None and sub not in ("add", "commit") and sub not in INDEX_NEUTRAL:
-            raise Unknown("git " + sub + " may change the index before the commit")
+            dirty = dirty or sub  # only matters if a commit follows
         if sub in ("add", "commit") and staged is None:
             staged = set(lines(git("diff", "--cached", "--name-only")))
         if sub == "add":
             saw_add = True
             simulate_add(args, staged)
         elif sub == "commit":
+            if found is not None:
+                # After a commit the index and HEAD both move; a later commit's
+                # contents are not modelled, so do not let it pass unchecked.
+                raise Unknown("more than one git commit in one command")
+            if dirty:
+                raise Unknown("git " + dirty + " may change the index before the commit")
             if saw_add and not unconditional:
                 # Only a pure `&&` chain guarantees each earlier add ran when the
                 # commit runs; `;`, `||`, pipes or subshells make that a guess.
@@ -271,11 +316,12 @@ def commit_set(cmd):
                 result = changed | (staged & matched)
                 if "-i" in opts or "--include" in opts:
                     result |= staged
-                return result
+                found = result
+                continue
             if all_tracked:
                 staged |= set(lines(git("diff", "--name-only")))
-            return staged
-    return None
+            found = staged
+    return found
 
 
 def current_branch():

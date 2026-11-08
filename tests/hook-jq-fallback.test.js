@@ -8,6 +8,16 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
+// Resolve the real binary (pyenv/asdf shims are scripts that need tools a
+// stripped PATH leaves out).
+function realTool(tool) {
+    if (tool === 'python3') {
+        const r = spawnSync('python3', ['-c', 'import sys; print(sys.executable)'], { encoding: 'utf8' });
+        if (r.status === 0 && r.stdout.trim()) return r.stdout.trim();
+    }
+    return spawnSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
+}
+
 const root = path.resolve(__dirname, '..');
 const skip = { skip: process.platform === 'win32' ? 'bash hooks' : false };
 
@@ -20,7 +30,7 @@ function binWithout(t, keep) {
     const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'no-jq-hooks-'));
     t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
     for (const tool of keep) {
-        const where = spawnSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
+        const where = realTool(tool);
         if (where) fs.symlinkSync(where, path.join(bin, tool));
     }
     return bin;
