@@ -100,7 +100,8 @@ function* invocations(file) {
     for (const snip of snippets) {
       // gog may follow env assignments, plain wrappers or a directory path:
       // `GOG_ACCOUNT=x gog ...`, `env X=y sudo gog ...`, `/opt/homebrew/bin/gog ...`.
-      const re = /(?:^|&&|\|\||[;|(]|\$\()\s*(?:(?:[A-Za-z_][A-Za-z0-9_]*=\S*|env|sudo|command|exec|time|nohup)\s+)*(?:[^\s;&|()]*\/)?(gog\s+[a-z-][^;&|]*)/g;
+      // A wrapper may carry options, each with an optional value: `sudo -u root gog ...`.
+      const re = /(?:^|&&|\|\||[;|(]|\$\()\s*(?:(?:[A-Za-z_][A-Za-z0-9_]*=\S*|(?:env|sudo|command|exec|time|nohup)(?:\s+-\S+(?:\s+(?![^\s;&|()]*gog\b)[^\s;&|()-]\S*)?)*)\s+)*(?:[^\s;&|()]*\/)?(gog\s+[a-z-][^;&|]*)/g;
       for (const m of snip.matchAll(re)) {
         yield { file: path.relative(ROOT, file), line: i + 1, text: m[1].trim(), mention: !inFence };
       }
@@ -200,10 +201,15 @@ function check(text, { mention = false } = {}) {
 
   const positionals = [];
   const seenFlags = new Set();
+  let endOfOptions = false;
   for (let j = 0; j < rest.length; j++) {
     const tok = rest[j];
     if (tok === '...' || tok === '…') continue;
-    if (/^--?[A-Za-z]/.test(tok)) {
+    if (tok === '--' && !endOfOptions) {
+      endOfOptions = true; // kong: everything after -- is positional
+      continue;
+    }
+    if (!endOfOptions && /^--?[A-Za-z]/.test(tok)) {
       const parsed = parseFlagToken(tok, known, bools);
       if (parsed.unknown) problems.push(`"gog ${key}" has no flag ${parsed.unknown}`);
       if (!parsed.takesNext) {
@@ -261,6 +267,7 @@ test('checker accepts current forms and rejects stale ones', () => {
     'gog -awork@example.com gmail search x',
     "gog gmail trash -jq 'older_than:1y'",
     'gog keep --impersonate alice@example.com delete n1',
+    "gog gmail search -- '-from:x'",
   ];
   const bad = [
     'gog calendar list --from 2026-03-01 --to 2026-03-31 --calendar work',
@@ -292,6 +299,7 @@ test('checker accepts current forms and rejects stale ones', () => {
       '```bash',
       'GOG_ACCOUNT=x gog drive export f1',
       'env A=b sudo gog gmail draft a@b.com',
+      'sudo -u root -E gog drive export f2',
       '/opt/homebrew/bin/gog calendar list --calendar work',
       'echo hello',
       '```',
@@ -299,7 +307,7 @@ test('checker accepts current forms and rejects stale ones', () => {
   );
   try {
     const found = [...invocations(tmp)].map((inv) => inv.text);
-    assert.deepEqual(found, ['gog drive export f1', 'gog gmail draft a@b.com', 'gog calendar list --calendar work']);
+    assert.deepEqual(found, ['gog drive export f1', 'gog gmail draft a@b.com', 'gog drive export f2', 'gog calendar list --calendar work']);
     for (const t of found) assert.notDeepEqual(check(t), [], t);
   } finally {
     fs.unlinkSync(tmp);
@@ -410,6 +418,9 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog gmail settings filters add --query x --trash',
     'gog gmail settings watch stop',
     'gog gmail settings watch rm',
+    'gog drive -- delete f1',
+    'gog auth alias unset work',
+    'gog auth service-account unset a@b.com',
     'gog drive \\\ndelete f1',
     'gog \\\r\n  gmail send --to a@b.com',
   ];

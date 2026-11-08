@@ -154,6 +154,10 @@ def resolve(args, table, guarded_only=False):
     i = 0
     while i < len(args):
         tok = args[i]
+        if tok == "--":
+            # end of options: kong still resolves subcommands from what follows
+            i += 1
+            continue
         if tok.startswith("-") and tok != "-":
             flag = tok.split("=", 1)[0]
             bools = table["boolFlags"].get(node) or table["boolFlags"][""]

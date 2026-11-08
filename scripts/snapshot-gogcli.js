@@ -86,7 +86,7 @@ function parseFlags(text) {
 
 // Command names or aliases that delete, clear or revoke data.
 const DESTRUCTIVE_VERBS = new Set([
-  'delete', 'del', 'rm', 'remove', 'clear', 'trash', 'unshare', 'suspend', 'unsubscribe', 'leave',
+  'delete', 'del', 'rm', 'remove', 'clear', 'trash', 'unset', 'unshare', 'suspend', 'unsubscribe', 'leave',
   'delete-tab', 'delete-dimension', 'delete-calendar', 'delete-slide', 'delete-question',
   'remove-public', 'update-role',
 ]);
