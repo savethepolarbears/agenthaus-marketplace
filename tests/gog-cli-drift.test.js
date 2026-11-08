@@ -162,8 +162,17 @@ function check(text, { mention = false } = {}) {
     if (/^--?[A-Za-z]/.test(tok)) {
       const flag = tok.split('=')[0];
       if (!known.has(flag)) problems.push(`"gog ${key}" has no flag ${flag}`);
+      if (tok.includes('=') || bools.has(flag) || !known.has(flag)) {
+        seenFlags.add(flag);
+        continue;
+      }
+      const value = rest[j + 1];
+      if (value === undefined || /^--?[A-Za-z]/.test(value)) {
+        problems.push(`"gog ${key}" flag ${flag} needs a value`);
+        continue;
+      }
       seenFlags.add(flag);
-      if (!tok.includes('=') && !bools.has(flag)) j++; // consume the flag value
+      j++; // consume the flag value
       continue;
     }
     positionals.push(tok);
@@ -213,6 +222,8 @@ test('checker accepts current forms and rejects stale ones', () => {
     'gog auth add',
     'gog drive download',
     'gog drive ls -Z',
+    'gog forms create --title',
+    'gog gmail send --to --subject x',
   ];
   for (const t of ok) assert.deepEqual(check(t), [], t);
   for (const t of bad) assert.notDeepEqual(check(t), [], t);
