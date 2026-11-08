@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 """gog-workspace Bash hook: find gog invocations by parsing the command.
 
-The command is split with shlex and never evaluated. Each shell segment
-(split on ; & | && || ( ) and newlines) is unwrapped past environment
-assignments and wrappers such as env, sudo, command, exec, time, nohup and
-xargs, and `bash -c` / `sh -c` / `eval` strings are parsed recursively. A
-segment whose program is `gog` (bare or by path) has its subcommand path
-resolved through hooks/guarded-commands.json, which is generated from gogcli's
-command reference with every alias. Positional arguments are never mistaken
-for subcommands, so `gog gmail search delete` is not treated as a delete.
+The command is split with shlex and never evaluated, then cut into shell
+segments at ; & | && || ( ) < > and newlines. The scan deliberately does not
+try to model shell grammar (wrappers, env assignments, `if`/`while`/`!`,
+`timeout 30s`, `sudo -u x`, `ssh host '...'`): any word whose basename is
+`gog` starts an invocation, wherever it appears in a segment, and any word
+that itself contains whitespace and "gog" (a `bash -lc '...'`, `eval`, `su -c`
+or `ssh` string) is parsed again as a command. Each invocation's subcommand
+path is resolved through hooks/guarded-commands.json, which is generated from
+gogcli's command reference with every alias, so positional arguments are never
+mistaken for subcommands (`gog gmail search delete` is not a delete).
+
+This errs toward asking: `echo gog gmail send` or `grep 'gog drive delete'`
+also prompt, while no way of actually running a guarded command is missed.
 
 Usage (stdin is the Claude Code hook payload):
   gog-guard.py ask     PreToolUse: print an "ask" decision when a guarded
-                       send/share/delete command would run
+                       send/share/delete command may run
   gog-guard.py audit   PostToolUse: append a line to gog_audit.log when any
                        gog command ran
 """
@@ -26,11 +31,9 @@ from datetime import datetime, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 TABLE_PATH = os.path.join(HERE, "..", "guarded-commands.json")
 
-SEPARATORS = {";", "&", "|", "&&", "||", "(", ")", ";;", "|&", "<", ">", ">>", "<<", ">&", "<&"}
-WRAPPERS = {"env", "sudo", "command", "exec", "time", "nohup", "nice", "xargs", "builtin", "doas", "stdbuf", "timeout"}
-SHELLS = {"bash", "sh", "zsh", "dash", "ksh"}
-ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
-MAX_DEPTH = 4
+SEPARATORS = set(";&|()<>")
+GOG_WORD = re.compile(r"(^|[^A-Za-z0-9_-])gog([^A-Za-z0-9_-]|$)")
+MAX_DEPTH = 6
 
 
 def load_table():
@@ -48,7 +51,7 @@ def split_segments(command):
     lexer.commenters = ""
     words = []
     for tok in lexer:
-        if tok in SEPARATORS or set(tok) <= set(";&|()<>"):
+        if set(tok) <= SEPARATORS:
             if words:
                 yield words
             words = []
@@ -58,48 +61,19 @@ def split_segments(command):
         yield words
 
 
-def program_and_args(words):
-    """Skip assignments and wrapper commands; return (program, args)."""
-    i = 0
-    while i < len(words):
-        word = words[i].lstrip("`$")
-        if not word or ASSIGNMENT.match(word):
-            i += 1
-            continue
-        name = os.path.basename(word)
-        if name in WRAPPERS:
-            i += 1
-            # wrapper options, e.g. `env -i`, `sudo -u root`, `timeout 30`
-            while i < len(words) and (words[i].startswith("-") or ASSIGNMENT.match(words[i]) or words[i].isdigit()):
-                if words[i] in ("-u", "-g", "-n", "-I", "-L", "-P") and i + 1 < len(words):
-                    i += 1
-                i += 1
-            continue
-        return name, words[i + 1:]
-    return None, []
-
-
-def gog_paths(command, table, depth=0):
-    """Yield the canonical subcommand path of every gog invocation."""
+def gog_paths(command, depth=0, table=None):
+    """Yield the resolved subcommand path of every possible gog invocation."""
     for words in split_segments(command):
-        prog, args = program_and_args(words)
-        if prog is None:
-            continue
-        if prog in SHELLS and "-c" in args and depth < MAX_DEPTH:
-            idx = args.index("-c")
-            if idx + 1 < len(args):
-                yield from gog_paths(args[idx + 1], table, depth + 1)
-            continue
-        if prog == "eval" and depth < MAX_DEPTH:
-            yield from gog_paths(" ".join(args), table, depth + 1)
-            continue
-        if prog != "gog":
-            continue
-        yield resolve(args, table)
+        for i, word in enumerate(words):
+            bare = word.lstrip("`$(\"'").rstrip("`)\"'")
+            if os.path.basename(bare) == "gog":
+                yield resolve(words[i + 1:], table)
+            elif depth < MAX_DEPTH and any(c.isspace() for c in word) and GOG_WORD.search(word):
+                yield from gog_paths(word, depth + 1, table)
 
 
 def resolve(args, table):
-    """Resolve gog arguments to the deepest known canonical command path."""
+    """Resolve gog arguments to a command path ("" when only flags follow)."""
     tree = table["tree"]
     node = ""
     path = ""
@@ -114,6 +88,9 @@ def resolve(args, table):
             continue
         canonical = tree.get(node, {}).get(tok)
         if canonical is None:
+            # Not on a guarded path. Keep the word as a label for the audit
+            # log; it can never equal a guarded path.
+            path = f"{node} {tok}".strip()
             break
         node = f"{node} {canonical}".strip()
         path = node
@@ -139,17 +116,17 @@ def main():
         return 0
     table = load_table()
     try:
-        paths = list(gog_paths(command, table))
+        paths = list(gog_paths(command, table=table))
         unparsed = False
     except ValueError:  # unbalanced quotes: cannot tell, so be careful
         paths = []
-        unparsed = re.search(r"(^|[^A-Za-z0-9_-])gog([^A-Za-z0-9_-]|$)", command) is not None
+        unparsed = GOG_WORD.search(command) is not None
 
     if mode == "audit":
-        if paths or unparsed:
+        if any(paths) or unparsed:
             log = os.path.join(os.environ.get("CLAUDE_PROJECT_DIR") or ".", "gog_audit.log")
             stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-            names = ", ".join(p or "gog" for p in paths) or "gog (unparsed)"
+            names = ", ".join(p for p in paths if p) or "gog (unparsed)"
             try:
                 with open(log, "a", encoding="utf-8") as fh:
                     fh.write(f"[{stamp}] gog command executed: {names}\n")

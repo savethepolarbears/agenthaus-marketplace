@@ -314,6 +314,17 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'ls\ngog tasks clear l1',
     'gog drive bulk remove-public --parent f1',
     "gog gmail send --to a@b.com --body 'unterminated",
+    'if gog drive delete f1; then echo ok; fi',
+    '! gog gmail send --to a@b.com',
+    'while gog tasks clear l1; do sleep 1; done',
+    'timeout 30s gog drive delete f1',
+    "bash -lc 'gog drive delete f1'",
+    'sudo -u alice gog drive delete f1',
+    "ssh host 'gog gmail send --to a@b.com'",
+    'xargs -n1 gog drive delete < ids.txt',
+    // Deliberately conservative: text that names a guarded command also asks.
+    'echo gog gmail send',
+    "grep -r 'gog gmail send' docs/",
   ];
   const silent = [
     "gog gmail search 'is:unread' --max 10",
@@ -321,14 +332,14 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog drive download f1 --format pdf --out f.pdf',
     'gog calendar events primary --from 2026-01-01 --days 1',
     'gog chat messages list spaces/AAA',
-    'echo gog gmail send',
     'gog gmail drafts reply m1 --body-file draft.txt',
     'gog gmail labels modify t1 --remove INBOX',
     "gog gmail search 'subject:delete newer_than:7d'",
     'gog drive ls --parent root',
     'gog gmail search delete',
     'gog drive search remove',
-    "grep -r 'gog gmail send' docs/",
+    "grep -r 'gog gmail search' docs/",
+    'echo gog',
   ];
   for (const c of asks) assert.match(run(c), /"permissionDecision": "ask"/, `should ask: ${c}`);
   for (const c of silent) assert.equal(run(c), '', `should not ask: ${c}`);
@@ -351,7 +362,7 @@ test('gog-workspace PostToolUse hook logs gog commands only', (t) => {
   const log = fs.readFileSync(path.join(dir, 'gog_audit.log'), 'utf8').trim().split('\n');
   fs.rmSync(dir, { recursive: true, force: true });
   assert.equal(log.length, 1);
-  assert.match(log[0], /gog command executed: gmail$/);
+  assert.match(log[0], /gog command executed: gmail search$/);
 });
 
 module.exports = { check, tokenize };
