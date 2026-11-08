@@ -86,7 +86,7 @@ function parseFlags(text) {
 
 // Final command segments that delete, clear or revoke data.
 const DESTRUCTIVE_VERBS = new Set([
-  'delete', 'remove', 'clear', 'trash', 'unshare', 'suspend', 'unsubscribe',
+  'delete', 'remove', 'clear', 'trash', 'unshare', 'suspend', 'unsubscribe', 'leave',
   'delete-tab', 'delete-dimension', 'delete-calendar', 'delete-slide', 'delete-question',
   'remove-public', 'update-role',
 ]);
