@@ -428,6 +428,8 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog classroom submissions return c1 w1 s1',
     'gog classroom submissions send c1 w1 s1',
     'gog gmail settings sendas verify alias@example.com',
+    'gog gmail settings sendas create alias@example.com',
+    'gog gmail settings sendas add alias@example.com',
     'gog 2>/dev/null drive delete f1',
     'gog drive 2>/tmp/err delete f1',
     'gog drive >>log 2>&1 delete f1',
