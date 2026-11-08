@@ -56,6 +56,19 @@ GOG_WORD = re.compile(r"(^|[^A-Za-z0-9_-])gog([^A-Za-z0-9_-]|$)")
 QUOTING = re.compile(r"[\'\"\\]")
 
 
+ANSI_C = re.compile(r"\$'((?:[^'\\]|\\.)*)'")
+LOCALE_Q = re.compile(r'\$"((?:[^"\\]|\\.)*)"')
+
+
+def decode_ansi_c(body):
+    """Decode the escapes of a Bash $'...' string (best effort)."""
+    try:
+        text = body.encode("latin-1", "backslashreplace").decode("unicode_escape")
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        text = body.replace("\\", "")
+    return text.replace("'", "")  # keep the result inside one single-quoted word
+
+
 def mentions_gog(text):
     """True if `text` names gog once shell quoting is removed (`g""og`, `g\\og`)."""
     return GOG_WORD.search(QUOTING.sub("", text)) is not None
@@ -79,6 +92,10 @@ def split_segments(command):
     # A backslash-newline continues the line in the shell, so join it before
     # turning the remaining newlines into command separators.
     command = command.replace("\\\r\n", " ").replace("\\\n", " ")
+    # Bash ANSI-C and locale quoting: $'delete' and $"delete" are the word
+    # delete. shlex would keep the $, so turn them into ordinary quotes.
+    command = ANSI_C.sub(lambda m: "'" + decode_ansi_c(m.group(1)) + "'", command)
+    command = LOCALE_Q.sub(r'"\1"', command)
     lexer = shlex.shlex(command.replace("\n", " ; "), posix=True, punctuation_chars=";&|()<>")
     lexer.whitespace_split = True
     lexer.commenters = ""

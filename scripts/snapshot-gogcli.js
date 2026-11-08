@@ -99,6 +99,8 @@ const SEND_COMMANDS = [
   'gmail drafts send', 'gmail settings forwarding create', 'gmail settings autoforward update',
   'gmail settings delegates add', 'gmail settings filters create',
   'gmail settings vacation update', 'gmail settings sendas create', 'chat messages send', 'chat dm send', 'drive share',
+  // comments email collaborators (and anyone @mentioned)
+  'docs comments add', 'docs comments reply', 'drive comments create', 'drive comments reply',
 ];
 
 /** Build the hook's table: canonical guarded paths plus the alias tree that reaches them. */
