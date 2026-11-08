@@ -19,6 +19,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
@@ -97,7 +98,10 @@ function* invocations(file) {
     }
     const snippets = inFence ? [line] : [...line.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
     for (const snip of snippets) {
-      for (const m of snip.matchAll(/(?:^|&&|\|\||[;|(]|\$\()\s*(gog\s+[a-z-][^;&|]*)/g)) {
+      // gog may follow env assignments, plain wrappers or a directory path:
+      // `GOG_ACCOUNT=x gog ...`, `env X=y sudo gog ...`, `/opt/homebrew/bin/gog ...`.
+      const re = /(?:^|&&|\|\||[;|(]|\$\()\s*(?:(?:[A-Za-z_][A-Za-z0-9_]*=\S*|env|sudo|command|exec|time|nohup)\s+)*(?:[^\s;&|()]*\/)?(gog\s+[a-z-][^;&|]*)/g;
+      for (const m of snip.matchAll(re)) {
         yield { file: path.relative(ROOT, file), line: i + 1, text: m[1].trim(), mention: !inFence };
       }
     }
@@ -145,11 +149,18 @@ function check(text, { mention = false } = {}) {
   const problems = [];
   const segs = [];
   let i = 0;
-  // Global flags may precede the subcommand path (e.g. `gog --json gmail search`).
+  // Global flags, and flags of the command resolved so far, may precede the
+  // rest of the path (`gog --json gmail search`, `gog keep --impersonate x delete n1`).
   while (i < tokens.length) {
     const tok = tokens[i];
+    if (segs.length && !TREE.has(segs.join(' '))) break; // leaf reached: flags are checked below
     if (tok.startsWith('-')) {
-      const parsed = parseFlagToken(tok, new Set(SNAPSHOT.globalFlags), new Set(SNAPSHOT.globalBoolFlags));
+      const node = SNAPSHOT.commands[segs.join(' ')];
+      const parsed = parseFlagToken(
+        tok,
+        new Set([...SNAPSHOT.globalFlags, ...(node ? node.flags : [])]),
+        new Set([...SNAPSHOT.globalBoolFlags, ...(node ? node.boolFlags : [])]),
+      );
       if (parsed.unknown) break;
       if (!parsed.takesNext) {
         i++;
@@ -249,6 +260,7 @@ test('checker accepts current forms and rejects stale ones', () => {
     'gog -ja work@example.com gmail search x',
     'gog -awork@example.com gmail search x',
     "gog gmail trash -jq 'older_than:1y'",
+    'gog keep --impersonate alice@example.com delete n1',
   ];
   const bad = [
     'gog calendar list --from 2026-03-01 --to 2026-03-31 --calendar work',
@@ -265,11 +277,33 @@ test('checker accepts current forms and rejects stale ones', () => {
     'gog forms create --title',
     'gog gmail send --to --subject x',
     'gog --account --json gmail search x',
+    'gog keep --impersonate delete n1',
   ];
   for (const t of ok) assert.deepEqual(check(t), [], t);
   for (const t of bad) assert.notDeepEqual(check(t), [], t);
   // Prose mentions in inline code may name a command without its arguments.
   assert.deepEqual(check('gog contacts search', { mention: true }), []);
+
+  // The extractor finds gog after env assignments, wrappers and directory paths.
+  const tmp = path.join(os.tmpdir(), `gog-drift-${process.pid}.md`);
+  fs.writeFileSync(
+    tmp,
+    [
+      '```bash',
+      'GOG_ACCOUNT=x gog drive export f1',
+      'env A=b sudo gog gmail draft a@b.com',
+      '/opt/homebrew/bin/gog calendar list --calendar work',
+      'echo hello',
+      '```',
+    ].join('\n'),
+  );
+  try {
+    const found = [...invocations(tmp)].map((inv) => inv.text);
+    assert.deepEqual(found, ['gog drive export f1', 'gog gmail draft a@b.com', 'gog calendar list --calendar work']);
+    for (const t of found) assert.notDeepEqual(check(t), [], t);
+  } finally {
+    fs.unlinkSync(tmp);
+  }
 });
 
 test('every documented gog invocation matches gogcli', () => {
