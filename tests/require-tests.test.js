@@ -230,3 +230,32 @@ test('newlines separate commands', skip, t => {
     const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
     assert.equal(ask('echo done\ngit push origin main'), 'yes');
 });
+
+test('git behind wrappers is followed or fails closed', skip, t => {
+    const { dir, git, run } = repo(t);
+    assert.equal(run('sudo -u root git commit -am x').status, 2, 'sudo is followed');
+    assert.equal(run('env FOO=1 git commit -am x').status, 2, 'env is followed');
+    assert.equal(run('sh -c "git commit -am x"').status, 2, 'sh -c is unknown, so blocked');
+    git('branch', '-M', 'main');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('env git push origin main'), 'yes');
+    assert.equal(ask('timeout 30 git push origin main'), 'yes');
+    assert.equal(ask('xargs git push origin'), 'UNKNOWN');
+    assert.equal(ask('echo git push is mentioned'), 'no');
+});
+
+test('the commit gate fails closed without python3', skip, t => {
+    const { dir } = repo(t);
+    const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'no-py-'));
+    t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    for (const tool of ['bash', 'cat', 'dirname', 'grep', 'git', 'head', 'jq']) {
+        const where = spawnSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
+        if (where) fs.symlinkSync(where, path.join(bin, tool));
+    }
+    const r = spawnSync(path.join(bin, 'bash'), [script], {
+        cwd: dir, encoding: 'utf8', env: { ...process.env, PATH: bin },
+        input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git commit -am change' } }),
+    });
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /python3 is required/);
+});

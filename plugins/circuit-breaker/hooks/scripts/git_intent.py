@@ -94,6 +94,17 @@ GIT_VALUE_OPTS = {"-c", "--config-env", "--exec-path", "--namespace", "--super-p
                   "--list-cmds", "--attr-source"}
 
 
+# Command wrappers and their options that take a separate value.
+WRAPPERS = {
+    "command": set(), "exec": {"-a"}, "nice": {"-n"}, "time": set(), "nohup": set(),
+    "env": {"-u", "-C", "-S", "--unset", "--chdir"}, "sudo": {"-u", "-g", "-h", "-p", "-C", "-D", "-r", "-t", "-U"},
+    "doas": {"-u", "-C"}, "stdbuf": {"-i", "-o", "-e"}, "ionice": {"-c", "-n", "-p"},
+    "timeout": {"-s", "-k", "--signal", "--kill-after"},
+}
+PRINTERS = {"echo", "printf", "cat", "grep", "rg", "less", "head", "tail", "man", "true", ":"}
+GIT_WORD = re.compile(r"(^|[\s;&|(/'\"])git\s+(\S+\s+)*?(push|commit)(\s|$|['\"])")
+
+
 def git_sub(seg):
     """Return (subcommand, args) for a `git ...` segment, else (None, []).
 
@@ -103,16 +114,33 @@ def git_sub(seg):
     """
     i = 0
     CONFIG.clear()
-    while i < len(seg) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]):
-        if seg[i].startswith(("GIT_CONFIG", "GIT_DIR=", "GIT_WORK_TREE=", "GIT_INDEX_FILE=")):
-            raise Unknown("git configured through the environment")
-        i += 1  # env assignments (FOO=bar git commit ...)
+    while True:
+        while i < len(seg) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]):
+            if seg[i].startswith(("GIT_CONFIG", "GIT_DIR=", "GIT_WORK_TREE=", "GIT_INDEX_FILE=")):
+                raise Unknown("git configured through the environment")
+            i += 1  # env assignments (FOO=bar git commit ...)
+        if i < len(seg) and seg[i] in WRAPPERS:
+            # Wrappers that run their argument as a command: skip the wrapper
+            # and its own options, then look again (`sudo env FOO=1 git ...`).
+            name, i = seg[i], i + 1
+            while i < len(seg) and seg[i].startswith("-") and seg[i] != "--":
+                i += 2 if seg[i] in WRAPPERS[name] else 1
+            if i < len(seg) and seg[i] == "--":
+                i += 1
+            if name == "timeout" and i < len(seg):
+                i += 1  # the duration
+            continue
+        break
     if i < len(seg) and seg[i] in ("cd", "pushd") and i + 1 < len(seg):
         chdir(seg[i + 1])
         return None, []
-    if i < len(seg) and seg[i] in ("command", "exec", "nice", "time"):
-        i += 1
     if i >= len(seg) or os.path.basename(seg[i]) != "git":
+        first = os.path.basename(seg[i]) if i < len(seg) else ""
+        # A git invocation we cannot see into (`sh -c "git push"`, `xargs git`,
+        # `eval`, a function) is not a guess we make: fail closed. Plain output
+        # commands that merely mention git are not invocations.
+        if first not in PRINTERS and GIT_WORD.search(" ".join(seg[i + 1:])):
+            raise Unknown(first + " runs git indirectly")
         return None, []
     i += 1
     while i < len(seg) and seg[i].startswith("-"):
