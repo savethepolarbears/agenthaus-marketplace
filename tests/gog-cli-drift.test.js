@@ -408,6 +408,8 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog class courses unenroll c1',
     'gog gmail settings filters create --from x@example.com --forward y@example.com',
     'gog gmail settings filters add --query x --trash',
+    'gog gmail settings watch stop',
+    'gog gmail settings watch rm',
     'gog drive \\\ndelete f1',
     'gog \\\r\n  gmail send --to a@b.com',
   ];

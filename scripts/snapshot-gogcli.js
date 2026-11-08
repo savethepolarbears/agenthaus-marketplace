@@ -84,9 +84,9 @@ function parseFlags(text) {
   return { flags: [...flags].sort(), bools: [...bools].sort() };
 }
 
-// Final command segments that delete, clear or revoke data.
+// Command names or aliases that delete, clear or revoke data.
 const DESTRUCTIVE_VERBS = new Set([
-  'delete', 'remove', 'clear', 'trash', 'unshare', 'suspend', 'unsubscribe', 'leave',
+  'delete', 'del', 'rm', 'remove', 'clear', 'trash', 'unshare', 'suspend', 'unsubscribe', 'leave',
   'delete-tab', 'delete-dimension', 'delete-calendar', 'delete-slide', 'delete-question',
   'remove-public', 'update-role',
 ]);
@@ -102,7 +102,13 @@ const SEND_COMMANDS = [
 function buildGuard(snapshot) {
   const keys = Object.keys(snapshot.commands);
   const guarded = keys
-    .filter((k) => k && (DESTRUCTIVE_VERBS.has(k.split(' ').pop()) || SEND_COMMANDS.includes(k)))
+    .filter(
+      (k) =>
+        k &&
+        // canonical name or any alias: `watch stop` is also spelled `watch rm` / `watch delete`
+        ([k.split(' ').pop(), ...snapshot.commands[k].aliases].some((v) => DESTRUCTIVE_VERBS.has(v)) ||
+          SEND_COMMANDS.includes(k)),
+    )
     .sort();
   for (const k of SEND_COMMANDS) {
     if (!snapshot.commands[k]) throw new Error(`guarded command "${k}" is not in the gogcli snapshot`);
