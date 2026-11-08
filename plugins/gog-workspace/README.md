@@ -133,6 +133,7 @@ The command examples match the gogcli command reference at [openclaw/gogcli `doc
 ### Customization
 
 Adjust the safety hooks in `hooks/hooks.json` to:
-- Change which `gog` subcommands trigger the PreToolUse confirmation prompt (by default: sends, replies, forwards, shares, deletes, trash and clears)
+- Change which `gog` subcommands trigger the PreToolUse confirmation prompt. `hooks/scripts/gog-guard.py` parses each Bash command (including env prefixes, `bash -c` and full paths) and asks before any command listed in `hooks/guarded-commands.json`: sends, replies, forwards, shares, mail forwarding changes, deletes, trash and clears. Regenerate that table with `node scripts/snapshot-gogcli.js --guard-only`.
+- The hooks need `python3` on `PATH`
 - Customize the audit log location and format
 - Add notifications for specific Gmail or Calendar events

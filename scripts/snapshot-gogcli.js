@@ -9,6 +9,12 @@
  *
  * The snapshot is consumed by tests/gog-cli-drift.test.js, which checks every
  * documented `gog ...` invocation in the gog plugins against it.
+ *
+ * It also writes plugins/gog-workspace/hooks/guarded-commands.json, the table
+ * of send/share/delete commands (with every alias) that the plugin's
+ * PreToolUse hook asks about. To rebuild only that table from the committed
+ * snapshot:
+ *   node scripts/snapshot-gogcli.js --guard-only
  */
 'use strict';
 
@@ -78,8 +84,64 @@ function parseFlags(text) {
   return { flags: [...flags].sort(), bools: [...bools].sort() };
 }
 
+// Final command segments that delete, clear or revoke data.
+const DESTRUCTIVE_VERBS = new Set([
+  'delete', 'remove', 'clear', 'trash', 'unshare', 'suspend', 'unsubscribe',
+  'delete-tab', 'delete-dimension', 'delete-calendar', 'delete-slide', 'delete-question',
+  'remove-public', 'update-role',
+]);
+// Commands that send mail or messages, share data, or redirect mail elsewhere.
+const SEND_COMMANDS = [
+  'send', 'gmail send', 'gmail reply', 'gmail reply-all', 'gmail forward', 'gmail autoreply',
+  'gmail drafts send', 'gmail settings forwarding create', 'gmail settings autoforward update',
+  'gmail settings delegates add', 'chat messages send', 'chat dm send', 'drive share',
+];
+
+/** Build the hook's table: canonical guarded paths plus the alias tree that reaches them. */
+function buildGuard(snapshot) {
+  const keys = Object.keys(snapshot.commands);
+  const guarded = keys
+    .filter((k) => k && (DESTRUCTIVE_VERBS.has(k.split(' ').pop()) || SEND_COMMANDS.includes(k)))
+    .sort();
+  for (const k of SEND_COMMANDS) {
+    if (!snapshot.commands[k]) throw new Error(`guarded command "${k}" is not in the gogcli snapshot`);
+  }
+  const onPath = new Set();
+  for (const k of guarded) {
+    const segs = k.split(' ');
+    for (let i = 1; i <= segs.length; i++) onPath.add(segs.slice(0, i).join(' '));
+  }
+  const tree = {};
+  for (const k of [...onPath].sort()) {
+    const segs = k.split(' ');
+    const parent = segs.slice(0, -1).join(' ');
+    const name = segs[segs.length - 1];
+    tree[parent] = tree[parent] || {};
+    for (const alias of [name, ...snapshot.commands[k].aliases]) {
+      if (!(alias in tree[parent])) tree[parent][alias] = name;
+    }
+  }
+  return {
+    generatedBy: 'node scripts/snapshot-gogcli.js --guard-only',
+    gogcliCommit: snapshot.commit,
+    globalValueFlags: snapshot.globalFlags.filter((f) => !snapshot.globalBoolFlags.includes(f)),
+    guarded,
+    tree,
+  };
+}
+
+function writeGuard(snapshot) {
+  const dest = path.join(__dirname, '..', 'plugins', 'gog-workspace', 'hooks', 'guarded-commands.json');
+  fs.writeFileSync(dest, JSON.stringify(buildGuard(snapshot), null, 1) + '\n');
+  console.log(`wrote guard table to ${path.relative(process.cwd(), dest)}`);
+}
+
 function main() {
   const args = process.argv.slice(2);
+  if (args[0] === '--guard-only') {
+    writeGuard(require('../tests/fixtures/gogcli-commands.json'));
+    return;
+  }
   const dir = args[0];
   if (!dir || !fs.existsSync(dir)) {
     console.error('usage: node scripts/snapshot-gogcli.js <gogcli/docs/commands> [--commit <sha>]');
@@ -128,6 +190,8 @@ function main() {
   const headJson = JSON.stringify(head, null, 1).replace(/\n}$/, '');
   fs.writeFileSync(dest, `${headJson},\n "commands": {\n${lines.join(',\n')}\n }\n}\n`);
   console.log(`wrote ${Object.keys(out.commands).length} commands to ${path.relative(process.cwd(), dest)}`);
+  writeGuard(JSON.parse(fs.readFileSync(dest, 'utf8')));
 }
 
-main();
+module.exports = { buildGuard };
+if (require.main === module) main();

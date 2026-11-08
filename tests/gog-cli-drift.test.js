@@ -8,8 +8,11 @@
  * names a subcommand or flag that gogcli does not have, or passes the wrong
  * number of positional arguments.
  *
- * It also exercises gog-workspace's PreToolUse hook, which must ask before
- * any gogcli send or delete subcommand (including aliases).
+ * It also checks that the hook's guard table (hooks/guarded-commands.json)
+ * matches the snapshot, and runs gog-workspace's hooks (hooks/scripts/
+ * gog-guard.py): PreToolUse must ask before every send, share and delete
+ * subcommand, however the command is written, and PostToolUse must log
+ * only gog commands.
  */
 'use strict';
 
@@ -126,7 +129,13 @@ function check(text, { mention = false } = {}) {
     if (tok.startsWith('-')) {
       const flag = tok.split('=')[0];
       if (!SNAPSHOT.globalFlags.includes(flag)) break;
-      i += tok.includes('=') || SNAPSHOT.globalBoolFlags.includes(flag) ? 1 : 2;
+      if (tok.includes('=') || SNAPSHOT.globalBoolFlags.includes(flag)) {
+        i++;
+        continue;
+      }
+      const value = tokens[i + 1];
+      if (value === undefined || /^--?[A-Za-z]/.test(value)) return [`global flag ${flag} needs a value`];
+      i += 2;
       continue;
     }
     const map = TREE.get(segs.join(' '));
@@ -224,6 +233,7 @@ test('checker accepts current forms and rejects stale ones', () => {
     'gog drive ls -Z',
     'gog forms create --title',
     'gog gmail send --to --subject x',
+    'gog --account --json gmail search x',
   ];
   for (const t of ok) assert.deepEqual(check(t), [], t);
   for (const t of bad) assert.notDeepEqual(check(t), [], t);
@@ -246,15 +256,27 @@ test('every documented gog invocation matches gogcli', () => {
   assert.equal(failures.length, 0, `${failures.length} stale gog invocation(s):\n${failures.join('\n')}`);
 });
 
+test('hook guard table is generated from the snapshot', () => {
+  const { buildGuard } = require('../scripts/snapshot-gogcli.js');
+  const committed = require('../plugins/gog-workspace/hooks/guarded-commands.json');
+  assert.deepEqual(
+    committed,
+    buildGuard(SNAPSHOT),
+    'plugins/gog-workspace/hooks/guarded-commands.json is stale: run node scripts/snapshot-gogcli.js --guard-only',
+  );
+});
+
 test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t) => {
-  if (spawnSync('jq', ['--version']).status !== 0) {
-    t.skip('jq not installed');
+  if (spawnSync('python3', ['--version']).status !== 0) {
+    t.skip('python3 not installed');
     return;
   }
   const hooks = JSON.parse(fs.readFileSync(path.join(ROOT, 'plugins/gog-workspace/hooks/hooks.json'), 'utf8'));
   const cmd = hooks.hooks.PreToolUse[0].hooks[0].command;
+  const env = { ...process.env, CLAUDE_PLUGIN_ROOT: path.join(ROOT, 'plugins/gog-workspace') };
   const run = (command) =>
-    spawnSync('bash', ['-c', cmd], { input: JSON.stringify({ tool_input: { command } }), encoding: 'utf8' }).stdout;
+    spawnSync('bash', ['-c', cmd], { input: JSON.stringify({ tool_input: { command } }), encoding: 'utf8', env })
+      .stdout;
 
   const asks = [
     'gog gmail send --to a@b.com --subject x --body y',
@@ -283,6 +305,15 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog -j gmail drafts send d1',
     'gog gmail settings forwarding create fwd@x.com',
     'gog docs comments delete d1 c1',
+    'GOG_ACCOUNT=w@x.com gog drive share f1 --to anyone --role reader',
+    'env GOG_ACCOUNT=x gog gmail send --to a@b.com',
+    "bash -c 'gog drive delete f1'",
+    '/opt/homebrew/bin/gog drv rm f1',
+    'gog gmail --account x send --to a@b.com',
+    'x=$(gog chat dm send a@b.com --text hi)',
+    'ls\ngog tasks clear l1',
+    'gog drive bulk remove-public --parent f1',
+    "gog gmail send --to a@b.com --body 'unterminated",
   ];
   const silent = [
     "gog gmail search 'is:unread' --max 10",
@@ -295,9 +326,32 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog gmail labels modify t1 --remove INBOX',
     "gog gmail search 'subject:delete newer_than:7d'",
     'gog drive ls --parent root',
+    'gog gmail search delete',
+    'gog drive search remove',
+    "grep -r 'gog gmail send' docs/",
   ];
   for (const c of asks) assert.match(run(c), /"permissionDecision": "ask"/, `should ask: ${c}`);
   for (const c of silent) assert.equal(run(c), '', `should not ask: ${c}`);
+});
+
+test('gog-workspace PostToolUse hook logs gog commands only', (t) => {
+  if (spawnSync('python3', ['--version']).status !== 0) {
+    t.skip('python3 not installed');
+    return;
+  }
+  const hooks = JSON.parse(fs.readFileSync(path.join(ROOT, 'plugins/gog-workspace/hooks/hooks.json'), 'utf8'));
+  const cmd = hooks.hooks.PostToolUse[0].hooks[0].command;
+  const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'gog-audit-'));
+  const env = { ...process.env, CLAUDE_PLUGIN_ROOT: path.join(ROOT, 'plugins/gog-workspace'), CLAUDE_PROJECT_DIR: dir };
+  const run = (command) =>
+    spawnSync('bash', ['-c', cmd], { input: JSON.stringify({ tool_input: { command } }), encoding: 'utf8', env });
+  run('ls -la');
+  run('echo gog');
+  run('GOG_ACCOUNT=x gog gmail search is:unread');
+  const log = fs.readFileSync(path.join(dir, 'gog_audit.log'), 'utf8').trim().split('\n');
+  fs.rmSync(dir, { recursive: true, force: true });
+  assert.equal(log.length, 1);
+  assert.match(log[0], /gog command executed: gmail$/);
 });
 
 module.exports = { check, tokenize };

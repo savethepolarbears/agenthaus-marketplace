@@ -1,0 +1,635 @@
+{
+ "generatedBy": "node scripts/snapshot-gogcli.js --guard-only",
+ "gogcliCommit": "e8428c36dd31db13eecba55fcef6f4ee75951188",
+ "globalValueFlags": [
+  "--access-token",
+  "--account",
+  "--acct",
+  "--client",
+  "--color",
+  "--disable-commands",
+  "--enable-commands",
+  "--enable-commands-exact",
+  "--home",
+  "--pick",
+  "--project",
+  "--quota-project",
+  "--select",
+  "-a"
+ ],
+ "guarded": [
+  "admin groups members remove",
+  "admin orgunits delete",
+  "admin users delete",
+  "admin users suspend",
+  "auth credentials remove",
+  "auth remove",
+  "auth tokens delete",
+  "calendar delete",
+  "calendar delete-calendar",
+  "calendar unsubscribe",
+  "chat dm send",
+  "chat messages reactions delete",
+  "chat messages send",
+  "classroom announcements delete",
+  "classroom courses delete",
+  "classroom coursework delete",
+  "classroom guardians delete",
+  "classroom invitations delete",
+  "classroom materials delete",
+  "classroom students remove",
+  "classroom teachers remove",
+  "classroom topics delete",
+  "config no-send remove",
+  "contacts batch delete",
+  "contacts delete",
+  "docs clear",
+  "docs comments delete",
+  "docs delete",
+  "docs delete-tab",
+  "docs footer delete",
+  "docs header delete",
+  "docs named-range delete",
+  "docs table-column delete",
+  "docs table-row delete",
+  "docs tabs delete",
+  "drive bulk remove-public",
+  "drive bulk update-role",
+  "drive comments delete",
+  "drive delete",
+  "drive labels file remove",
+  "drive share",
+  "drive unshare",
+  "forms delete-question",
+  "forms questions delete",
+  "forms watch delete",
+  "gmail autoreply",
+  "gmail batch delete",
+  "gmail drafts delete",
+  "gmail drafts send",
+  "gmail forward",
+  "gmail labels delete",
+  "gmail reply",
+  "gmail reply-all",
+  "gmail send",
+  "gmail settings autoforward update",
+  "gmail settings delegates add",
+  "gmail settings delegates remove",
+  "gmail settings filters delete",
+  "gmail settings forwarding create",
+  "gmail settings forwarding delete",
+  "gmail settings sendas delete",
+  "gmail trash",
+  "keep delete",
+  "photos picker delete",
+  "searchconsole sitemaps delete",
+  "send",
+  "sheets banding clear",
+  "sheets chart delete",
+  "sheets clear",
+  "sheets conditional-format clear",
+  "sheets datasource delete",
+  "sheets delete-dimension",
+  "sheets delete-tab",
+  "sheets named-ranges delete",
+  "sheets table clear",
+  "sheets table delete",
+  "sheets validation clear",
+  "slides delete-slide",
+  "slides element delete",
+  "slides table column delete",
+  "slides table row delete",
+  "tasks clear",
+  "tasks delete",
+  "youtube playlists delete",
+  "youtube playlists remove",
+  "youtube subscriptions unsubscribe"
+ ],
+ "tree": {
+  "": {
+   "admin": "admin",
+   "auth": "auth",
+   "calendar": "calendar",
+   "cal": "calendar",
+   "chat": "chat",
+   "classroom": "classroom",
+   "class": "classroom",
+   "config": "config",
+   "contacts": "contacts",
+   "contact": "contacts",
+   "docs": "docs",
+   "doc": "docs",
+   "drive": "drive",
+   "drv": "drive",
+   "forms": "forms",
+   "form": "forms",
+   "gmail": "gmail",
+   "mail": "gmail",
+   "email": "gmail",
+   "keep": "keep",
+   "photos": "photos",
+   "photo": "photos",
+   "searchconsole": "searchconsole",
+   "gsc": "searchconsole",
+   "search-console": "searchconsole",
+   "webmasters": "searchconsole",
+   "send": "send",
+   "sheets": "sheets",
+   "sheet": "sheets",
+   "slides": "slides",
+   "slide": "slides",
+   "tasks": "tasks",
+   "task": "tasks",
+   "youtube": "youtube",
+   "yt": "youtube"
+  },
+  "admin": {
+   "groups": "groups",
+   "orgunits": "orgunits",
+   "org-units": "orgunits",
+   "ou": "orgunits",
+   "users": "users"
+  },
+  "admin groups": {
+   "members": "members"
+  },
+  "admin groups members": {
+   "remove": "remove",
+   "rm": "remove",
+   "del": "remove",
+   "delete": "remove"
+  },
+  "admin orgunits": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "admin users": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete",
+   "suspend": "suspend"
+  },
+  "auth": {
+   "credentials": "credentials",
+   "remove": "remove",
+   "tokens": "tokens"
+  },
+  "auth credentials": {
+   "remove": "remove"
+  },
+  "auth tokens": {
+   "delete": "delete"
+  },
+  "calendar": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete",
+   "delete-calendar": "delete-calendar",
+   "unsubscribe": "unsubscribe",
+   "unsub": "unsubscribe"
+  },
+  "chat": {
+   "dm": "dm",
+   "messages": "messages"
+  },
+  "chat dm": {
+   "send": "send",
+   "create": "send",
+   "post": "send"
+  },
+  "chat messages": {
+   "reactions": "reactions",
+   "reaction": "reactions",
+   "send": "send",
+   "create": "send",
+   "post": "send"
+  },
+  "chat messages reactions": {
+   "delete": "delete",
+   "remove": "delete",
+   "rm": "delete"
+  },
+  "classroom": {
+   "announcements": "announcements",
+   "announcement": "announcements",
+   "ann": "announcements",
+   "courses": "courses",
+   "course": "courses",
+   "coursework": "coursework",
+   "work": "coursework",
+   "guardians": "guardians",
+   "guardian": "guardians",
+   "invitations": "invitations",
+   "invitation": "invitations",
+   "invites": "invitations",
+   "materials": "materials",
+   "material": "materials",
+   "students": "students",
+   "student": "students",
+   "teachers": "teachers",
+   "teacher": "teachers",
+   "topics": "topics",
+   "topic": "topics"
+  },
+  "classroom announcements": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "classroom courses": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "classroom coursework": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "classroom guardians": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "classroom invitations": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "classroom materials": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "classroom students": {
+   "remove": "remove",
+   "delete": "remove",
+   "rm": "remove",
+   "del": "remove"
+  },
+  "classroom teachers": {
+   "remove": "remove",
+   "delete": "remove",
+   "rm": "remove",
+   "del": "remove"
+  },
+  "classroom topics": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "config": {
+   "no-send": "no-send",
+   "nosend": "no-send"
+  },
+  "config no-send": {
+   "remove": "remove",
+   "rm": "remove",
+   "del": "remove",
+   "delete": "remove",
+   "unset": "remove",
+   "disable": "remove"
+  },
+  "contacts": {
+   "batch": "batch",
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "contacts batch": {
+   "delete": "delete"
+  },
+  "docs": {
+   "clear": "clear",
+   "comments": "comments",
+   "delete": "delete",
+   "delete-tab": "delete-tab",
+   "footer": "footer",
+   "footers": "footer",
+   "header": "header",
+   "headers": "header",
+   "named-range": "named-range",
+   "named-ranges": "named-range",
+   "namedranges": "named-range",
+   "nr": "named-range",
+   "table-column": "table-column",
+   "table-row": "table-row",
+   "tabs": "tabs"
+  },
+  "docs comments": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "docs footer": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "docs header": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "docs named-range": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "docs table-column": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "docs table-row": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "docs tabs": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "drive": {
+   "bulk": "bulk",
+   "comments": "comments",
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "labels": "labels",
+   "label": "labels",
+   "share": "share",
+   "unshare": "unshare"
+  },
+  "drive bulk": {
+   "remove-public": "remove-public",
+   "update-role": "update-role"
+  },
+  "drive comments": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "drive labels": {
+   "file": "file"
+  },
+  "drive labels file": {
+   "remove": "remove",
+   "rm": "remove"
+  },
+  "forms": {
+   "delete-question": "delete-question",
+   "delete-q": "delete-question",
+   "dq": "delete-question",
+   "rm-q": "delete-question",
+   "questions": "questions",
+   "watch": "watch",
+   "watches": "watch"
+  },
+  "forms questions": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "forms watch": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete"
+  },
+  "gmail": {
+   "autoreply": "autoreply",
+   "batch": "batch",
+   "drafts": "drafts",
+   "draft": "drafts",
+   "forward": "forward",
+   "fwd": "forward",
+   "labels": "labels",
+   "label": "labels",
+   "reply": "reply",
+   "reply-all": "reply-all",
+   "replyall": "reply-all",
+   "send": "send",
+   "settings": "settings",
+   "trash": "trash"
+  },
+  "gmail batch": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "gmail drafts": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete",
+   "send": "send",
+   "post": "send"
+  },
+  "gmail labels": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete"
+  },
+  "gmail settings": {
+   "autoforward": "autoforward",
+   "delegates": "delegates",
+   "filters": "filters",
+   "forwarding": "forwarding",
+   "sendas": "sendas"
+  },
+  "gmail settings autoforward": {
+   "update": "update",
+   "edit": "update",
+   "set": "update"
+  },
+  "gmail settings delegates": {
+   "add": "add",
+   "create": "add",
+   "new": "add",
+   "remove": "remove",
+   "delete": "remove",
+   "rm": "remove",
+   "del": "remove"
+  },
+  "gmail settings filters": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "gmail settings forwarding": {
+   "create": "create",
+   "add": "create",
+   "new": "create",
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "gmail settings sendas": {
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "keep": {
+   "delete": "delete"
+  },
+  "photos": {
+   "picker": "picker"
+  },
+  "photos picker": {
+   "delete": "delete",
+   "rm": "delete",
+   "close": "delete"
+  },
+  "searchconsole": {
+   "sitemaps": "sitemaps"
+  },
+  "searchconsole sitemaps": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete"
+  },
+  "sheets": {
+   "banding": "banding",
+   "banded-ranges": "banding",
+   "chart": "chart",
+   "charts": "chart",
+   "clear": "clear",
+   "conditional-format": "conditional-format",
+   "cf": "conditional-format",
+   "conditional-formats": "conditional-format",
+   "datasource": "datasource",
+   "data-source": "datasource",
+   "data-sources": "datasource",
+   "connected-sheets": "datasource",
+   "delete-dimension": "delete-dimension",
+   "delete-dim": "delete-dimension",
+   "delete-tab": "delete-tab",
+   "delete-sheet": "delete-tab",
+   "named-ranges": "named-ranges",
+   "namedranges": "named-ranges",
+   "nr": "named-ranges",
+   "table": "table",
+   "tables": "table",
+   "validation": "validation",
+   "data-validation": "validation",
+   "validations": "validation"
+  },
+  "sheets banding": {
+   "clear": "clear",
+   "delete": "clear",
+   "rm": "clear",
+   "remove": "clear"
+  },
+  "sheets chart": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "sheets conditional-format": {
+   "clear": "clear",
+   "delete": "clear",
+   "rm": "clear",
+   "remove": "clear"
+  },
+  "sheets datasource": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete"
+  },
+  "sheets named-ranges": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "sheets table": {
+   "clear": "clear",
+   "clear-rows": "clear",
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "sheets validation": {
+   "clear": "clear",
+   "delete": "clear",
+   "remove": "clear",
+   "rm": "clear"
+  },
+  "slides": {
+   "delete-slide": "delete-slide",
+   "element": "element",
+   "table": "table"
+  },
+  "slides element": {
+   "delete": "delete",
+   "rm": "delete"
+  },
+  "slides table": {
+   "column": "column",
+   "col": "column",
+   "row": "row"
+  },
+  "slides table column": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "slides table row": {
+   "delete": "delete",
+   "rm": "delete",
+   "remove": "delete",
+   "del": "delete"
+  },
+  "tasks": {
+   "clear": "clear",
+   "delete": "delete",
+   "rm": "delete",
+   "del": "delete",
+   "remove": "delete"
+  },
+  "youtube": {
+   "playlists": "playlists",
+   "playlist": "playlists",
+   "subscriptions": "subscriptions",
+   "subscription": "subscriptions"
+  },
+  "youtube playlists": {
+   "delete": "delete",
+   "del": "delete",
+   "remove": "remove",
+   "rm": "remove"
+  },
+  "youtube subscriptions": {
+   "unsubscribe": "unsubscribe"
+  }
+ }
+}
