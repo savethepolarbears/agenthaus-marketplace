@@ -275,7 +275,7 @@ KNOWN_SUBS = INDEX_NEUTRAL | {"add", "commit", "push", "reset", "restore", "rm",
 
 def commit_set(cmd):
     staged = None
-    saw_add, unconditional, dirty = False, True, None
+    saw_add, unconditional, dirty, found = False, True, None, None
     for seg, op in segments(cmd):
         if op is not None and op != "&&":
             unconditional = False
@@ -288,6 +288,10 @@ def commit_set(cmd):
             saw_add = True
             simulate_add(args, staged)
         elif sub == "commit":
+            if found is not None:
+                # After a commit the index and HEAD both move; a later commit's
+                # contents are not modelled, so do not let it pass unchecked.
+                raise Unknown("more than one git commit in one command")
             if dirty:
                 raise Unknown("git " + dirty + " may change the index before the commit")
             if saw_add and not unconditional:
@@ -312,11 +316,12 @@ def commit_set(cmd):
                 result = changed | (staged & matched)
                 if "-i" in opts or "--include" in opts:
                     result |= staged
-                return result
+                found = result
+                continue
             if all_tracked:
                 staged |= set(lines(git("diff", "--name-only")))
-            return staged
-    return None
+            found = staged
+    return found
 
 
 def current_branch():

@@ -151,3 +151,12 @@ test('timeoutSec is enforced without a timeout binary', { skip: skip.skip || (sp
     assert.ok(Date.now() - started < 10000, 'the check was cut off');
     assert.match(JSON.parse(r.stdout).reason, /exit 124/);
 });
+
+test('timeoutSec 0 is clamped instead of disabling the timeout', skip, t => {
+    const { run } = setup(t, { completionCommand: 'sleep 20', maxIterations: 2, timeoutSec: 0 });
+    assert.equal(run('loop-arm.sh').status, 0);
+    const started = Date.now();
+    const r = run('loop-guard.sh');
+    assert.ok(Date.now() - started < 10000, 'the check was cut off');
+    assert.match(r.json.reason, /exit 124/);
+});

@@ -59,6 +59,7 @@ MAX="$(jq -r '.maxIterations // 5' "$CONFIG" 2>/dev/null || echo 5)"
 [ "$MAX" -gt 8 ] && MAX=8
 TIMEOUT_SEC="$(jq -r '.timeoutSec // 120' "$CONFIG" 2>/dev/null || echo 120)"
 [[ "$TIMEOUT_SEC" =~ ^[0-9]+$ ]] || TIMEOUT_SEC=120
+[ "$TIMEOUT_SEC" -lt 1 ] && TIMEOUT_SEC=1  # 0 would disable timeout/alarm
 [ "$TIMEOUT_SEC" -gt 540 ] && TIMEOUT_SEC=540
 CHAIN="$(jq -r 'if .chain == false then "false" else "true" end' "$CONFIG" 2>/dev/null || echo true)"
 
@@ -86,9 +87,10 @@ OUT_FILE="$STATE_DIR/$SESSION_KEY.out"
     # GNU timeout where present (gtimeout on macOS with coreutils); otherwise
     # perl's alarm (stock on macOS), then python3. Exit 124 means timed out.
     if command -v timeout >/dev/null 2>&1; then
-        timeout "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
+        # -k: a check that traps TERM is KILLed 5s later.
+        timeout -k 5 "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
     elif command -v gtimeout >/dev/null 2>&1; then
-        gtimeout "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
+        gtimeout -k 5 "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
     elif command -v perl >/dev/null 2>&1; then
         perl -e 'my $t = shift; my $pid = fork // exit 125;
                  if (!$pid) { setpgrp(0, 0); exec @ARGV or exit 127 }
