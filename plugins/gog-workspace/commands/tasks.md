@@ -1,5 +1,6 @@
 ---
 description: Manage Google Tasks — list, create, complete, and organize task lists. Usage: `/gog-workspace:tasks list` or `/gog-workspace:tasks add "Buy groceries" --due tomorrow`
+argument-hint: "<list | add <title> [--due <date>]>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Google Tasks operations using the `gog` CLI.

@@ -10,4 +10,4 @@ Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.
 
 Run `agenthaus install --target antigravity` to register the servers from `gemini-settings-snippet.json` in Gemini CLI `settings.json` and Antigravity `mcp_config.json`.
 
-> **Note:** Hook-based automation requires Claude Code. Hooks are not executed by Gemini CLI.
+> **Note:** Hooks are Claude Code-format and are not translated to Gemini CLI or Antigravity hooks.

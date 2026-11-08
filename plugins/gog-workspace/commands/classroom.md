@@ -1,5 +1,6 @@
 ---
 description: Manage Google Classroom courses, roster, assignments, and announcements. Usage: `/gog-workspace:classroom courses` or `/gog-workspace:classroom roster <course_id>`
+argument-hint: "<courses | roster <course_id>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Google Classroom operations using the `gog` CLI.

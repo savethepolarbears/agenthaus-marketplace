@@ -19,11 +19,11 @@ Before ANY scheduling operation:
 
 Before scheduling ANY post, always run these steps in order:
 
-1. **Conflict check**: Call `searchPosts` with the target `profile_ids`, `dateFrom`/`dateTo` covering the intended publish window, and `status: ['APPROVED','NEEDS_APPROVAL']` to confirm no overlapping post exists.
-2. **Profile ID verification**: Confirm the profile ID matches the intended brand and network. Use the profile-lookup skill or `listProfiles` with `q: "brand name"`.
+1. **Conflict check**: Call `listPosts` with the target `profile_ids`, `dateFrom`/`dateTo` covering the intended publish window, and `status: ['SCHEDULED','IN_REVIEW']` to confirm no overlapping post exists.
+2. **Profile ID verification**: Confirm the profile ID matches the intended brand and network. Use the profile-lookup skill or `findProfiles` with `q: "brand name"`.
 3. **Timezone validation**: Use the correct timezone and explicit UTC offset (never bare UTC).
 4. **First-comment link**: For cluster brand posts and any Facebook link-out post, prepare the `comments` array with the brand-specific URL.
-5. **Label format**: Apply labels as a comma-separated string: `brand-name,network,week-of-[date]`.
+5. **Tag format**: Apply `tags` as a string array: `["brand-name", "network", "week-of-[date]"]` (the deprecated `labels` comma string is still accepted but should not be used).
 
 ## Timezone Standards
 
@@ -60,7 +60,7 @@ Before scheduling ANY post, always run these steps in order:
 
 **Rule**: For engagement algorithms that penalize outbound links in captions, place traffic-driving URLs in the first comment.
 
-**Comment format for `schedulePost`**:
+**Comment format for `createOrUpdatePost`**:
 
 ```yaml
 comments: ['→ Explore more: https://example.com']
@@ -88,23 +88,25 @@ Examples:
 - `brand-beta,facebook,week-of-mar23`
 - `flagship,instagram,week-of-apr06`
 
-## `schedulePost` Parameter Reference (Non-Premium)
+## `createOrUpdatePost` Parameter Reference (Non-Premium)
 
 ```yaml
-profile_id:       numeric string, e.g., "10001"
-network_code     — "facebook", "instagram", "threads", "linkedin", "pinterest", "tiktok", "youtube", "googlebusiness", "reddit", "vistapage"
+profile_id:       integer (or integer array for several profiles in ONE call), e.g., 10001
 message          — post body text (no external links if using first-comment protocol)
 publish_at       — ISO 8601 with explicit UTC offset, e.g., "2026-04-01T17:03:00+02:00"
-labels           — comma-separated string, e.g., "brand-alpha,threads,week-of-mar30"
-comments         — array of strings for first-comment, e.g., ["→ Explore more: https://example.com"]
+timezone         — IANA name, e.g., "Europe/Athens"
+tags             — string array, e.g., ["brand-alpha", "threads", "week-of-mar30"]
+customization    — { "comments": [{ "message": "→ Explore more: https://example.com" }] } for first comments
+draft            — true to save as draft only
+# The network is implied by the profile; there is no network_code parameter.
 ```
 
-## `searchPosts` Parameter Reference
+## `listPosts` Parameter Reference
 
 ```yaml
-profile_ids:      array of numeric strings, e.g., ["10001"]
+profile_ids:      array of numbers, e.g., [10001]
 dateFrom         — string "YYYY-MM-DD"
 dateTo           — string "YYYY-MM-DD"
-status           — array, e.g., ["APPROVED", "NEEDS_APPROVAL"]
+status           — array, e.g., ["SCHEDULED", "IN_REVIEW"]
 timezone         — string, e.g., "Europe/Amsterdam"
 ```

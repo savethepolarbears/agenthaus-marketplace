@@ -32,8 +32,8 @@ Meta Ads (Facebook + Instagram) skills. Campaign audits, ROAS analysis, creative
 | Skill | Required MCPs | Environment Variables |
 | ------- | -------------- | ---------------------- |
 | notfair-seo | Google Search Console MCP, Google Analytics (GA4) MCP | See NotFair repo for setup |
-| notfair-google-ads | Google Ads MCP | `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_REFRESH_TOKEN`, `GOOGLE_ADS_LOGIN_CUSTOMER_ID` |
-| notfair-meta-ads | Meta Ads MCP | `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_ID` |
+| notfair-google-ads | NotFair MCP (`https://notfair.co/api/mcp/notfair`) | OAuth sign-in via `/mcp`; connect Google Ads in your NotFair workspace |
+| notfair-meta-ads | NotFair MCP (`https://notfair.co/api/mcp/notfair`) | OAuth sign-in via `/mcp`; connect Meta Ads in your NotFair workspace |
 
 ## Installation
 

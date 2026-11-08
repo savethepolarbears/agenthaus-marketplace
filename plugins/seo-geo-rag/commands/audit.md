@@ -1,6 +1,6 @@
 ---
-name: audit
 description: Run a full 6-phase SEO, GEO, and RAG optimization audit on the current project. Researches current standards via web search, sweeps all front-end and blog files for missing metadata, generates AI-optimized content assets (llms.txt, AI-FAQ.md), rewrites docstrings for RAG accuracy, and produces GitHub topics and SEO copy. Usage: `/seo-geo-rag:audit` or `/seo-geo-rag:audit [specific file or directory]`
+argument-hint: "[file-or-directory]"
 ---
 
 You are executing a full SEO, GEO, and RAG optimization audit using the `seo-geo-rag-optimizer` skill. Follow all six phases in order. Do not skip any phase.

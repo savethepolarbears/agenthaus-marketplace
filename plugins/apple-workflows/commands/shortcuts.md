@@ -1,5 +1,6 @@
 ---
 description: List, run, and manage Apple Shortcuts. Usage: `/apple-workflows:shortcuts [list|run <name> [input]|view <name>|create|open <name>]`
+argument-hint: "[list|run <name> [input]|view <name>|create|open <name>]"
 ---
 Given "$ARGUMENTS" as the user input, use the `apple-productivity` MCP tools to interact with Apple Shortcuts.
 

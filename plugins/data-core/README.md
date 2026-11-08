@@ -52,4 +52,4 @@ The plugin configures the MCP server in `.mcp.json` using `${NEON_DATABASE_URL}`
 
 ## Architecture
 
-Connects to Neon serverless Postgres via the `@modelcontextprotocol/server-postgres` MCP server. The server translates Claude Code tool calls into SQL operations against the configured database. All queries run through the MCP protocol with no local database drivers required.
+Connects to Neon serverless Postgres via the Postgres MCP Pro server (`postgres-mcp` on PyPI, run with `uvx`; the archived `@modelcontextprotocol/server-postgres` is no longer used). The connection string is passed as the `DATABASE_URI` environment variable, not a command-line argument, so it does not show up in `ps`. The server translates Claude Code tool calls into SQL operations against the configured database. All queries run through the MCP protocol with no local database drivers required.

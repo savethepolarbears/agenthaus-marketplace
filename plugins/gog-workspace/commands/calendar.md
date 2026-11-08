@@ -1,5 +1,6 @@
 ---
 description: Manage Google Calendar events — list, create, update, delete, and check availability. Usage: `/gog-workspace:calendar list` or `/gog-workspace:calendar create "Meeting" tomorrow 2pm 3pm`
+argument-hint: "<list | create <title> <date> <start> <end>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Calendar operations using the `gog` CLI.

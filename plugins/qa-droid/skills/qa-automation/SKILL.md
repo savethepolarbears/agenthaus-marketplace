@@ -1,11 +1,11 @@
 ---
 name: qa-automation
-description: Automated QA workflow combining Playwright browser testing with Slack and Gmail result notifications and test report generation. Use when the user asks to run automated test suites with notification workflows, generate QA reports, set up test-notify pipelines, or implement continuous testing with stakeholder communication.
+description: Automated QA workflow combining Playwright browser testing with Slack and email (gog CLI) result notifications and test report generation. Use when the user asks to run automated test suites with notification workflows, generate QA reports, set up test-notify pipelines, or implement continuous testing with stakeholder communication.
 ---
 
 # QA Automation with Notifications
 
-End-to-end automated testing with Playwright, plus Slack and Gmail notifications for test results.
+End-to-end automated testing with Playwright, plus Slack notifications and optional email reports sent through the `gog` CLI.
 
 ## When to Use
 
@@ -17,11 +17,10 @@ End-to-end automated testing with Playwright, plus Slack and Gmail notifications
 
 ## Prerequisites
 
-- `SLACK_TOKEN` and `SLACK_CHANNEL` — for Slack notifications
-- `GMAIL_CREDS` — for email notifications
+- `SLACK_CHANNEL` — default Slack channel ID for notifications (Slack auth is OAuth via the official Slack MCP server, `/mcp`)
+- `gog` CLI authenticated (`gog auth add <email>`) — for email reports
 - Playwright MCP (local `playwright-local`) — for browser testing
-- Slack MCP server (`@modelcontextprotocol/server-slack`) — for messaging
-- Gmail MCP server (`@modelcontextprotocol/server-gmail`) — for email
+- Slack MCP server (`https://mcp.slack.com/mcp`, OAuth via `/mcp`) — for messaging
 
 ## Steps
 
@@ -92,7 +91,11 @@ Send test results to the team Slack channel:
 
 ### 4. Email Notification
 
-For critical failures or scheduled reports, send via Gmail:
+For critical failures or scheduled reports, email via the `gog` CLI (draft first, send after confirmation):
+
+```bash
+gog gmail draft <recipients> --subject 'QA report: <branch> <pass>/<total>' --body "$(cat reports/TEST_RESULTS_<date>.md)"
+```
 
 1. Format the report as a clean HTML email
 2. Attach failure screenshots as inline images
@@ -102,13 +105,13 @@ For critical failures or scheduled reports, send via Gmail:
 
 ### 5. SDET Agent Workflow
 
-The SDET agent (`claude-3-7-sonnet` model) can autonomously:
+The SDET agent (`sonnet` model, `maxTurns: 50`) can autonomously:
 
 1. Analyze code changes to determine which tests to run
 2. Write new tests for uncovered functionality
 3. Execute the test suite and collect results
 4. Generate the QA report
-5. Send notifications via Slack and Gmail
+5. Send notifications via Slack and the gog CLI
 6. Suggest fixes for failing tests based on error analysis
 
 ## Output Format
@@ -117,7 +120,7 @@ Save reports to `reports/TEST_RESULTS_[date].md` following the project's report 
 
 ## Error Handling
 
-- If Slack is unavailable, fall back to Gmail notification only
+- If Slack is unavailable, fall back to a gog CLI email draft only
 - If both notification channels fail, save the report locally and inform the user
 - Capture screenshots for all failed tests automatically
 - Retry flaky tests once before marking as failed

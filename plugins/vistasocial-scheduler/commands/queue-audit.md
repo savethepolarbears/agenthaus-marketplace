@@ -4,7 +4,7 @@ description: >
   publishing cadence, duplicate posts, missing first-comment links, incorrect
   timezones, and label inconsistencies. Use to verify the queue before a week
   starts or to find scheduling pipeline gaps.
-allowed-tools: VistaSocial:searchPosts, VistaSocial:listProfiles, VistaSocial:listPosts
+allowed-tools: mcp__plugin_vistasocial-scheduler_vistasocial__listPosts, mcp__plugin_vistasocial-scheduler_vistasocial__findProfiles
 ---
 
 # Queue Audit
@@ -21,13 +21,13 @@ Collect from the user:
 
 ## Step 2: Pull Scheduled Posts
 
-For each profile in scope, call `searchPosts`:
+For each profile in scope, call `listPosts`:
 
 ```yaml
 profile_ids: ["<profile_id>"]
 dateFrom: "<start_date>"
 dateTo: "<end_date>"
-status: ["APPROVED", "NEEDS_APPROVAL"]
+status: ["SCHEDULED", "IN_REVIEW"]
 timezone: "<brand_timezone>"
 ```
 
@@ -61,7 +61,7 @@ Check for:
 
 ### Label Issues
 
-- Missing labels
+- Missing tags
 - Incorrect label format (should be `brand-name,network,week-of-[date]`)
 
 ## Step 4: Generate Audit Report

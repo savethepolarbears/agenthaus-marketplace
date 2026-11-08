@@ -1,4 +1,5 @@
 {
+  "description": "circuit-breaker: deploy window gate, test gate, per-session tool budget, and a bounded, opt-in Stop-hook loop guard.",
   "hooks": {
     "PreToolUse": [
       {
@@ -18,7 +19,7 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/require-tests.sh\"",
             "if": "Bash(git commit *)",
-            "timeout": 10
+            "timeout": 15
           }
         ]
       },
@@ -28,6 +29,41 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/budget-guard.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/loop-guard.sh\"",
+            "timeout": 600,
+            "statusMessage": "circuit-breaker: checking loop completion"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/loop-reset.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/loop-reset.sh\"",
             "timeout": 10
           }
         ]

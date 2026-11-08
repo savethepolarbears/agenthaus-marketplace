@@ -1,5 +1,6 @@
 ---
 description: Create, search, update, move, and delete Apple Notes. Usage: `/apple-workflows:notes <action> [args]` where action is search, create, get, update, move, delete, folders, or accounts.
+argument-hint: "<action> [args]"
 ---
 Given "$ARGUMENTS" as the user input (action and arguments), use the `apple-productivity` MCP tools to manage Apple Notes.
 

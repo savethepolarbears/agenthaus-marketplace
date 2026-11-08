@@ -1,5 +1,6 @@
 ---
 description: Write a professional yet engaging LinkedIn post for a given topic, optionally specifying a tone.
+argument-hint: "<topic> [, tone]"
 ---
 Given "$ARGUMENTS" as the user input (topic[, tone]), generate a LinkedIn post:
 

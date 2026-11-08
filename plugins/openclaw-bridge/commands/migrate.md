@@ -1,6 +1,6 @@
 ---
-name: migrate
 description: Convert an AgentHaus plugin to OpenClaw skill format
+argument-hint: "<path/to/agenthaus-plugin>"
 ---
 
 You are converting an AgentHaus plugin to the OpenClaw skill format.

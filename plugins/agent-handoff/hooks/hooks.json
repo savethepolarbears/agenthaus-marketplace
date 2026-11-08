@@ -2,11 +2,12 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "file_path=$(jq -r '.tool_input.file_path // empty') && if printf '%s\\n' \"$file_path\" | grep -q '\\.context/.*\\.json$'; then printf '%s | TASK_TRANSITION | file=%s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$file_path\" >> .context/audit.log; fi || true"
+            "command": "file_path=$(jq -r '.tool_input.file_path // empty' 2>/dev/null || true); root=\"${CLAUDE_PROJECT_DIR:-.}\"; if printf '%s\\n' \"$file_path\" | grep -q '\\.context/.*\\.json$' && [ -d \"$root/.context\" ]; then printf '%s | TASK_TRANSITION | file=%s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$file_path\" >> \"$root/.context/audit.log\" 2>/dev/null; fi; exit 0",
+            "timeout": 10
           }
         ]
       }

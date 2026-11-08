@@ -27,13 +27,11 @@ Then configure environment variables (see below).
 
 ## Configuration
 
-### 1. Set Your NeuronWriter API Key
+### 1. Connect the NeuronWriter MCP server
 
-```bash
-export NEURONWRITER_API_KEY=your_api_key_here
-```
+The plugin uses NeuronWriter's official hosted MCP server (`https://app.neuronwriter.com/mcp/http`, Gold plan or higher). Run `/mcp` in Claude Code and sign in; no API key is required for MCP tools.
 
-Get your API key from [NeuronWriter Dashboard](https://app.neuronwriter.com/dashboard).
+`NEURONWRITER_API_KEY` is only needed for direct REST API calls outside MCP (get it from the [NeuronWriter Dashboard](https://app.neuronwriter.com/dashboard)).
 
 ### 2. Configure WordPress Sites (Optional)
 

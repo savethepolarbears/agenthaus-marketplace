@@ -1,6 +1,6 @@
 ---
-name: dispatch
 description: Dispatch a validated typed handoff sidecar while preserving the legacy task board
+argument-hint: "<task description and requirements>"
 ---
 
 Resolve requirements from `$ARGUMENTS` and the exact project root. Ask for missing requirements before dispatch. Generate task/correlation UUIDs with `require('node:crypto').randomUUID()`. Configure producer and consumer as `runtime:project:actor`; each component permits letters, digits, periods, underscores and hyphens, up to 64 characters. Never hard-code a provider persona.

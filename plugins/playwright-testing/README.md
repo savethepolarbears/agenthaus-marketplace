@@ -31,4 +31,4 @@ Test our login page by entering a valid email and password, verify that the dash
 Simulate adding an item to the cart and proceed through checkout.  Confirm the order confirmation page appears.
 ```
 
-The agent will generate and run appropriate Playwright scripts.  Ensure that Node.js is installed in your environment; the plugin uses the Playwright MCP server (`@modelcontextprotocol/server-playwright`), which installs dependencies automatically.
+The agent will generate and run appropriate Playwright scripts.  Ensure that Node.js is installed in your environment; the plugin uses the Playwright MCP server (`@playwright/mcp`, Microsoft's official server), which installs dependencies automatically.

@@ -1,5 +1,6 @@
 ---
 description: Generate images from HTML, URLs, Markdown, or templates. Usage `/markupgo:image from-url https://example.com` or `/markupgo:image from-html '<h1>Hello</h1>'`
+argument-hint: "<from-url <url> | from-html <html>> [options]"
 ---
 
 # Generate Images

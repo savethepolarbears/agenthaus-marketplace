@@ -1,24 +1,26 @@
 {
-  "description": "Safety guard for destructive Apple operations and audit logging for all mutations.",
+  "description": "Safety guard for destructive Apple operations and audit logging for all apple-productivity MCP calls.",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__apple-productivity__(notes_delete|notes_delete_folder|reminders_delete|reminder_list_delete)",
+        "matcher": "mcp__.*apple-productivity__(notes_delete|notes_delete_folder|reminders_delete|reminder_list_delete)$",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/confirm-destructive.sh\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/confirm-destructive.sh\"",
+            "timeout": 10
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "apple-workflows:(notes|reminders|shortcuts|capture|organize|daily-review)",
+        "matcher": "mcp__.*apple-productivity__.*",
         "hooks": [
           {
             "type": "command",
-            "command": "printf '[%s] apple-workflows command: %s\\n' \"$(date '+%Y-%m-%d %H:%M:%S')\" \"$TOOL_NAME\" >> \"$CLAUDE_PROJECT_DIR/apple_workflows_audit.log\""
+            "command": "tool=$(jq -r '.tool_name // \"unknown\"' 2>/dev/null || echo unknown); printf '[%s] apple-workflows tool: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$tool\" >> \"${CLAUDE_PROJECT_DIR:-.}/apple_workflows_audit.log\" 2>/dev/null; exit 0",
+            "timeout": 10
           }
         ]
       }

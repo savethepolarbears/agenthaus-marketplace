@@ -1,6 +1,6 @@
 {
   "name": "apple-workflows",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Manage Apple Notes, Reminders, and Shortcuts with AI agents via a local MCP server on macOS.",
   "author": {
     "name": "AgentHaus Team"

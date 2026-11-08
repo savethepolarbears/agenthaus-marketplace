@@ -3,7 +3,7 @@
     "context7": {
       "args": [
         "-y",
-        "@modelcontextprotocol/server-context7"
+        "@upstash/context7-mcp@4.5.1"
       ],
       "command": "npx",
       "env": {

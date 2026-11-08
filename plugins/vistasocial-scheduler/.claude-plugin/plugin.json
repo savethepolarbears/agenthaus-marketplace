@@ -1,6 +1,6 @@
 {
   "name": "vistasocial-scheduler",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Social media scheduling and management plugin using VistaSocial MCP. Handles post scheduling, content creation, queue auditing, profile lookups, rate-limit-aware batch operations, and multi-brand social media operations.",
   "author": {
     "name": "AgentHaus Team"

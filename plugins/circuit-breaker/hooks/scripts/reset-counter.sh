@@ -21,6 +21,13 @@ else
     elif [ -f "$COUNTER_FILE" ] && [ -O "$COUNTER_FILE" ]; then
         rm -f "$COUNTER_FILE" 2>/dev/null || true
     fi
+    # Per-session counters (counter-<session_id>)
+    for f in "$STATE_DIR"/counter-*; do
+        [ -e "$f" ] || continue
+        if [ -L "$f" ] || { [ -f "$f" ] && [ -O "$f" ]; }; then
+            rm -f "$f" 2>/dev/null || true
+        fi
+    done
 fi
 
 # Clean up legacy counter paths if owned

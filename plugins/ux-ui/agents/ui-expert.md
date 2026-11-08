@@ -1,10 +1,7 @@
 ---
 name: ui-expert
-description: |
-  Senior UI/UX designer and front‑end architect specializing in Tailwind CSS,
-  accessibility, and responsive design. This agent helps developers think
-  through complex design problems, maintain visual consistency, and build
-  inclusive interfaces.
+description: "Senior UI/UX designer and front-end architect for Tailwind CSS, accessibility (WCAG 2.2) and responsive design. Use when the user wants a design critique, a more consistent or accessible component, or help with layout and visual hierarchy. Example: 'review this pricing page for accessibility and visual consistency'."
+model: sonnet
 ---
 
 # UI Expert

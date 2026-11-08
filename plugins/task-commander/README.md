@@ -1,6 +1,6 @@
 # task-commander
 
-Unified task management with ClickUp, Slack notifications, Gmail integration, and Google Calendar scheduling.
+Unified task management with ClickUp and Slack (official remote MCP servers), plus Gmail and Google Calendar through the `gog` CLI.
 
 ## Platform Support
 
@@ -18,8 +18,7 @@ Unified task management with ClickUp, Slack notifications, Gmail integration, an
 | `CLICKUP_KEY` | ClickUp API token |
 | `SLACK_TOKEN` | Slack bot OAuth token |
 | `SLACK_CHANNEL` | Slack channel ID for task notifications |
-| `GMAIL_CREDS` | Gmail credentials JSON |
-| `GOOGLE_CALENDAR_TOKEN` | Google Calendar OAuth token |
+| `gog` CLI | Gmail and Calendar steps (`brew install gogcli && gog auth add you@example.com`) |
 
 ## Installation
 
@@ -52,8 +51,6 @@ Add credentials to `.env`:
 CLICKUP_KEY=pk_your-clickup-key
 SLACK_TOKEN=xoxb-your-slack-token
 SLACK_CHANNEL=C0123456789
-GMAIL_CREDS={"client_id":"...","client_secret":"..."}
-GOOGLE_CALENDAR_TOKEN=your-google-calendar-token
 ```
 
 ## Architecture
@@ -61,8 +58,7 @@ GOOGLE_CALENDAR_TOKEN=your-google-calendar-token
 Four-service integration for full task lifecycle management:
 
 - **@taazkareem/clickup-mcp-server** -- Task creation, updates, and tracking
-- **@modelcontextprotocol/server-slack** -- Team notifications and reminders
-- **@modelcontextprotocol/server-gmail** -- Email-based task assignments and updates
-- **@modelcontextprotocol/server-google-calendar** -- Deadline scheduling and event creation
+- **Slack MCP** (`https://mcp.slack.com/mcp`, OAuth) -- Team notifications and reminders
+- **gog CLI** -- Email drafts and Google Calendar holds (run through Bash; no Google MCP server)
 
 The `/todo` command orchestrates all four services to create a task with notifications and calendar entries in a single action.

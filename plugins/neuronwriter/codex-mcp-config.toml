@@ -2,6 +2,4 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.neuronwriter]
-command = "python"
-args = ["-m", "neuronwriter_mcp"]
-env_vars = ["NEURONWRITER_API_KEY"]
+url = "https://app.neuronwriter.com/mcp/http"

@@ -1,6 +1,6 @@
 ---
-name: recall
 description: Search and retrieve memories from persistent storage
+argument-hint: "[query] [--all]"
 ---
 
 You are retrieving memories from the Postgres MCP server.

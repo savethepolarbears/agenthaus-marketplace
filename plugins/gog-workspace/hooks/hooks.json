@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.command // empty' | grep -qE '^gog (gmail send|drive delete|calendar delete|tasks delete|chat send)' && printf '%s\\n' '[gog-workspace] Destructive/send operation detected — please confirm before proceeding.' || true"
+            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null || true); if printf '%s' \"$cmd\" | grep -qE '(^|[;&|(][[:space:]]*)gog[[:space:]]+(gmail[[:space:]]+(send|delete|trash)|drive[[:space:]]+(delete|rm|trash)|calendar[[:space:]]+delete|tasks[[:space:]]+delete|chat[[:space:]]+send|sheets[[:space:]]+(clear|delete))'; then printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"gog-workspace: this sends a message or deletes Google Workspace data. Confirm recipients/targets first.\"}}'; fi",
+            "timeout": 5
           }
         ]
       }
@@ -17,7 +18,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.command // empty' | grep -qE '^gog ' && printf '[%s] gog command executed\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" >> \"${CLAUDE_PROJECT_DIR:-.}/gog_audit.log\" || true"
+            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null || true); if printf '%s' \"$cmd\" | grep -qE '(^|[;&|(][[:space:]]*)gog[[:space:]]'; then printf '[%s] gog command executed\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" >> \"${CLAUDE_PROJECT_DIR:-.}/gog_audit.log\" 2>/dev/null; fi; exit 0",
+            "timeout": 10
           }
         ]
       }

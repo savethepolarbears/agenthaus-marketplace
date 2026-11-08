@@ -1,5 +1,6 @@
 ---
 description: Add missing GPS location data to photos using nearby photos as reference. Usage: `/apple-photos:fix-locations [--window "2 hr"]`
+argument-hint: "[--window \"2 hr\"]"
 ---
 When invoked with "$ARGUMENTS" (optional time window and filters), run `osxphotos add-locations` to backfill missing GPS data.
 

@@ -1,11 +1,11 @@
 ---
 name: task-orchestration
-description: Unified task management combining ClickUp tasks, Slack notifications, Gmail communications, and Google Calendar scheduling in a single workflow. Use when the user asks to create tasks with notifications, schedule work with calendar events, coordinate task updates across tools, or run a complete task lifecycle from creation to completion with team communication.
+description: Unified task management combining ClickUp tasks, Slack notifications, and Gmail/Google Calendar steps run through the gog CLI in a single workflow. Use when the user asks to create tasks with notifications, schedule work with calendar events, coordinate task updates across tools, or run a complete task lifecycle from creation to completion with team communication.
 ---
 
 # Task Orchestration
 
-Unified task management across ClickUp, Slack, Gmail, and Google Calendar with automated coordination.
+Unified task management across ClickUp and Slack (official remote MCP servers) plus Gmail and Google Calendar through the `gog` CLI.
 
 ## When to Use
 
@@ -18,10 +18,9 @@ Unified task management across ClickUp, Slack, Gmail, and Google Calendar with a
 ## Prerequisites
 
 - `CLICKUP_KEY` — for ClickUp task management
-- `SLACK_TOKEN` and `SLACK_CHANNEL` — for Slack notifications
-- `GMAIL_CREDS` — for email communications
-- `GOOGLE_CALENDAR_TOKEN` — for calendar scheduling
-- MCP servers: `@taazkareem/clickup-mcp-server`, `@modelcontextprotocol/server-slack`, `@modelcontextprotocol/server-gmail`, `@modelcontextprotocol/server-google-calendar`
+- `SLACK_CHANNEL` — default Slack channel ID for notifications (Slack auth is OAuth via the official Slack MCP server, `/mcp`)
+- `gog` CLI installed and authenticated (`gog auth add <email>`) — for Gmail and Calendar steps (see the `gog-workspace` plugin)
+- MCP servers: ClickUp (`https://mcp.clickup.com/mcp`, OAuth) and Slack (`https://mcp.slack.com/mcp`, OAuth)
 
 ## Steps
 
@@ -31,8 +30,8 @@ When creating a task with cross-tool coordination:
 
 1. **Create in ClickUp**: Task with title, description, assignee, due date, priority
 2. **Notify via Slack**: Post task assignment notification to the team channel
-3. **Email stakeholders**: Send detailed task brief via Gmail (if requested)
-4. **Schedule in Calendar**: Create a calendar event for the task deadline or work block
+3. **Email stakeholders** (if requested): `gog gmail draft <to> --subject '<s>' --body '<b>'`, then send only after the user confirms
+4. **Schedule in Calendar**: check `gog calendar list --from <d> --to <d> --json` for an existing hold, then `gog calendar create '<title>' --start '<dt>' --end '<dt>'`
 
 ### 2. Unified Task Workflow
 

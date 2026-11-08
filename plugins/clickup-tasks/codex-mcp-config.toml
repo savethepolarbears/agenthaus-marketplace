@@ -2,6 +2,4 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.clickup]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-clickup"]
-env_vars = ["CLICKUP_API_KEY"]
+url = "https://mcp.clickup.com/mcp"

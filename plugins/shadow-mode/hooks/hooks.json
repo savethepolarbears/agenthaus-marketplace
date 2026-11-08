@@ -6,16 +6,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/shadow-intercept.sh\" Write"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/shadow-intercept.sh\" Write",
+            "timeout": 15
           }
         ]
       },
       {
-        "matcher": "Edit",
+        "matcher": "Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/shadow-intercept.sh\" Edit"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/shadow-intercept.sh\" Edit",
+            "timeout": 15
           }
         ]
       },
@@ -24,7 +26,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/shadow-intercept.sh\" Bash"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/shadow-intercept.sh\" Bash",
+            "timeout": 15
           }
         ]
       }

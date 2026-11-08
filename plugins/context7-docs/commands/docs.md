@@ -1,6 +1,6 @@
 ---
-name: docs
 description: Find documentation for a specific library. Usage: `/context7-docs:docs <library> <query>`
+argument-hint: "<library> <query>"
 ---
 Use the `context7` MCP tools to search for documentation.  Follow these steps:
 

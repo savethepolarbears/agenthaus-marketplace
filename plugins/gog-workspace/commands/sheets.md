@@ -1,5 +1,6 @@
 ---
 description: Read, write, and manage Google Sheets spreadsheets. Usage: `/gog-workspace:sheets read <sheet_id>` or `/gog-workspace:sheets write <sheet_id> A1 "Hello"`
+argument-hint: "<read <sheet_id> | write <sheet_id> <range> <value>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Google Sheets operations using the `gog` CLI.

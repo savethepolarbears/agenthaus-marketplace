@@ -1,5 +1,6 @@
 ---
 description: Analyze a keyword for SEO content optimization — get recommendations, competitor analysis, and content scoring. Usage: `/neuronwriter:analyze 'best project management tools'`
+argument-hint: "<keyword>"
 ---
 
 # Analyze Keyword

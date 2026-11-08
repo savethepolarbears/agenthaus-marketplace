@@ -7,7 +7,7 @@ description: Profile ID map template for resolving brand names to numeric VistaS
 
 ## Purpose
 
-This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `listProfiles` or `listProfileGroups` every time you need a profile ID, look it up in your local configuration table first. Only call the MCP API if the profile is not listed or you suspect the data has changed.
+This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `findProfiles` or `findProfileGroups` every time you need a profile ID, look it up in your local configuration table first. Only call the MCP API if the profile is not listed or you suspect the data has changed.
 
 > **Setup Note:** Populate the tables below with your organization's brand profile IDs and group UUIDs retrieved from your VistaSocial account.
 
@@ -57,11 +57,11 @@ This skill exists to **eliminate unnecessary MCP calls**. Instead of calling `li
 
 ## VistaSocial API Patterns
 
-- `listProfileGroups` → returns UUIDs (group IDs above)
-- `listProfilesInGroup` → param: `profile_group_id` (UUID) → returns numeric profile IDs
-- `listProfiles` with `q: "brand name"` → most reliable profile lookup
-- `searchPosts` → `profile_ids` takes an array of numeric string IDs
-- `schedulePost` → `profile_id` takes a single numeric string ID
+- `findProfileGroups` → returns UUIDs (group IDs above)
+- `findProfiles` → param: `profile_group_id` (UUID) → returns numeric profile IDs
+- `findProfiles` with `q: "brand name"` → most reliable profile lookup
+- `listPosts` → `profile_ids` takes an array of numeric string IDs
+- `createOrUpdatePost` → `profile_id` takes a single numeric string ID
 
 ## Best Practices
 

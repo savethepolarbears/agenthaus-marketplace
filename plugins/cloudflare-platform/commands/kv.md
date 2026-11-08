@@ -1,6 +1,6 @@
 ---
-name: kv
 description: Perform key–value operations on Cloudflare KV. Usage: `/cloudflare-platform:kv <get|put|delete> <namespace> <key> [value]`
+argument-hint: "<get|put|delete> <namespace> <key> [value]"
 ---
 This command uses the `cloudflare` MCP tools to interact with Cloudflare’s KV storage.  Supported operations:
 

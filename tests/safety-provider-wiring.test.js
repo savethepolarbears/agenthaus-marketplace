@@ -13,7 +13,7 @@ const { signReceipt, requestDigest, targetDigest } = require('../src/approval-re
 const { digest } = require('../src/safety-policy.js');
 
 test('opt-in wiring preserves names/env and leaves native rendering unchanged', () => {
-  const p = generator.loadPlugin(path.resolve('plugins/devops-flow'), 'devops-flow');
+  const p = generator.loadPlugin(path.resolve('plugins/outscraper'), 'outscraper');
   const before = generator.renderCursorMcp(p);
   const result = generator.guardPlugin(p, { guardPath: path.resolve('src/safety-guard.js'), policyFile: '/operator/policy.json' });
   assert.equal(generator.renderCursorMcp(p), before);

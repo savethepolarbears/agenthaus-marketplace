@@ -18,7 +18,7 @@ Design, write, and execute comprehensive E2E browser tests with Playwright.
 
 ## Prerequisites
 
-- Playwright MCP server (`@modelcontextprotocol/server-playwright`) must be available
+- Playwright MCP server (`@playwright/mcp`, pinned in `.mcp.json`) must be available
 - The target application must be running and accessible
 
 ## Steps

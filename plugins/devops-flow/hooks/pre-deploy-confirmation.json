@@ -2,11 +2,22 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "cloudflare.*deploy",
+        "matcher": "mcp__.*[Cc]loudflare.*__(execute|.*(deploy|publish|create_version|rollback|delete).*)$",
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"DevOps deployment workflow: this deploys to Cloudflare and affects the live environment.\"}}'",
+            "command": "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"DevOps deployment workflow: this Cloudflare API call (execute or deploy) can change live resources.\"}}'",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(wrangler *)",
+            "command": "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"DevOps deployment workflow: wrangler can deploy to the live Cloudflare environment.\"}}'",
             "timeout": 5
           }
         ]

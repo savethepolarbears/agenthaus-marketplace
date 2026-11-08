@@ -2,13 +2,15 @@
 
 Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, and Apps Script using gogcli.
 
+> **Platform note:** This plugin ships Claude Code-format hooks. Other providers have their own hook systems; agenthaus does not translate these hooks, so the guardrails only run in Claude Code. Commands and skills remain usable.
+
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands/Agents | Skills |
 | :--- | :--- | :--- | :--- | :--- |
-| Claude Code | n/a | n/a | full | full |
-| Codex CLI | n/a | n/a | partial | full |
-| Antigravity / Gemini CLI | n/a | n/a | partial | full |
-| Cursor | n/a | n/a | partial | full |
-| Windsurf / Devin | n/a | n/a | partial | full |
-| GitHub Copilot | n/a | n/a | prompts | full |
+| Claude Code | n/a | full | full | full |
+| Codex CLI | n/a | not translated | partial | full |
+| Antigravity / Gemini CLI | n/a | not translated | partial | full |
+| Cursor | n/a | not translated | partial | full |
+| Windsurf / Devin | n/a | not translated | partial | full |
+| GitHub Copilot | n/a | not translated | prompts | full |

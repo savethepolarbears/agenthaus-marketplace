@@ -1,5 +1,4 @@
 ---
-name: review
 description: Review digest-only shadow proposals against freshly supplied original requests
 ---
 
