@@ -162,3 +162,41 @@ test('package-manager deploy scripts are gated outside the window', skip, t => {
         assert.equal(run(c).status, 0, c);
     }
 });
+
+test('git push --repo treats every positional as a refspec', skip, t => {
+    const { dir, git } = repo(t);
+    const remote = path.join(dir, '..', path.basename(dir) + '-remote.git');
+    t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+    spawnSync('git', ['init', '-q', '--bare', remote]);
+    git('branch', '-M', 'main');
+    git('remote', 'add', 'origin', remote);
+    git('push', '-q', '-u', 'origin', 'main');
+    git('checkout', '-q', '-b', 'feature');
+    git('push', '-q', '-u', 'origin', 'feature');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('git push --repo origin main'), 'yes');
+    assert.equal(ask('git push --repo=origin main'), 'yes');
+    assert.equal(ask('git push --repo origin feature'), 'no');
+});
+
+test('a chained add that records a deletion counts the deleted file', skip, t => {
+    const { dir, run } = repo(t);
+    fs.rmSync(path.join(dir, 'src.js'));
+    assert.equal(run('git add src.js && git commit -m "drop src"').status, 2);
+});
+
+test('the commit gate still applies without jq', skip, t => {
+    const { dir } = repo(t);
+    const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'no-jq-'));
+    t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    for (const tool of ['bash', 'cat', 'dirname', 'grep', 'git', 'python3', 'head']) {
+        const where = spawnSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
+        fs.symlinkSync(where, path.join(bin, tool));
+    }
+    const bash = path.join(bin, 'bash');
+    const r = spawnSync(bash, [script], {
+        cwd: dir, encoding: 'utf8', env: { ...process.env, PATH: bin },
+        input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git commit -am change' } }),
+    });
+    assert.equal(r.status, 2, r.stderr);
+});

@@ -11,6 +11,12 @@ set -euo pipefail
 STDIN_JSON="$(cat || true)"
 if command -v jq >/dev/null 2>&1; then
     CMD="$(printf '%s' "$STDIN_JSON" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+elif command -v python3 >/dev/null 2>&1; then
+    CMD="$(printf '%s' "$STDIN_JSON" | python3 -I -c 'import json,sys
+try:
+    print((json.load(sys.stdin).get("tool_input") or {}).get("command") or "")
+except Exception:
+    pass' 2>/dev/null || true)"
 else
     CMD="$STDIN_JSON"
 fi

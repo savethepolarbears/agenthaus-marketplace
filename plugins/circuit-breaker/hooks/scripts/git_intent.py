@@ -175,8 +175,10 @@ def simulate_add(args, staged):
     paths = [a for a in args if not a.startswith("-")]
     cmd = ["add", "--dry-run", *flags] + (["--", *paths] if paths else [])
     for line in lines(git(*cmd)):
-        if line.startswith("add '") and line.endswith("'"):
-            staged.add(line[5:-1])
+        # Dry-run records are "add '<path>'" and, for deleted files, "remove '<path>'".
+        m = re.match(r"^(add|remove) '(.*)'$", line)
+        if m:
+            staged.add(m.group(2))
 
 
 # Subcommands that cannot change the index, so they are safe to ignore before a
@@ -231,11 +233,15 @@ def current_branch():
 def push_targets(args):
     """Return the destination branch names a `git push` would update."""
     value_opts = {"--repo", "--receive-pack", "--exec", "-o", "--push-option"}
-    positional, i = [], 0
+    positional, i, repo_opt = [], 0, False
     while i < len(args):
         a = args[i]
         if a in ("--all", "--mirror", "--tags", "--branches"):
             return ["<all>"]
+        if a == "--repo" or a.startswith("--repo="):
+            repo_opt = True  # repository given by option: every positional is a refspec
+            i += 1 if "=" in a else 2
+            continue
         if a in value_opts:
             i += 2
             continue
@@ -245,7 +251,7 @@ def push_targets(args):
         if not a.startswith("-"):
             positional.append(a)
         i += 1
-    refspecs = positional[1:]
+    refspecs = positional if repo_opt else positional[1:]
     if not refspecs:
         # Configured remote.<name>.push refspecs replace push.default; we do not
         # model them, so treat their presence as unknown.

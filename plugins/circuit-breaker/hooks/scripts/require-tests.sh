@@ -9,6 +9,14 @@ STDIN_JSON="$(cat 2>/dev/null || true)"
 CMD=""
 if [ -n "$STDIN_JSON" ] && command -v jq >/dev/null 2>&1; then
     CMD="$(printf '%s' "$STDIN_JSON" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+elif [ -n "$STDIN_JSON" ] && command -v python3 >/dev/null 2>&1; then
+    CMD="$(printf '%s' "$STDIN_JSON" | python3 -I -c 'import json,sys
+try:
+    print((json.load(sys.stdin).get("tool_input") or {}).get("command") or "")
+except Exception:
+    pass' 2>/dev/null || true)"
+elif [ -n "$STDIN_JSON" ]; then
+    CMD="$STDIN_JSON"  # no JSON parser: scan the raw payload so the gate still applies
 fi
 
 # Check if this breaker is disabled
