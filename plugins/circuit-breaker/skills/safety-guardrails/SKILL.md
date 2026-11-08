@@ -120,7 +120,7 @@ All guardrails ship in this plugin's `hooks/hooks.json` and load automatically:
 | Event | Matcher | Script |
 | --- | --- | --- |
 | `PreToolUse` | `Bash` | `block-prod-deploy.sh` (exit 2 blocks) |
-| `PreToolUse` | `Bash` + `if: Bash(git commit *)` | `require-tests.sh` (exit 2 blocks) |
+| `PreToolUse` | `Bash` (any `git … commit`, including `git -C` and `cd … &&`) | `require-tests.sh` (exit 2 blocks) |
 | `PreToolUse` | `.*` | `budget-guard.sh` (`ask` at threshold) |
 | `Stop` | (all) | `loop-guard.sh` (`decision: block` while the check fails) |
 | `SessionStart` | `startup\|clear` | `loop-reset.sh` |

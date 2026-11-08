@@ -27,8 +27,12 @@ fi
 # those paths). git_intent.py splits the command with shlex and never runs it
 # through a shell. If the contents cannot be determined, block (fail closed).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Cheap prefilter; git_intent.py makes the real decision (handles `git -C`,
+# `cd dir &&`, global options, env prefixes).
+printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]_-])git([^[:alnum:]_-]|$)' && printf '%s' "$CMD" | grep -qE '(^|[[:space:]])commit([[:space:]]|$)' || exit 0
 if [ -n "$CMD" ] && command -v python3 >/dev/null 2>&1; then
     STAGED_FILES="$(python3 -I "$SCRIPT_DIR/git_intent.py" commit-set "$CMD" 2>/dev/null || echo UNKNOWN)"
+    [ "$STAGED_FILES" = "NOCOMMIT" ] && exit 0
 else
     STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
 fi

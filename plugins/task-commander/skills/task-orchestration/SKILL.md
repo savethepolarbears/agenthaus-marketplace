@@ -30,8 +30,8 @@ When creating a task with cross-tool coordination:
 
 1. **Create in ClickUp**: Task with title, description, assignee, due date, priority
 2. **Notify via Slack**: Post task assignment notification to the team channel
-3. **Email stakeholders** (if requested): `gog gmail draft <to> --subject '<s>' --body '<b>'`, then send only after the user confirms
-4. **Schedule in Calendar**: check `gog calendar list --from <d> --to <d> --json` for an existing hold, then `gog calendar create '<title>' --start '<dt>' --end '<dt>'`
+3. **Email stakeholders** (if requested): `gog gmail drafts create --to <to> --subject '<s>' --body '<b>'`, then send only after the user confirms
+4. **Schedule in Calendar**: check `gog calendar events primary --from <d> --days 1 --query '<title>' --json` for an existing hold, then `gog calendar create primary --summary '<title>' --from '<RFC3339>' --to '<RFC3339>'`
 
 ### 2. Unified Task Workflow
 

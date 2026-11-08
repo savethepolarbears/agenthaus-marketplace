@@ -24,7 +24,7 @@ Query Google Drive with the `gog` CLI for internal design documents, meeting not
 
 ```bash
 gog drive search '<library> <keywords>' --json      # find candidate docs
-gog drive export <file_id> --format txt --out /tmp/<file_id>.txt   # read one
+gog drive download <file_id> --format txt --out /tmp/<file_id>.txt   # read one (exports Google Docs)
 ```
 
 1. Search with the library name and relevant keywords

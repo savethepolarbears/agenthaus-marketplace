@@ -94,7 +94,7 @@ Send test results to the team Slack channel:
 For critical failures or scheduled reports, email via the `gog` CLI (draft first, send after confirmation):
 
 ```bash
-gog gmail draft <recipients> --subject 'QA report: <branch> <pass>/<total>' --body "$(cat reports/TEST_RESULTS_<date>.md)"
+gog gmail drafts create --to <recipients> --subject 'QA report: <branch> <pass>/<total>' --body-file reports/TEST_RESULTS_<date>.md
 ```
 
 1. Format the report as a clean HTML email

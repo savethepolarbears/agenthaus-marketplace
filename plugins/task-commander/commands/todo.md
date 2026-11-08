@@ -18,15 +18,15 @@ whether it already exists (same title + due date) and reuse it instead of creati
    on the due date. Check first so re-runs don't duplicate it:
 
    ```bash
-   gog calendar list --from <due-date> --to <due-date> --json   # skip if an event with this title exists
-   gog calendar create '<title>' --start '<due-date>T09:00' --end '<due-date>T09:30'
+   gog calendar events primary --from <due-date> --days 1 --query '<title>' --json   # skip if it already exists
+   gog calendar create primary --summary '<title>' --from '<due-date>T09:00:00<offset>' --to '<due-date>T09:30:00<offset>'
    ```
 
 5. **Email (optional, gog CLI)**: only if the user asked for it, draft the assignee email and show it
-   before sending (gog-workspace's PreToolUse hook also asks before `gog gmail send`):
+   before sending it (gog-workspace's PreToolUse hook also asks before `gog gmail send`):
 
    ```bash
-   gog gmail draft <assignee-email> --subject 'New task: <title>' --body '<task link, due date>'
+   gog gmail drafts create --to <assignee-email> --subject 'New task: <title>' --body '<task link, due date>'
    ```
 
 6. **Report** a checklist of what was done and skipped, e.g. `[x] ClickUp`, `[x] Slack`, `[ ] Calendar: gog not installed`.

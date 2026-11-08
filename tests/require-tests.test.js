@@ -67,6 +67,19 @@ test('amend counts the files already in HEAD', skip, t => {
     assert.equal(run('git commit --amend --no-edit').status, 0);
 });
 
+test('git -C and cd prefixes are followed, unrelated commands pass', skip, t => {
+    const { dir, run } = repo(t);
+    const parent = path.dirname(dir), name = path.basename(dir);
+    const runIn = command => spawnSync('bash', [script], {
+        cwd: parent, encoding: 'utf8', input: JSON.stringify({ tool_name: 'Bash', tool_input: { command } }),
+    });
+    assert.equal(runIn(`git -C ${name} commit -am x`).status, 2);
+    assert.equal(runIn(`cd ${name} && git commit -am x`).status, 2);
+    assert.equal(runIn(`cd ${name} && git add src.js unrelated.test.js && git commit -m x`).status, 0);
+    assert.equal(run('echo commit message').status, 0);
+    assert.equal(run('git status').status, 0, 'a git command without commit is not gated');
+});
+
 test('shell metacharacters in add arguments are not executed', skip, t => {
     const { dir, run } = repo(t);
     run('git add "$(touch pwned)" && git commit -m x');
@@ -94,4 +107,10 @@ test('push-protected resolves the effective destination', skip, t => {
     assert.equal(ask('git push origin feature'), 'no');
     assert.equal(ask('git push origin +feature:refs/heads/prod'), 'yes');
     assert.equal(ask('echo git push is mentioned'), 'no');
+    git('checkout', '-q', 'main');
+    const parent = path.dirname(dir), name = path.basename(dir);
+    const askIn = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: parent, encoding: 'utf8' }).stdout.trim();
+    assert.equal(askIn(`git -C ${name} push origin main`), 'yes', 'git -C is followed');
+    assert.equal(askIn(`cd ${name} && git push`), 'yes', 'cd is followed');
+    assert.equal(askIn(`git --no-pager -C ${name} push`), 'yes');
 });

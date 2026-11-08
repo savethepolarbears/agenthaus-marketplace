@@ -9,12 +9,14 @@ add --dry-run) with argv lists.
 Usage:
   git_intent.py commit-set "<command>"      prints the paths the first
                                             `git commit` would record, one per
-                                            line, or the single line UNKNOWN
+                                            line; NOCOMMIT if the command has no
+                                            `git commit`; UNKNOWN if it cannot tell
   git_intent.py push-protected "<command>"  prints "yes" if any `git push`
                                             would update a protected branch
                                             (or tags/all/mirror), else "no";
                                             UNKNOWN if it cannot tell
 """
+import os
 import re
 import shlex
 import subprocess
@@ -22,6 +24,9 @@ import sys
 
 PROTECTED = re.compile(r"^(main|master|prod|production)$")
 UNKNOWN = "UNKNOWN"
+NOCOMMIT = "NOCOMMIT"
+# Working directory for git calls; follows `cd` segments and `git -C`.
+CWD = [os.getcwd()]
 
 
 class Unknown(Exception):
@@ -29,7 +34,7 @@ class Unknown(Exception):
 
 
 def git(*args):
-    r = subprocess.run(["git", *args], capture_output=True, text=True, timeout=15)
+    r = subprocess.run(["git", *args], capture_output=True, text=True, timeout=15, cwd=CWD[0])
     if r.returncode != 0:
         raise Unknown(r.stderr.strip())
     return r.stdout
@@ -59,19 +64,47 @@ def segments(cmd):
     return segs
 
 
+def chdir(path):
+    target = os.path.normpath(os.path.join(CWD[0], os.path.expanduser(path)))
+    if not os.path.isdir(target):
+        raise Unknown("cannot resolve directory " + path)
+    CWD[0] = target
+
+
+# Global git options that take a separate value.
+GIT_VALUE_OPTS = {"-c", "--config-env", "--exec-path", "--namespace", "--super-prefix",
+                  "--list-cmds", "--attr-source"}
+
+
 def git_sub(seg):
-    """Return (subcommand, args) for a `git ...` segment, else (None, [])."""
-    # Skip leading env assignments (FOO=bar git commit ...).
+    """Return (subcommand, args) for a `git ...` segment, else (None, []).
+
+    Tracks `cd <dir>` segments and `git -C <dir>` so later git questions are
+    asked of the repository the command really targets. --git-dir/--work-tree
+    redirect git in ways we do not model, so they are UNKNOWN.
+    """
     i = 0
     while i < len(seg) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]):
+        i += 1  # env assignments (FOO=bar git commit ...)
+    if i < len(seg) and seg[i] in ("cd", "pushd") and i + 1 < len(seg):
+        chdir(seg[i + 1])
+        return None, []
+    if i < len(seg) and seg[i] in ("command", "exec", "nice", "time"):
         i += 1
-    if i >= len(seg) or seg[i] != "git":
+    if i >= len(seg) or os.path.basename(seg[i]) != "git":
         return None, []
     i += 1
     while i < len(seg) and seg[i].startswith("-"):
-        if seg[i] in ("-C", "--git-dir", "--work-tree"):
+        opt = seg[i]
+        if opt == "-C":
+            if i + 1 >= len(seg):
+                raise Unknown("-C without a path")
+            chdir(seg[i + 1])
+            i += 2
+            continue
+        if opt.split("=", 1)[0] in ("--git-dir", "--work-tree"):
             raise Unknown("git invoked against another repository")
-        i += 2 if seg[i] == "-c" else 1
+        i += 2 if opt in GIT_VALUE_OPTS else 1
     if i >= len(seg):
         return None, []
     return seg[i], seg[i + 1:]
@@ -139,9 +172,11 @@ def simulate_add(args, staged):
 
 
 def commit_set(cmd):
-    staged = set(lines(git("diff", "--cached", "--name-only")))
+    staged = None
     for seg in segments(cmd):
         sub, args = git_sub(seg)
+        if sub in ("add", "commit") and staged is None:
+            staged = set(lines(git("diff", "--cached", "--name-only")))
         if sub == "add":
             simulate_add(args, staged)
         elif sub == "commit":
@@ -167,7 +202,7 @@ def commit_set(cmd):
             if all_tracked:
                 staged |= set(lines(git("diff", "--name-only")))
             return staged
-    return staged
+    return None
 
 
 def current_branch():
@@ -230,7 +265,10 @@ def main():
         return 64
     try:
         if sys.argv[1] == "commit-set":
-            for path in sorted(commit_set(sys.argv[2])):
+            result = commit_set(sys.argv[2])
+            if result is None:
+                print(NOCOMMIT)
+            for path in sorted(result or ()):
                 print(path)
         else:
             print("yes" if push_protected(sys.argv[2]) else "no")
