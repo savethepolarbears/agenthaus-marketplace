@@ -155,6 +155,10 @@ function check(text, { mention = false } = {}) {
   while (i < tokens.length) {
     const tok = tokens[i];
     if (segs.length && !TREE.has(segs.join(' '))) break; // leaf reached: flags are checked below
+    if (tok === '--') {
+      i++; // kong keeps resolving subcommands after the option terminator
+      continue;
+    }
     if (tok.startsWith('-')) {
       const node = SNAPSHOT.commands[segs.join(' ')];
       const parsed = parseFlagToken(
@@ -268,6 +272,7 @@ test('checker accepts current forms and rejects stale ones', () => {
     "gog gmail trash -jq 'older_than:1y'",
     'gog keep --impersonate alice@example.com delete n1',
     "gog gmail search -- '-from:x'",
+    'gog drive -- delete f1',
   ];
   const bad = [
     'gog calendar list --from 2026-03-01 --to 2026-03-31 --calendar work',
@@ -419,12 +424,18 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog gmail settings watch stop',
     'gog gmail settings watch rm',
     'gog drive -- delete f1',
+    "G=gog bash -c '$G drive delete f1'",
+    "gog calendar create primary --summary x --from a --to b --attendees c@d.com --send-updates all",
+    'gog cal update primary e1 --add-attendee c@d.com --send-updates=externalOnly',
+    'gog calendar move primary e1 other --send-updates all',
     'gog auth alias unset work',
     'gog auth service-account unset a@b.com',
     'gog drive \\\ndelete f1',
     'gog \\\r\n  gmail send --to a@b.com',
   ];
   const silent = [
+    'gog calendar create primary --summary x --from a --to b',
+    'gog calendar update primary e1 --summary y --send-updates none',
     "gog gmail search 'is:unread' --max 10",
     'gog gmail drafts create --to a@b.com --subject x --body y',
     'gog drive download f1 --format pdf --out f.pdf',

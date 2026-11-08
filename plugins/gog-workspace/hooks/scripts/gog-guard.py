@@ -21,7 +21,8 @@ own `--gmail-no-send`, `--readonly` or `--enable-commands` flags.
 
 Usage (stdin is the Claude Code hook payload):
   gog-guard.py ask     PreToolUse: print an "ask" decision when a guarded
-                       send/share/delete command may run
+                       send/share/delete command may run, or a
+                       calendar change notifies attendees (--send-updates)
   gog-guard.py audit   PostToolUse: append a line to gog_audit.log for each
                        gog invocation in the command that just ran. The hook
                        sees only the command text, so this records what was
@@ -64,6 +65,7 @@ def load_table():
     with open(TABLE_PATH, encoding="utf-8") as fh:
         table = json.load(fh)
     table["guarded"] = set(table["guarded"])
+    table.setdefault("notify", {})
     table["globalValueFlags"] = set(table["globalValueFlags"])
     common = set(table["globalBoolFlags"])
     table["boolFlags"] = {node: common | set(flags) for node, flags in table["boolFlags"].items()}
@@ -124,7 +126,11 @@ def gog_paths(command, table, depth=0, audit=False):
             bare = word.lstrip("`$(\"'").rstrip("`)\"'")
             if os.path.basename(bare) == "gog":
                 if not audit or in_command_position(words, i):
-                    yield resolve(words[i + 1:], table)
+                    path = resolve(words[i + 1:], table)
+                    flag = table["notify"].get(path)
+                    if not audit and flag and sends_updates(words[i + 1:], flag):
+                        path = f"{path} {flag}"  # e.g. calendar create --send-updates all
+                    yield path
                 if not audit:
                     # Also start from every top-level command word, so a flag
                     # whose value we misjudge (`-awork@x`, `-jv`, an unknown
@@ -135,9 +141,27 @@ def gog_paths(command, table, depth=0, audit=False):
             elif not audit and ("$" in word or "`" in word):
                 # the program name may come from an expansion: `$G`, `go$X`
                 yield resolve(words[i + 1:], table, guarded_only=True)
-            elif depth < MAX_DEPTH and any(c.isspace() for c in word) and mentions_gog(word):
+            if depth < MAX_DEPTH and any(c.isspace() for c in word) and (
+                mentions_gog(word)
+                # `G=gog bash -c '$G drive delete f1'`: the program may be an expansion
+                or (not audit and "$" in word and any(os.path.basename(w) in SHELLISH for w in words[:i]))
+            ):
                 if not audit or any(os.path.basename(w) in SHELLISH for w in words[:i]):
                     yield from gog_paths(word, table, depth + 1, audit)
+
+
+def sends_updates(args, flag):
+    """True if `flag` (default none) is given a value other than none."""
+    for j, tok in enumerate(args):
+        if tok == flag:
+            value = args[j + 1] if j + 1 < len(args) else ""
+        elif tok.startswith(flag + "="):
+            value = tok.split("=", 1)[1]
+        else:
+            continue
+        if value.lower() != "none":
+            return True
+    return False
 
 
 def resolve(args, table, guarded_only=False):
@@ -176,7 +200,7 @@ def resolve(args, table, guarded_only=False):
             break
         node = f"{node} {canonical}".strip()
         path = node
-        if path in table["guarded"]:
+        if path in table["guarded"] or node not in tree:
             break
         i += 1
     if guarded_only and path not in table["guarded"]:
@@ -218,7 +242,7 @@ def main():
                 pass
         return 0
 
-    hits = [p for p in paths if p in table["guarded"]]
+    hits = [p for p in paths if p in table["guarded"] or p.rsplit(" ", 1)[0] in table["notify"]]
     if hits or unparsed:
         what = ", ".join(f"gog {p}" for p in hits) if hits else "a gog command that could not be parsed"
         print(json.dumps({

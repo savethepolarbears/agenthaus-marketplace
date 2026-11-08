@@ -118,6 +118,16 @@ function buildGuard(snapshot) {
     const segs = k.split(' ');
     for (let i = 1; i <= segs.length; i++) onPath.add(segs.slice(0, i).join(' '));
   }
+  // Commands that notify other people only when a flag asks them to (default
+  // `none`): guarded when the flag is given any other value.
+  const notify = {};
+  for (const k of keys) {
+    if (!guarded.includes(k) && snapshot.commands[k].flags.includes('--send-updates')) notify[k] = '--send-updates';
+  }
+  for (const k of Object.keys(notify)) {
+    const segs = k.split(' ');
+    for (let i = 1; i <= segs.length; i++) onPath.add(segs.slice(0, i).join(' '));
+  }
   const tree = {};
   for (const k of [...onPath].sort()) {
     const segs = k.split(' ');
@@ -139,6 +149,7 @@ function buildGuard(snapshot) {
     globalValueFlags: snapshot.globalFlags.filter((f) => !snapshot.globalBoolFlags.includes(f)),
     globalBoolFlags: snapshot.globalBoolFlags,
     guarded,
+    notify,
     tree,
     boolFlags,
   };

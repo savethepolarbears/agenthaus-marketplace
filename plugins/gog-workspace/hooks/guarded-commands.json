@@ -4,6 +4,11 @@
  "globalValueFlags": ["--access-token","--account","--acct","--client","--color","--disable-commands","--enable-commands","--enable-commands-exact","--home","--pick","--project","--quota-project","--select","-a"],
  "globalBoolFlags": ["--assume-yes","--dry-run","--dryrun","--force","--gmail-no-send","--help","--json","--machine","--no-input","--non-interactive","--noninteractive","--noop","--plain","--preview","--readonly","--results-only","--tsv","--verbose","--version","--wrap-untrusted","--yes","-h","-j","-n","-p","-v","-y"],
  "guarded": ["admin groups members remove","admin orgunits delete","admin users delete","admin users suspend","auth alias unset","auth credentials remove","auth remove","auth service-account unset","auth tokens delete","batch abort","calendar alias unset","calendar delete","calendar delete-calendar","calendar unsubscribe","chat dm send","chat messages reactions delete","chat messages send","classroom announcements delete","classroom courses delete","classroom courses leave","classroom coursework delete","classroom guardians delete","classroom invitations delete","classroom materials delete","classroom students remove","classroom teachers remove","classroom topics delete","config no-send remove","config unset","contacts batch delete","contacts delete","docs clear","docs comments delete","docs delete","docs delete-tab","docs footer delete","docs header delete","docs named-range delete","docs table-column delete","docs table-row delete","docs tabs delete","drive bulk remove-public","drive bulk update-role","drive comments delete","drive delete","drive labels file remove","drive share","drive unshare","forms delete-question","forms questions delete","forms watch delete","gmail autoreply","gmail batch delete","gmail drafts delete","gmail drafts send","gmail forward","gmail labels delete","gmail reply","gmail reply-all","gmail send","gmail settings autoforward update","gmail settings delegates add","gmail settings delegates remove","gmail settings filters create","gmail settings filters delete","gmail settings forwarding create","gmail settings forwarding delete","gmail settings sendas delete","gmail settings watch stop","gmail trash","keep delete","photos picker delete","searchconsole sitemaps delete","send","sheets banding clear","sheets chart delete","sheets clear","sheets conditional-format clear","sheets datasource delete","sheets delete-dimension","sheets delete-tab","sheets named-ranges delete","sheets table clear","sheets table delete","sheets validation clear","slides delete-slide","slides element delete","slides table column delete","slides table row delete","tasks clear","tasks delete","youtube playlists delete","youtube playlists remove","youtube subscriptions unsubscribe"],
+ "notify": {
+  "calendar create": "--send-updates",
+  "calendar move": "--send-updates",
+  "calendar update": "--send-updates"
+ },
  "tree": {
   "": {"admin":"admin","auth":"auth","batch":"batch","calendar":"calendar","cal":"calendar","chat":"chat","classroom":"classroom","class":"classroom","config":"config","contacts":"contacts","contact":"contacts","docs":"docs","doc":"docs","drive":"drive","drv":"drive","forms":"forms","form":"forms","gmail":"gmail","mail":"gmail","email":"gmail","keep":"keep","photos":"photos","photo":"photos","searchconsole":"searchconsole","gsc":"searchconsole","search-console":"searchconsole","webmasters":"searchconsole","send":"send","sheets":"sheets","sheet":"sheets","slides":"slides","slide":"slides","tasks":"tasks","task":"tasks","youtube":"youtube","yt":"youtube"},
   "admin": {"groups":"groups","orgunits":"orgunits","org-units":"orgunits","ou":"orgunits","users":"users"},
@@ -17,7 +22,7 @@
   "auth service-account": {"unset":"unset"},
   "auth tokens": {"delete":"delete"},
   "batch": {"abort":"abort","rm":"abort","delete":"abort"},
-  "calendar": {"alias":"alias","delete":"delete","rm":"delete","del":"delete","remove":"delete","delete-calendar":"delete-calendar","unsubscribe":"unsubscribe","unsub":"unsubscribe"},
+  "calendar": {"alias":"alias","create":"create","add":"create","new":"create","delete":"delete","rm":"delete","del":"delete","remove":"delete","delete-calendar":"delete-calendar","move":"move","transfer":"move","unsubscribe":"unsubscribe","unsub":"unsubscribe","update":"update","edit":"update","set":"update"},
   "calendar alias": {"unset":"unset"},
   "chat": {"dm":"dm","messages":"messages"},
   "chat dm": {"send":"send","create":"send","post":"send"},
@@ -88,6 +93,8 @@
   "youtube subscriptions": {"unsubscribe":"unsubscribe"}
  },
  "boolFlags": {
+  "calendar create": ["--all-day","--guests-can-invite","--guests-can-modify","--guests-can-see-others","--include-passwords","--no-reminders","--with-meet","--with-zoom"],
+  "calendar update": ["--all-day","--guests-can-invite","--guests-can-modify","--guests-can-see-others","--include-passwords","--no-reminders","--regenerate-meet","--regenerate-zoom","--remove-zoom","--with-meet","--with-zoom"],
   "docs delete": ["--match-case"],
   "drive bulk remove-public": ["--all-drives"],
   "drive bulk update-role": ["--all-drives"],
