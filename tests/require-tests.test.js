@@ -259,3 +259,27 @@ test('the commit gate fails closed without python3', skip, t => {
     assert.equal(r.status, 2);
     assert.match(r.stderr, /python3 is required/);
 });
+
+test('git -C applies only to its own invocation', skip, t => {
+    const { dir, run } = repo(t);
+    const sibling = path.join(dir, 'sibling');
+    fs.mkdirSync(sibling);
+    const g = (...a) => spawnSync('git', a, { cwd: sibling, encoding: 'utf8' });
+    g('init', '-q'); g('config', 'user.email', 't@example.com'); g('config', 'user.name', 't');
+    fs.writeFileSync(path.join(sibling, 'x.test.js'), 'x\n');
+    g('add', 'x.test.js');
+    assert.equal(run('git -C sibling status && git commit -am x').status, 2, 'the commit runs in the original repo');
+});
+
+test('git aliases are expanded', skip, t => {
+    const { dir, git, run } = repo(t);
+    git('config', 'alias.ci', 'commit -a');
+    git('config', 'alias.sh', '!git commit');
+    assert.equal(run('git ci -m change').status, 2, 'ci expands to commit -a without a test');
+    assert.equal(run('git sh -m change').status, 2, 'a shell alias is unknown, so blocked');
+    git('branch', '-M', 'main');
+    git('config', 'alias.p', 'push origin main');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('git p'), 'yes');
+    assert.equal(run('git checkout -q -b other').status, 0, 'non-commit git commands still pass');
+});

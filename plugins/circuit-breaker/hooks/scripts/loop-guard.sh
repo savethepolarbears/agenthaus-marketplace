@@ -73,14 +73,35 @@ if [ -f "$STATE_FILE" ] && [ ! -L "$STATE_FILE" ]; then
     [[ "$ITER" =~ ^[0-9]+$ ]] || ITER=0
 fi
 
-# Run the completion check from the project root with a hard timeout.
+# Run the completion check from the project root with a hard timeout. Without
+# any way to bound it, do not run it (and do not continue the session).
+if ! command -v timeout >/dev/null 2>&1 && ! command -v gtimeout >/dev/null 2>&1 \
+    && ! command -v perl >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1; then
+    printf '{"systemMessage":%s}\n' "$(loop_json_escape "Loop guard: no timeout, gtimeout, perl or python3 available to bound the completion check; not looping.")"
+    exit 0
+fi
 OUT_FILE="$STATE_DIR/$SESSION_KEY.out"
 (
     cd "$(loop_project_dir)" 2>/dev/null || exit 97
+    # GNU timeout where present (gtimeout on macOS with coreutils); otherwise
+    # perl's alarm (stock on macOS), then python3. Exit 124 means timed out.
     if command -v timeout >/dev/null 2>&1; then
         timeout "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
-    else
-        bash -c "$COMPLETION_CMD"
+    elif command -v gtimeout >/dev/null 2>&1; then
+        gtimeout "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
+    elif command -v perl >/dev/null 2>&1; then
+        perl -e 'my $t = shift; my $pid = fork // exit 125;
+                 if (!$pid) { setpgrp(0, 0); exec @ARGV or exit 127 }
+                 local $SIG{ALRM} = sub { kill "TERM", -$pid; sleep 1; kill "KILL", -$pid; exit 124 };
+                 alarm $t; waitpid($pid, 0); exit($? & 127 ? 128 + ($? & 127) : $? >> 8)' \
+            "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 -I -c 'import os, signal, subprocess, sys
+p = subprocess.Popen(sys.argv[2:], start_new_session=True)
+try:
+    sys.exit(p.wait(timeout=float(sys.argv[1])))
+except subprocess.TimeoutExpired:
+    os.killpg(p.pid, signal.SIGKILL); sys.exit(124)' "$TIMEOUT_SEC" bash -c "$COMPLETION_CMD"
     fi
 ) >"$OUT_FILE" 2>&1 </dev/null
 RC=$?

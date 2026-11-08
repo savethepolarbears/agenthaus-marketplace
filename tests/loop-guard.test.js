@@ -127,3 +127,27 @@ test('budget guard asks at the per-session threshold', skip, t => {
     assert.equal(r.json.hookSpecificOutput.permissionDecision, 'ask');
     assert.equal(run('budget-guard.sh', { session_id: 'b2' }).stdout, '', 'other sessions keep their own budget');
 });
+
+test('timeoutSec is enforced without a timeout binary', { skip: skip.skip || (spawnSync('perl', ['-v']).status !== 0 && 'perl not installed') }, t => {
+    const { project, run } = setup(t, { completionCommand: 'sleep 20', maxIterations: 2, timeoutSec: 1 });
+    assert.equal(run('loop-arm.sh').status, 0);
+    // A PATH that has every tool except timeout/gtimeout, so the perl fallback runs.
+    const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'no-timeout-'));
+    t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    for (const dir of process.env.PATH.split(path.delimiter)) {
+        let entries = [];
+        try { entries = fs.readdirSync(dir); } catch { continue; }
+        for (const name of entries) {
+            if (name === 'timeout' || name === 'gtimeout' || fs.existsSync(path.join(bin, name))) continue;
+            try { fs.symlinkSync(path.join(dir, name), path.join(bin, name)); } catch { /* skip */ }
+        }
+    }
+    const started = Date.now();
+    const r = spawnSync(path.join(bin, 'bash'), [path.join(scripts, 'loop-guard.sh')], {
+        cwd: project, encoding: 'utf8',
+        env: { ...process.env, PATH: bin, TMPDIR: path.dirname(project), CLAUDE_PLUGIN_DATA: path.join(path.dirname(project), 'data'), CLAUDE_PROJECT_DIR: project },
+        input: JSON.stringify({ session_id: 'sess-1', hook_event_name: 'Stop', stop_hook_active: false }),
+    });
+    assert.ok(Date.now() - started < 10000, 'the check was cut off');
+    assert.match(JSON.parse(r.stdout).reason, /exit 124/);
+});
