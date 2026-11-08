@@ -8,30 +8,30 @@ Given "$ARGUMENTS" as user input, execute Drive operations using the `gog` CLI.
 ## Supported Operations
 
 ### List & Search
-- **List files**: `gog drive list`
-- **List folder**: `gog drive list --folder <folder_id>`
+- **List files**: `gog drive ls`
+- **List folder**: `gog drive ls --parent <folder_id>`
 - **Search files**: `gog drive search '<query>'`
-- **File info**: `gog drive info <file_id>`
+- **File info**: `gog drive get <file_id>`
 
 ### Upload & Download
 - **Upload file**: `gog drive upload <local_path>`
-- **Upload to folder**: `gog drive upload <local_path> --folder <folder_id>`
+- **Upload to folder**: `gog drive upload <local_path> --parent <folder_id>`
 - **Download file**: `gog drive download <file_id> --out <local_path>`
-- **Export Google Doc**: `gog drive export <file_id> --format pdf --out <path>`
+- **Export Google Doc**: `gog drive download <file_id> --format pdf --out <path>` (formats: pdf, docx, xlsx, pptx, csv, txt, md, png)
 
 ### Create & Organize
 - **Create folder**: `gog drive mkdir '<name>'`
-- **Move file**: `gog drive move <file_id> <folder_id>`
+- **Move file**: `gog drive move <file_id> --parent <folder_id>`
 - **Rename**: `gog drive rename <file_id> '<new_name>'`
-- **Copy**: `gog drive copy <file_id>`
-- **Delete**: `gog drive delete <file_id>`
-- **Trash**: `gog drive trash <file_id>`
+- **Copy**: `gog drive copy <file_id> '<copy_name>'`
+- **Trash**: `gog drive delete <file_id>` (moves to trash)
+- **Delete permanently**: `gog drive delete <file_id> --permanent`
 
 ### Sharing & Permissions
-- **Share with user**: `gog drive share <file_id> <email> --role writer`
-- **Share link**: `gog drive share <file_id> --anyone --role reader`
+- **Share with user**: `gog drive share <file_id> --to user --email <email> --role writer`
+- **Share link**: `gog drive share <file_id> --to anyone --role reader`
 - **List permissions**: `gog drive permissions <file_id>`
-- **Remove access**: `gog drive unshare <file_id> <email>`
+- **Remove access**: `gog drive unshare <file_id> <permission_id>` (get the ID from `gog drive permissions`)
 
 ## Instructions
 

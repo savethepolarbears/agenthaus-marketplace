@@ -1,6 +1,6 @@
 # GOG Workspace Plugin
 
-Google Workspace CLI integration for Claude Code using [gogcli](https://github.com/steipete/gogcli) (`gog`).
+Google Workspace CLI integration for Claude Code using [gogcli](https://github.com/openclaw/gogcli) (`gog`).
 
 ## Platform Support
 
@@ -39,10 +39,10 @@ Install and authenticate the `gog` CLI before using this plugin:
 
 ```bash
 # Install gog CLI
-brew install gogcli
+brew install openclaw/tap/gogcli
 
 # Store your OAuth credentials (from Google Cloud Console)
-gog auth credentials ~/Downloads/client_secret_*.json
+gog auth credentials set ~/Downloads/client_secret_*.json
 
 # Add your Google account
 gog auth add you@gmail.com
@@ -51,7 +51,7 @@ gog auth add you@gmail.com
 export GOG_ACCOUNT=you@gmail.com
 ```
 
-See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detailed OAuth configuration.
+See the [gogcli setup guide](https://github.com/openclaw/gogcli#readme) for detailed OAuth configuration.
 
 ### Usage Examples
 
@@ -102,9 +102,9 @@ See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detai
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `GOG_ACCOUNT` | Default Google account email | Recommended |
-| `GOG_ACCESS_TOKEN` | Direct access token (CI/headless) | Optional |
-| `GOG_CLIENT` | OAuth client name (multi-client setups) | Optional |
-| `GOG_KEYRING_BACKEND` | Keyring backend (`file` or `keychain`) | Optional |
+| `GOG_HOME` | Override the gogcli config/data/state/cache root | Optional |
+
+For CI or headless use, pass `--access-token <token>`; for multi-client setups, pass `--client <name>`.
 
 ### Supported Google Services
 
@@ -126,15 +126,13 @@ See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detai
 | Admin | `gog admin` | Users, groups, members (Workspace) |
 | Keep | `gog keep` | Create, delete notes (Workspace) |
 
-### Latest Release
+### gogcli Version
 
-**v0.12.0** (March 9, 2025) — Full Workspace Admin coverage, spreadsheet editing enhancements with named ranges and formatting, Docs comment management, Sheets cell notes.
-
-See [all releases](https://github.com/steipete/gogcli/releases) for the complete changelog.
+The command examples match the gogcli command reference at [openclaw/gogcli `docs/commands`](https://github.com/openclaw/gogcli/tree/main/docs/commands). `tests/gog-cli-drift.test.js` checks them against a snapshot of that reference. See [all releases](https://github.com/openclaw/gogcli/releases) for the changelog.
 
 ### Customization
 
 Adjust the safety hooks in `hooks/hooks.json` to:
-- Add or remove advisory reminders for recognized operations; hooks do not enforce confirmation
+- Change which `gog` subcommands trigger the PreToolUse confirmation prompt (by default: sends, replies, forwards, shares, deletes, trash and clears)
 - Customize the audit log location and format
 - Add notifications for specific Gmail or Calendar events

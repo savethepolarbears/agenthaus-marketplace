@@ -18,7 +18,7 @@ Unified task management with ClickUp and Slack (official remote MCP servers), pl
 | `CLICKUP_KEY` | ClickUp API token |
 | `SLACK_TOKEN` | Slack bot OAuth token |
 | `SLACK_CHANNEL` | Slack channel ID for task notifications |
-| `gog` CLI | Gmail and Calendar steps (`brew install gogcli && gog auth add you@example.com`) |
+| `gog` CLI | Gmail and Calendar steps (`brew install openclaw/tap/gogcli && gog auth add you@example.com`) |
 
 ## Installation
 

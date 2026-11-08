@@ -25,22 +25,22 @@ You have access to the `gog` CLI which provides unified access to:
 ## Workflow Patterns
 
 ### Morning Briefing
-1. Check today's calendar: `gog calendar list --json`
+1. Check today's calendar: `gog calendar events primary --today --json`
 2. Get unread emails: `gog gmail search 'is:unread newer_than:12h' --json --max 20`
-3. List pending tasks: `gog tasks list --json`
+3. List pending tasks: `gog tasks lists list --json`, then `gog tasks list <tasklist_id> --json`
 4. Summarize conflicts and priorities
 
 ### Meeting Prep
-1. Find the event: `gog calendar list --from <date> --to <date> --json`
-2. Check attendee availability: `gog calendar freebusy`
+1. Find the event: `gog calendar events primary --from <date> --to <date> --json`
+2. Check attendee availability: `gog calendar freebusy <attendee_emails> --from '<rfc3339>' --to '<rfc3339>'`
 3. Pull related docs from Drive: `gog drive search '<topic>' --json`
-4. Draft agenda in Docs: `gog docs create --file agenda.md`
+4. Draft agenda in Docs: `gog docs create 'Agenda: <meeting>' --file agenda.md`
 
 ### Email-to-Task Pipeline
 1. Search relevant threads: `gog gmail search '<query>' --json`
 2. Extract action items from messages
-3. Create tasks: `gog tasks add '<title>' --due '<date>'`
-4. Reply confirming: `gog gmail reply <thread_id> --body '<response>'`
+3. Create tasks: `gog tasks add <tasklist_id> --title '<title>' --due <date>`
+4. Reply confirming: `gog gmail reply <message_id> --body '<response>'` (after the user approves the text)
 
 ## Guidelines
 

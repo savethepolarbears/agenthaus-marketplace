@@ -8,15 +8,16 @@ Given "$ARGUMENTS" as user input, execute Google Chat operations using the `gog`
 ## Supported Operations
 
 ### Spaces
-- **List spaces**: `gog chat spaces`
-- **Space info**: `gog chat space <space_id>`
-- **List members**: `gog chat members <space_id>`
+- **List spaces**: `gog chat spaces list`
+- **Find a space by name**: `gog chat spaces find '<display_name>'`
 
 ### Messages
-- **Send message**: `gog chat send <space_id> '<message>'`
-- **List messages**: `gog chat messages <space_id>`
-- **Read thread**: `gog chat thread <space_id> <thread_id>`
-- **Reply to thread**: `gog chat reply <space_id> <thread_id> '<message>'`
+- **Send message**: `gog chat messages send spaces/<space_id> --text '<message>'`
+- **Direct message**: `gog chat dm send <email> --text '<message>'`
+- **List messages**: `gog chat messages list spaces/<space_id>`
+- **List threads**: `gog chat threads list spaces/<space_id>`
+- **Read thread**: `gog chat messages list spaces/<space_id> --thread spaces/<space_id>/threads/<thread_id>`
+- **Reply to thread**: `gog chat messages send spaces/<space_id> --thread spaces/<space_id>/threads/<thread_id> --text '<message>'`
 
 ## Instructions
 
