@@ -90,11 +90,12 @@ const DESTRUCTIVE_VERBS = new Set([
   'delete-tab', 'delete-dimension', 'delete-calendar', 'delete-slide', 'delete-question',
   'remove-public', 'update-role',
 ]);
-// Commands that send mail or messages, share data, or redirect mail elsewhere.
+// Commands that send mail or messages, share data, or redirect mail elsewhere
+// (a filter can forward or trash every future match).
 const SEND_COMMANDS = [
   'send', 'gmail send', 'gmail reply', 'gmail reply-all', 'gmail forward', 'gmail autoreply',
   'gmail drafts send', 'gmail settings forwarding create', 'gmail settings autoforward update',
-  'gmail settings delegates add', 'chat messages send', 'chat dm send', 'drive share',
+  'gmail settings delegates add', 'gmail settings filters create', 'chat messages send', 'chat dm send', 'drive share',
 ];
 
 /** Build the hook's table: canonical guarded paths plus the alias tree that reaches them. */
