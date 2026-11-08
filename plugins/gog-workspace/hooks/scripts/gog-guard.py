@@ -51,7 +51,9 @@ def load_table():
         table = json.load(fh)
     table["guarded"] = set(table["guarded"])
     table["globalValueFlags"] = set(table["globalValueFlags"])
-    table["boolFlags"] = {node: set(flags) for node, flags in table["boolFlags"].items()}
+    common = set(table["globalBoolFlags"])
+    table["boolFlags"] = {node: common | set(flags) for node, flags in table["boolFlags"].items()}
+    table["boolFlags"][""] = common
     return table
 
 
@@ -136,7 +138,7 @@ def resolve(args, table, guarded_only=False):
         tok = args[i]
         if tok.startswith("-") and tok != "-":
             flag = tok.split("=", 1)[0]
-            bools = table["boolFlags"].get(node, table["boolFlags"][""])
+            bools = table["boolFlags"].get(node) or table["boolFlags"][""]
             attached = "=" in tok or (not tok.startswith("--") and len(tok) > 2)
             # `-awork@x` carries its value and `-jv` bundles booleans: neither
             # takes the next word.

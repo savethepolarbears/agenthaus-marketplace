@@ -121,16 +121,16 @@ function buildGuard(snapshot) {
       if (!(alias in tree[parent])) tree[parent][alias] = name;
     }
   }
-  // Boolean flags valid at each node of the tree; any other flag takes a value.
+  // Boolean flags valid at each node beyond the global ones; any other flag takes a value.
   const boolFlags = {};
-  for (const node of ['', ...[...onPath].sort()]) {
-    const own = node ? snapshot.commands[node].boolFlags : [];
-    boolFlags[node] = [...new Set([...snapshot.globalBoolFlags, ...own])].sort();
+  for (const node of [...onPath].sort()) {
+    if (snapshot.commands[node].boolFlags.length) boolFlags[node] = snapshot.commands[node].boolFlags;
   }
   return {
     generatedBy: 'node scripts/snapshot-gogcli.js --guard-only',
     gogcliCommit: snapshot.commit,
     globalValueFlags: snapshot.globalFlags.filter((f) => !snapshot.globalBoolFlags.includes(f)),
+    globalBoolFlags: snapshot.globalBoolFlags,
     guarded,
     tree,
     boolFlags,
@@ -139,7 +139,14 @@ function buildGuard(snapshot) {
 
 function writeGuard(snapshot) {
   const dest = path.join(__dirname, '..', 'plugins', 'gog-workspace', 'hooks', 'guarded-commands.json');
-  fs.writeFileSync(dest, JSON.stringify(buildGuard(snapshot), null, 1) + '\n');
+  // Top-level keys on their own lines, each value on one line: compact and diffable.
+  const guard = buildGuard(snapshot);
+  const line = (v) =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? `{\n${Object.entries(v).map(([k, x]) => `  ${JSON.stringify(k)}: ${JSON.stringify(x)}`).join(',\n')}\n }`
+      : JSON.stringify(v);
+  const body = Object.entries(guard).map(([k, v]) => ` ${JSON.stringify(k)}: ${line(v)}`).join(',\n');
+  fs.writeFileSync(dest, `{\n${body}\n}\n`);
   console.log(`wrote guard table to ${path.relative(process.cwd(), dest)}`);
 }
 
