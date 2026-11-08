@@ -18,7 +18,7 @@ Streamline GitHub issue and pull request workflows with structured creation, sea
 ## Prerequisites
 
 - `GITHUB_TOKEN` environment variable must be set
-- GitHub MCP server (`@modelcontextprotocol/server-github`) must be available
+- GitHub's official remote MCP server (`https://api.githubcopilot.com/mcp/`) with `GITHUB_TOKEN`
 - Repository context should be identifiable from the current working directory
 
 ## Steps

@@ -1,5 +1,6 @@
 ---
 description: List and manage NeuronWriter projects and queries. Usage: `/neuronwriter:projects list`, `/neuronwriter:projects queries --status ready`
+argument-hint: "<list | queries [--status <status>]>"
 ---
 
 # Manage Projects & Queries

@@ -9,7 +9,7 @@ set -euo pipefail
 TOOL_INPUT=$(cat)
 
 # Check if confirm=True (or confirm: true) is present
-if echo "$TOOL_INPUT" | grep -qiE '"confirm"\s*:\s*true'; then
+if echo "$TOOL_INPUT" | grep -qiE '"confirm"[[:space:]]*:[[:space:]]*true'; then
     exit 0
 fi
 

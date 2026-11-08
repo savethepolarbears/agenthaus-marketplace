@@ -1,22 +1,23 @@
 {
+  "description": "Ask before destructive or live-publishing ActivePieces MCP calls.",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "ap_delete_step|ap_delete_branch",
+        "matcher": "mcp__.*(ap_delete_step|ap_delete_branch|ap_delete_flow|ap_delete_table|ap_delete_records)$",
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"Destructive ActivePieces change: this deletes a step or branch from a flow and cannot be undone.\"}}'",
+            "command": "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"Destructive ActivePieces change: this deletes a flow, step, branch, table or records and cannot be undone.\"}}'",
             "timeout": 5
           }
         ]
       },
       {
-        "matcher": "ap_lock_and_publish|ap_change_flow_status",
+        "matcher": "mcp__.*(ap_lock_and_publish|ap_change_flow_status)$",
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"This publishes an ActivePieces flow or changes its status, which takes effect immediately in the live workspace.\"}}'",
+            "command": "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"This publishes an ActivePieces flow or changes its status, which takes effect immediately in the live workspace.\"}}'",
             "timeout": 5
           }
         ]

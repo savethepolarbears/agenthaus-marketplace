@@ -7,3 +7,4 @@ alwaysApply: true
 # shadow-mode
 
 Agents draft outputs to a review queue instead of executing directly.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

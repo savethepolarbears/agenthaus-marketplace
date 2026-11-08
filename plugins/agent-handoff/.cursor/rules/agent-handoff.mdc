@@ -7,3 +7,4 @@ alwaysApply: true
 # agent-handoff
 
 State-based task handoff between agents using a shared blackboard protocol.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

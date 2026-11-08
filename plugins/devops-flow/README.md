@@ -18,7 +18,6 @@ Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications in integ
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token with Workers/Pages permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account identifier |
 | `GITHUB_TOKEN` | GitHub personal access token |
-| `SLACK_TOKEN` | Slack bot OAuth token |
 | `SLACK_CHANNEL` | Slack channel ID for deployment notifications |
 
 ## Installation
@@ -58,7 +57,6 @@ Add credentials to `.env`:
 CLOUDFLARE_API_TOKEN=your-cloudflare-token
 CLOUDFLARE_ACCOUNT_ID=your-account-id
 GITHUB_TOKEN=ghp_your-github-token
-SLACK_TOKEN=xoxb-your-slack-token
 SLACK_CHANNEL=C0123456789
 ```
 
@@ -66,8 +64,8 @@ SLACK_CHANNEL=C0123456789
 
 Multi-service orchestration combining three MCP servers:
 
-- **@cloudflare/mcp-server-cloudflare** -- Workers and Pages deployment management
-- **@modelcontextprotocol/server-github** -- PR creation, issue tracking, repo operations
-- **@modelcontextprotocol/server-slack** -- Team notifications and channel messaging
+- **Cloudflare API MCP** (`https://mcp.cloudflare.com/mcp`) -- Workers and Pages deployment management
+- **GitHub MCP** (`https://api.githubcopilot.com/mcp/`) -- PR creation, issue tracking, repo operations
+- **Slack MCP** (`https://mcp.slack.com/mcp`, OAuth) -- Team notifications and channel messaging
 
 Pre/post deployment hooks in `hooks/` enforce confirmation before deploys and automated notification after completion.

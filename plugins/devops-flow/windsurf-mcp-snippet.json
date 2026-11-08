@@ -2,36 +2,22 @@
   "_comment": "Add mcpServers entries to ~/.config/devin/mcp_config.json (legacy Windsurf: ~/.codeium/windsurf/mcp_config.json)",
   "mcpServers": {
     "cloudflare": {
-      "args": [
-        "-y",
-        "@cloudflare/mcp-server-cloudflare"
-      ],
-      "command": "npx",
-      "env": {
-        "CLOUDFLARE_ACCOUNT_ID": "${env:CLOUDFLARE_ACCOUNT_ID}",
-        "CLOUDFLARE_API_TOKEN": "${env:CLOUDFLARE_API_TOKEN}"
-      }
+      "headers": {
+        "Authorization": "Bearer ${env:CLOUDFLARE_API_TOKEN}"
+      },
+      "type": "http",
+      "url": "https://mcp.cloudflare.com/mcp"
     },
     "github": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "command": "npx",
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
-      }
+      "headers": {
+        "Authorization": "Bearer ${env:GITHUB_TOKEN}"
+      },
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
     },
     "slack": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-slack"
-      ],
-      "command": "npx",
-      "env": {
-        "SLACK_BOT_TOKEN": "${env:SLACK_BOT_TOKEN}",
-        "SLACK_DEFAULT_CHANNEL": "${env:SLACK_CHANNEL}"
-      }
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp"
     }
   }
 }

@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null || true); if printf '%s' \"$cmd\" | grep -qiE '(^|[;&|[:space:]])wp([[:space:]]|$)|wp-cli|wp @'; then printf '[%s] WP-CLI tool executed\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" >> \"${CLAUDE_PROJECT_DIR:-.}/wp-cli-audit.log\" 2>/dev/null; fi",
+            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qiE '(^|[;&|[:space:]])wp([[:space:]]|$)|wp-cli|wp @'; then printf '[%s] WP-CLI tool executed\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" >> \"${CLAUDE_PROJECT_DIR:-.}/wp-cli-audit.log\" 2>/dev/null; fi",
             "timeout": 10
           }
         ]

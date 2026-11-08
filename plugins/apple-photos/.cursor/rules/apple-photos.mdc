@@ -7,4 +7,4 @@ alwaysApply: true
 # apple-photos
 
 Manage Apple Photos libraries using the osxphotos CLI — query, export, import, backup, fix metadata, find duplicates, and migrate photos.
-> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

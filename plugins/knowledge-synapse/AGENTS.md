@@ -1,6 +1,6 @@
 # knowledge-synapse
 
-RAG Agent combining Context7 docs, Notion memory and Google Drive search.
+RAG Agent combining Context7 docs, Notion memory and Google Drive search via the gog CLI.
 
 > **MCP setup:** `agenthaus install --target <provider>` registers these MCP servers in the provider's config (Codex: `config.toml` via `codex-mcp-config.toml`).
 

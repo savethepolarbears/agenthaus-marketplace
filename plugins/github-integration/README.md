@@ -15,7 +15,7 @@ This plugin connects Claude to GitHub through the official GitHub MCP server, en
 
 * **Issue management** – Use `/github-integration:issue` to create new issues or search existing ones.  If you supply a short title, Claude will ask for details and then open a new issue via the GitHub MCP.  Supplying a descriptive query causes Claude to list matching issues in the current repository.
 * **Pull request workflows** – Invoke `/github-integration:pr` to open or search pull requests.  Provide a branch name to open a PR; provide a longer query to search for open PRs and summarise their status.
-* **Secure API access** – The plugin relies on the GitHub MCP server packaged with `@modelcontextprotocol/server-github`.  Set the `GITHUB_TOKEN` environment variable to a personal access token with appropriate scopes (repo, issues, pull requests) before running Claude.
+* **Secure API access** – The plugin uses GitHub's official remote MCP server (`https://api.githubcopilot.com/mcp/`) with `GITHUB_TOKEN` sent as a Bearer token. Set the `GITHUB_TOKEN` environment variable to a personal access token with appropriate scopes (repo, issues, pull requests) before running Claude.
 
 ## Installation
 

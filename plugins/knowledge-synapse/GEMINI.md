@@ -1,6 +1,6 @@
 # knowledge-synapse
 
-RAG Agent combining Context7 docs, Notion memory and Google Drive search.
+RAG Agent combining Context7 docs, Notion memory and Google Drive search via the gog CLI.
 
 ## Plugin Reference
 

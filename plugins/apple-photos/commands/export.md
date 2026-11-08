@@ -1,5 +1,6 @@
 ---
 description: Export photos from Apple Photos with flexible filtering and output options. Usage: `/apple-photos:export <destination> [options]`
+argument-hint: "<destination> [options]"
 ---
 When invoked with "$ARGUMENTS" (destination path and optional flags), build and execute an `osxphotos export` command.
 

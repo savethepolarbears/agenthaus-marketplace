@@ -1,5 +1,6 @@
 ---
 description: Send and manage Google Chat messages in Workspace spaces. Usage: `/gog-workspace:chat send "space-name" "Hello team!"` or `/gog-workspace:chat list`
+argument-hint: "<list | send <space> <message>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Google Chat operations using the `gog` CLI.

@@ -1,5 +1,6 @@
 ---
 description: Create and manage Google Forms, list responses, and set up response watches. Usage: `/gog-workspace:forms create "Survey Title"` or `/gog-workspace:forms responses <form_id>`
+argument-hint: "<create <title> | responses <form_id>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Google Forms operations using the `gog` CLI.

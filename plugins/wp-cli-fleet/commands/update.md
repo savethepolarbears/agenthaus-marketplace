@@ -1,5 +1,6 @@
 ---
 description: Dry-run or execute plugin, theme, or core updates on a WordPress site. Usage: /wp-cli-fleet:update <@alias | URL> [--execute] [--type=plugin|theme|core]
+argument-hint: "<@alias | URL> [--execute] [--type=plugin|theme|core]"
 ---
 
 Run update operations on the specified WordPress site. Defaults to **dry-run mode** for safety.

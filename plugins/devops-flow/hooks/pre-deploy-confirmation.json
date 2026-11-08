@@ -2,11 +2,21 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "cloudflare.*deploy",
+        "matcher": "mcp__.*[Cc]loudflare.*__(execute|.*(deploy|publish|create_version|rollback|delete).*)$",
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"DevOps deployment workflow: this deploys to Cloudflare and affects the live environment.\"}}'",
+            "command": "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"DevOps deployment workflow: this Cloudflare API call (execute or deploy) can change live resources.\"}}'",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qE '(^|[^[:alnum:]_.-])wrangler([[:space:]\"]|$)'; then printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"DevOps deployment workflow: wrangler can deploy to the live Cloudflare environment.\"}}'; fi",
             "timeout": 5
           }
         ]

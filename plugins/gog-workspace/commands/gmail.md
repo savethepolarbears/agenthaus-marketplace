@@ -1,5 +1,6 @@
 ---
 description: Search, read, send, and manage Gmail messages using the gog CLI. Usage: `/gog-workspace:gmail search is:unread newer_than:7d` or `/gog-workspace:gmail send to@example.com "Subject" "Body"`
+argument-hint: "<search <gmail-query> | send <to> <subject> <body>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Gmail operations using the `gog` CLI.

@@ -1,6 +1,6 @@
 {
   "name": "playwright-testing",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "End-to-end browser automation and testing using Playwright.",
   "author": {
     "name": "AgentHaus Team"

@@ -1,5 +1,6 @@
 ---
 description: Compose a friendly Facebook post for a given topic with an optional tone.
+argument-hint: "<topic> [, tone]"
 ---
 Given "$ARGUMENTS" as input (topic[, tone]), create a Facebook post:
 

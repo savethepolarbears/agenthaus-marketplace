@@ -1,5 +1,6 @@
 ---
 description: Manage Pods Framework custom post types, custom fields, taxonomies, and relationships via WP-CLI. Usage: /wp-cli-fleet:pods <list | create | add-field | find | export> [options]
+argument-hint: "<list | create | add-field | find | export> [options]"
 ---
 
 Manage Pods Framework objects on a WordPress site using WP-CLI. Requires the [Pods Framework](https://pods.io) plugin to be installed and active.

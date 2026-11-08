@@ -6,7 +6,7 @@ description: >
   upcoming weeks, fill scheduling pipeline gaps, or create seasonal content
   batches. Produces ready-to-schedule post copy following brand voice, format
   library, and platform-specific rules.
-allowed-tools: VistaSocial:searchPosts, VistaSocial:listProfiles, WebSearch, GoogleDrive
+tools: Read, Grep, Glob, mcp__plugin_vistasocial-scheduler_vistasocial__listPosts, mcp__plugin_vistasocial-scheduler_vistasocial__findProfiles, WebSearch
 ---
 
 # Content Planner Agent

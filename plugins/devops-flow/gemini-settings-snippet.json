@@ -2,36 +2,19 @@
   "_comment": "Add mcpServers entries to your Gemini CLI settings",
   "mcpServers": {
     "cloudflare": {
-      "args": [
-        "-y",
-        "@cloudflare/mcp-server-cloudflare"
-      ],
-      "command": "npx",
-      "env": {
-        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}",
-        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}"
-      }
+      "headers": {
+        "Authorization": "Bearer ${CLOUDFLARE_API_TOKEN}"
+      },
+      "httpUrl": "https://mcp.cloudflare.com/mcp"
     },
     "github": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "command": "npx",
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      },
+      "httpUrl": "https://api.githubcopilot.com/mcp/"
     },
     "slack": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-slack"
-      ],
-      "command": "npx",
-      "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
-        "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
-      }
+      "httpUrl": "https://mcp.slack.com/mcp"
     }
   }
 }

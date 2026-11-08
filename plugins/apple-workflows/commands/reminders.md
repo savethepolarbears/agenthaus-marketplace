@@ -1,5 +1,6 @@
 ---
 description: Manage Apple Reminders — add, complete, list, search, and organize lists. Usage: `/apple-workflows:reminders <action> [args]` where action is list, add, complete, get, update, delete, search, lists, or create-list.
+argument-hint: "<action> [args]"
 ---
 Given "$ARGUMENTS" as the user input (action and arguments), use the `apple-productivity` MCP tools to manage Apple Reminders.
 

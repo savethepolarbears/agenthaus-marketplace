@@ -1,13 +1,26 @@
 {
-  "description": "Log osxphotos write operations for safety audit trail. Captures export, backup, import, metadata, date-fix, and location-fix invocations.",
+  "description": "Ask before osxphotos commands that write to the Photos library, and log every osxphotos write for an audit trail.",
   "hooks": {
-    "PostToolUse": [
+    "PreToolUse": [
       {
-        "matcher": "apple-photos:(metadata|fix-dates|fix-locations|import|export|backup)",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] apple-photos write operation executed\" >> \"$CLAUDE_PROJECT_DIR/apple_photos_audit.log\""
+            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qE 'osxphotos[[:space:]]+(import|batch-edit|timewarp|push-exif|sync|add-locations|orphans[[:space:]].*--import|keywords?[[:space:]]+.*--(add|remove))'; then printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"apple-photos: this osxphotos command modifies the Photos library. Confirm a backup exists first.\"}}'; fi",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qE 'osxphotos[[:space:]]+(import|export|batch-edit|timewarp|push-exif|sync|add-locations)'; then printf '[%s] apple-photos osxphotos write: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$(printf '%s' \"$cmd\" | head -c 200 | tr -d '\\n')\" >> \"${CLAUDE_PROJECT_DIR:-.}/apple_photos_audit.log\" 2>/dev/null; fi; exit 0",
+            "timeout": 10
           }
         ]
       }

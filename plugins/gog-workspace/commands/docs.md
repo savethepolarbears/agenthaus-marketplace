@@ -1,5 +1,6 @@
 ---
 description: Create, read, and export Google Docs. Usage: `/gog-workspace:docs create "My Document"` or `/gog-workspace:docs export <doc_id> --format pdf`
+argument-hint: "<create <title> | export <doc_id> --format <fmt>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Google Docs operations using the `gog` CLI.

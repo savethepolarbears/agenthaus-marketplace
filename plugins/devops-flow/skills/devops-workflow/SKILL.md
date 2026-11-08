@@ -19,8 +19,8 @@ Unified deployment pipeline combining Cloudflare Workers, GitHub PR management, 
 
 - `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` — for Cloudflare deployments
 - `GITHUB_TOKEN` — for GitHub PR and branch operations
-- `SLACK_TOKEN` and `SLACK_CHANNEL` — for Slack notifications
-- MCP servers: `@cloudflare/mcp-server-cloudflare`, `@modelcontextprotocol/server-github`, `@modelcontextprotocol/server-slack`
+- `SLACK_CHANNEL` — default Slack channel ID for notifications (Slack auth is OAuth via the official Slack MCP server, `/mcp`)
+- MCP servers (official, remote): Cloudflare `https://mcp.cloudflare.com/mcp`, GitHub `https://api.githubcopilot.com/mcp/`, Slack `https://mcp.slack.com/mcp` (OAuth via `/mcp`)
 
 ## Steps
 
@@ -99,15 +99,16 @@ This plugin includes pre-deployment confirmation and post-deployment notificatio
 ## AgentHaus guarded execution coverage
 
 The optional AgentHaus stdio proxy is the single execution owner only for MCP
-servers explicitly wrapped with `guardPlugin` from
-`scripts/generate-cross-platform.js`. Default installation remains native.
+servers explicitly wrapped with `guardPlugin` (from `src/safety-wiring.js` in the
+AgentHaus repository checkout, not this installed plugin). Default installation remains native.
 Direct shell commands, WP-CLI, SDK/HTTP calls, and agent instructions are outside
 that boundary. Native hooks supply guidance; they do not intercept those paths.
 
 Use an operator-owned policy and pinned Ed25519 public key. Approval receipts
 bind the complete request, policy, actor, provider, scope and 60-second expiry;
 the proxy consumes each nonce once before forwarding. An independent operator
-may issue a receipt with `scripts/approve-guard-request.js` from a terminal.
+may issue a receipt with `scripts/approve-guard-request.js` from an AgentHaus
+repository checkout, in a terminal.
 Without that broker or a valid receipt, approval-required calls stay blocked.
 Keep signing keys, pinned configuration and consumed-nonce storage outside the
 agent's OS identity. File mode 0700 alone does not isolate same-user processes.

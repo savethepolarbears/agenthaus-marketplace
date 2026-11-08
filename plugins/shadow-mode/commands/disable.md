@@ -1,5 +1,4 @@
 ---
-name: disable
 description: Disable shadow mode and resume normal execution
 ---
 

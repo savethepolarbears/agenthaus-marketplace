@@ -359,6 +359,108 @@ PYMCP
     warn_count=$((warn_count + 1))
   fi
 
+  # 11. Component lint: agent/command frontmatter, hook matchers and MCP launch
+  #     commands that load but silently never work (see reports/ audit).
+  local lint_output
+  if lint_output="$(python3 - "$dir" <<'PYLINT'
+import json, pathlib, re, sys
+root = pathlib.Path(sys.argv[1])
+fails, warns = [], []
+ALIASES = {"sonnet", "opus", "haiku", "fable", "inherit"}
+RETIRED = re.compile(r"^claude-(3|3-5|3-7|instant|2)")
+
+def frontmatter(path):
+    text = path.read_text(encoding="utf-8")
+    m = re.match(r"^---\n(.*?)\n---\n", text, re.S)
+    return (m.group(1) if m else ""), text
+
+for agent in sorted((root / "agents").glob("*.md")):
+    fm, _ = frontmatter(agent)
+    rel = agent.relative_to(root)
+    if re.search(r"^allowed-tools:", fm, re.M):
+        fails.append(f"{rel}: agents use 'tools', not 'allowed-tools'")
+    m = re.search(r"^model:\s*(\S+)", fm, re.M)
+    if m:
+        model = m.group(1).strip("'\"")
+        if model not in ALIASES and (not model.startswith("claude-") or RETIRED.match(model)):
+            fails.append(f"{rel}: invalid or retired model '{model}'")
+    for key in ("hooks", "mcpServers", "permissionMode"):
+        if re.search(rf"^{key}:", fm, re.M):
+            warns.append(f"{rel}: '{key}' is ignored for plugin agents")
+
+for cmd in sorted((root / "commands").glob("*.md")):
+    fm, text = frontmatter(cmd)
+    rel = cmd.relative_to(root)
+    body = text[len(fm):]
+    if "$ARGUMENTS" in body and not re.search(r"^argument-hint:", fm, re.M):
+        warns.append(f"{rel}: uses $ARGUMENTS without argument-hint")
+    for line in re.findall(r"^allowed-tools:(.*)$", fm, re.M):
+        if re.search(r"\b[A-Z][A-Za-z]+:[a-zA-Z]", line):
+            fails.append(f"{rel}: allowed-tools uses 'Server:tool' names; use mcp__<server>__<tool>")
+
+hook_files = list((root / "hooks").glob("*.json"))
+for hook_file in hook_files:
+    try:
+        data = json.loads(hook_file.read_text(encoding="utf-8"))
+    except ValueError:
+        continue
+    rel = hook_file.relative_to(root)
+    for event, groups in (data.get("hooks") or {}).items():
+        for group in groups or []:
+            matcher = group.get("matcher", "")
+            if re.match(r"^[a-z0-9-]+:", matcher):
+                fails.append(f"{rel}: {event} matcher '{matcher}' targets a command name, not a tool")
+            for handler in group.get("hooks", []):
+                command = handler.get("command", "")
+                for var in ("$TOOL_NAME", "$CLAUDE_OUTPUT", "$TOOL_INPUT"):
+                    if var in command:
+                        fails.append(f"{rel}: {event} hook reads {var}, which Claude Code never sets (input is JSON on stdin)")
+                # `X=$(... jq ...)` with no `|| X=` fallback is silently empty
+                # when jq is not installed, which disables the hook.
+                for m in re.finditer(r"\b(\w+)=\$\(([^()]|\([^()]*\))*\bjq\b([^()]|\([^()]*\))*\)", command):
+                    if not re.match(r"\s*\|\|\s*" + re.escape(m.group(1)) + "=", command[m.end():]):
+                        fails.append(f"{rel}: {event} hook sets {m.group(1)} from jq with no fallback when jq is missing")
+                if handler.get("type", "command") == "command" and "timeout" not in handler:
+                    warns.append(f"{rel}: {event} hook has no explicit timeout")
+
+mcp = root / ".mcp.json"
+if mcp.exists():
+    try:
+        servers = json.loads(mcp.read_text(encoding="utf-8")).get("mcpServers", {})
+    except ValueError:
+        servers = {}
+    for name, server in servers.items():
+        args = server.get("args", []) if isinstance(server, dict) else []
+        if isinstance(server, dict) and server.get("command") == "npx" and args and "-y" not in args and "--yes" not in args:
+            fails.append(f".mcp.json: {name}: npx without -y blocks on an install prompt")
+        if isinstance(server, dict) and server.get("command") == "python":
+            warns.append(f".mcp.json: {name}: use python3 (python is absent on many systems)")
+        url = server.get("url", "") if isinstance(server, dict) else ""
+        if re.search(r"[?&](api_key|apikey|token|key)=", url, re.I):
+            warns.append(f".mcp.json: {name}: credential in URL query string; prefer an Authorization header if the vendor supports it")
+
+for msg in fails:
+    print("FAIL " + msg)
+for msg in warns:
+    print("WARN " + msg)
+sys.exit(1 if fails else 0)
+PYLINT
+)"; then
+    :
+  else
+    failed=1
+  fi
+  if [[ -n "$lint_output" ]]; then
+    while IFS= read -r line; do
+      case "$line" in
+        FAIL\ *) log_fail "${line#FAIL }" ;;
+        WARN\ *) log_warn "${line#WARN }"; warn_count=$((warn_count + 1)) ;;
+      esac
+    done <<< "$lint_output"
+  else
+    log_pass "Agents, commands, hooks and MCP launch commands pass component lint"
+  fi
+
   if [[ "$failed" -eq 1 ]]; then
     fail_count=$((fail_count + 1))
   else

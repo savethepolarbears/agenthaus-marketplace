@@ -134,6 +134,6 @@ Book at least 2 days ahead on the official site — the early morning slot (8am)
 
 1. **Check project documents** for existing content, scheduled posts, and brand assets to avoid duplication
 2. **Search web** for current seasonal hooks, local events, trending travel topics
-3. **Check VistaSocial** via `searchPosts` to see what's been published recently — avoid repeating topics within 2 weeks
+3. **Check VistaSocial** via `listPosts` to see what's been published recently — avoid repeating topics within 2 weeks
 4. **Draft content** following the format library and caption SOPs above
 5. **Adapt per channel** — never copy-paste across networks

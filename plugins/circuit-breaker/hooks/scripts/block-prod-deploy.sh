@@ -11,12 +11,39 @@ set -euo pipefail
 STDIN_JSON="$(cat || true)"
 if command -v jq >/dev/null 2>&1; then
     CMD="$(printf '%s' "$STDIN_JSON" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+elif command -v python3 >/dev/null 2>&1; then
+    CMD="$(printf '%s' "$STDIN_JSON" | python3 -I -c 'import json,sys
+try:
+    print((json.load(sys.stdin).get("tool_input") or {}).get("command") or "")
+except Exception:
+    pass' 2>/dev/null || true)"
 else
     CMD="$STDIN_JSON"
 fi
 
 # Only gate commands that actually look like a deploy/publish.
-printf '%s\n' "$CMD" | grep -qiE '(deploy|push|publish|release)' || exit 0
+# Match deploy/publish verbs as whole words at a command position so that e.g.
+# `cat release-notes.md` is not gated; package scripts named *deploy*/*release*
+# (npm run deploy, yarn deploy:prod) count as deploys; git pushes are resolved
+# by git_intent.py.
+DEPLOY_RE='(^|[;&|[:space:]])((npm|pnpm|yarn|bun)[[:space:]]+publish|(npm|pnpm|yarn|bun)[[:space:]]+((run|run-script)[[:space:]]+)?[a-z0-9:_.-]*(deploy|release)[a-z0-9:_.-]*|wrangler[[:space:]]+(deploy|publish|pages[[:space:]]+deploy)|vercel([[:space:]]+deploy)?[[:space:]]+--prod|netlify[[:space:]]+deploy[[:space:]]+--prod|fly[[:space:]]+deploy|kubectl[[:space:]]+(apply|rollout)|helm[[:space:]]+(upgrade|install)|terraform[[:space:]]+apply|gh[[:space:]]+release[[:space:]]+create|[a-z0-9_.-]*deploy[a-z0-9_.-]*\.sh|make[[:space:]]+(deploy|release))'
+IS_DEPLOY=no
+printf '%s\n' "$CMD" | grep -qiE "$DEPLOY_RE" && IS_DEPLOY=yes
+# git push: resolve the effective destination (including a bare `git push` that
+# follows the branch's upstream) instead of looking for branch names in the text.
+# Cheap prefilter on the word `git` (aliases can hide `push`); git_intent.py parses global
+# options (-C, -c, --no-pager, ...), `cd dir &&` and env prefixes.
+if [ "$IS_DEPLOY" = no ] && printf '%s' "$CMD" | grep -qE '(^|[^[:alnum:]_-])git([^[:alnum:]_-]|$)'; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if command -v python3 >/dev/null 2>&1; then
+        PUSH="$(python3 -I "$SCRIPT_DIR/git_intent.py" push-protected "$CMD" 2>/dev/null || echo UNKNOWN)"
+    else
+        PUSH=UNKNOWN
+    fi
+    # Protected target, or unknown: treat as a deploy (fail closed).
+    [ "$PUSH" = no ] || IS_DEPLOY=yes
+fi
+[ "$IS_DEPLOY" = yes ] || exit 0
 
 # Check if this breaker is disabled
 CONFIG_FILE=".circuit-breaker-config.json"

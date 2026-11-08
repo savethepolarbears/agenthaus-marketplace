@@ -1,5 +1,22 @@
 ## The 7 NeuronWriter MCP Tools
 
+> **Server:** NeuronWriter's official hosted MCP server, `https://app.neuronwriter.com/mcp/http`
+> (OAuth, Gold plan or higher; run `/mcp` to sign in). The hosted server names its tools in
+> kebab-case. Use these names when calling it; the sections below keep the original procedures.
+>
+> | This guide | Hosted server tool |
+> |---|---|
+> | `nw_create_query` | `new-query` |
+> | `nw_get_query_data` | `get-query` |
+> | `get_content` | `get-content` |
+> | `nw_import_content` | `import-content` |
+> | `evaluate_content` | `evaluate-content` |
+> | `list_projects` | `list-projects` |
+> | `list_queries` | `list-queries` |
+>
+> The hosted server also offers `get-competitors-content`, `mark-content-as-done`, `new-project`
+> and `update-query-tags`. Only `new-query` consumes plan credits. Always verify the live tool list.
+
 ### 1. nw_create_query
 
 **Purpose**: Initiate SEO analysis for a target keyword

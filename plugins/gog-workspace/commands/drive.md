@@ -1,5 +1,6 @@
 ---
 description: Manage Google Drive files — list, search, upload, download, share, and organize. Usage: `/gog-workspace:drive list` or `/gog-workspace:drive search "budget 2025"`
+argument-hint: "<list | search <query>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Drive operations using the `gog` CLI.

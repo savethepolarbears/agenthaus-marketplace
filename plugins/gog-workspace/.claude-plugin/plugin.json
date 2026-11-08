@@ -1,6 +1,6 @@
 {
   "name": "gog-workspace",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, and Apps Script using gogcli.",
   "author": {
     "name": "AgentHaus Team"

@@ -2,14 +2,7 @@
   "_comment": "Add mcpServers entries to your Gemini CLI settings",
   "mcpServers": {
     "vercel": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-vercel"
-      ],
-      "command": "npx",
-      "env": {
-        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
-      }
+      "httpUrl": "https://mcp.vercel.com"
     }
   }
 }

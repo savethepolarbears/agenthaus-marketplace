@@ -1,6 +1,6 @@
 ---
 name: safety-guardrails
-description: Configure and manage pre-built safety guardrails for agent workflows including deploy gates, test requirements, and budget warnings. Use when the user asks to set up deployment safety checks, enforce test requirements before commits, monitor agent tool usage budgets, or configure circuit breaker patterns for autonomous agent operations.
+description: Configure and manage pre-built safety guardrails for agent workflows including deploy gates, test requirements, per-session tool budgets and bounded completion loops. Use when the user asks to set up deployment safety checks, enforce test requirements before commits, monitor agent tool usage budgets, or configure circuit breaker patterns for autonomous agent operations.
 ---
 
 # Safety Guardrails (Circuit Breaker)
@@ -15,6 +15,7 @@ Pre-built safety hooks that prevent risky agent actions: deployment gates, test 
 - User wants to monitor and limit agent tool usage
 - User asks to configure or manage circuit breaker patterns
 - User needs to reset or adjust safety thresholds
+- User wants the agent to "keep going until tests pass" without an unbounded loop
 
 ## Available Guardrails
 
@@ -25,6 +26,8 @@ Prevents deployments outside business hours (Monday-Friday, 9 AM - 5 PM local ti
 **How it works:**
 
 - Intercepts deployment tool calls via PreToolUse hooks
+- Resolves `git push` destinations the way git does (`hooks/scripts/git_intent.py`), so a bare `git push` from a branch tracking `main` is gated and a feature-branch push is not; `push.default=matching` counts as pushing every branch, and configured push refspecs fail closed; wildcard (`refs/heads/*:…`) and matching (`:`) refspecs count as protected
+- Treats package scripts named `*deploy*` / `*release*` (`npm run deploy`, `yarn deploy:prod`) as deploys
 - Checks the current day and time against the allowed window
 - Blocks the deployment with a clear message if outside hours
 - Can be overridden by disabling the breaker
@@ -36,20 +39,43 @@ Ensures test files are included in staged changes before allowing commits.
 **How it works:**
 
 - Intercepts git commit operations via PreToolUse hooks
-- Scans staged files for test patterns (`*.test.*`, `*.spec.*`)
+- Computes exactly what the commit records (staged files, chained `git add`, `-a`, `--amend`, and `git commit <paths>`, which commits only those paths) and scans it for test patterns (`*.test.*`, `*.spec.*`)
+- Blocks when the commit contents cannot be determined (fail closed), including when git runs through a wrapper it cannot see into (`sh -c`, `xargs`, `eval`; `env`, `sudo`, `timeout`, `nice` are followed), when python3 is missing, when one command makes more than one commit, or when an index-changing command such as `git reset`, `git restore --staged` or `git stash` runs before the commit in the same call, or when a chained `git add` or `cd` is joined to the commit by anything other than `&&` (newlines, `;`, `||`, pipes, subshells)
 - Blocks the commit if no test files are staged alongside code changes
 - Encourages test-driven development practices
 
 ### 3. Budget Guard (`budget-guard`)
 
-Warns when agent tool usage exceeds a configurable threshold.
+Asks for confirmation when per-session tool usage reaches a configurable threshold.
 
 **How it works:**
 
-- Tracks the number of tool calls made in the current session
-- Stored in user-isolated directory: `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter`
-- Issues a warning when the threshold is reached (default: 100 calls)
+- Counts tool calls per `session_id` (from the hook payload on stdin), so parallel sessions never share a budget
+- Stored in a user-isolated, owner-only directory: `${TMPDIR:-/tmp}/circuit-breaker-${UID:-$(id -u)}/counter-<session_id>`
+- At the threshold (default 100), and every 25 calls past it, returns `permissionDecision: "ask"` so a human decides whether the run continues
 - Helps prevent runaway agent sessions that consume excessive resources
+
+### 4. Loop Guard (`loop-guard`)
+
+A `Stop` hook that turns "keep working until done" into a deterministic, bounded loop.
+
+**How it works:**
+
+- Opt-in per project via `.agenthaus/loop.json` (`completionCommand`, `maxIterations`, `timeoutSec`, `chain`)
+- Must be armed with `/circuit-breaker:loop arm`; the project's physical path and the config's sha256 are pinned together, so an edit, or the same config in another checkout, is ignored until armed there
+- On Stop, runs `completionCommand`: exit 0 lets the agent stop; otherwise it returns `{"decision":"block","reason":...}` with the failing output, up to `maxIterations` (clamped to 1..8, inside Claude Code's own continuation cap)
+- Iteration state resets on `SessionStart` (startup/clear) and on every `UserPromptSubmit`, so each user turn has a fresh, reproducible budget
+- Fails safe: a missing tool, missing config or internal error lets the agent stop rather than spin
+
+### Loop engineering contract
+
+| Concern | Mechanism |
+| --- | --- |
+| Cadence (run every N minutes) | Claude Code `/loop [interval] <prompt>` |
+| Termination | loop-guard `Stop` hook + `maxIterations` |
+| Runaway tool use | budget-guard `ask` at threshold |
+| Idempotent shared state across agents | `agent-handoff` blackboard (SQLite leases, fencing tokens) |
+| Subagent turn limits | `maxTurns` in agent frontmatter |
 
 ## Steps
 
@@ -69,7 +95,8 @@ To configure guardrails:
   "breakers": {
     "block-prod-deploy": { "enabled": true },
     "require-tests": { "enabled": true },
-    "budget-guard": { "enabled": true, "threshold": 100 }
+    "budget-guard": { "enabled": true, "threshold": 100 },
+    "loop-guard": { "enabled": true }
   },
   "updated_at": "2026-03-15T10:00:00Z"
 }
@@ -89,25 +116,18 @@ To configure guardrails:
 
 ## Integration with Hooks
 
-The guardrails work through Claude Code's hook system:
+All guardrails ship in this plugin's `hooks/hooks.json` and load automatically:
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash|Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/check-guardrails.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+| Event | Matcher | Script |
+| --- | --- | --- |
+| `PreToolUse` | `Bash` | `block-prod-deploy.sh` (exit 2 blocks) |
+| `PreToolUse` | `Bash` (any `git … commit`, including `git -C` and `cd … &&`) | `require-tests.sh` (exit 2 blocks) |
+| `PreToolUse` | `.*` | `budget-guard.sh` (`ask` at threshold) |
+| `Stop` | (all) | `loop-guard.sh` (`decision: block` while the check fails) |
+| `SessionStart` | `startup\|clear` | `loop-reset.sh` |
+| `UserPromptSubmit` | (all) | `loop-reset.sh` |
+
+Every script reads the hook payload as JSON on stdin and runs from `${CLAUDE_PLUGIN_ROOT}/hooks/scripts/`.
 
 ## Best Practices
 
@@ -121,15 +141,16 @@ The guardrails work through Claude Code's hook system:
 ## AgentHaus guarded execution coverage
 
 The optional AgentHaus stdio proxy is the single execution owner only for MCP
-servers explicitly wrapped with `guardPlugin` from
-`scripts/generate-cross-platform.js`. Default installation remains native.
+servers explicitly wrapped with `guardPlugin` (from `src/safety-wiring.js` in the
+AgentHaus repository checkout, not this installed plugin). Default installation remains native.
 Direct shell commands, WP-CLI, SDK/HTTP calls, and agent instructions are outside
 that boundary. Native hooks supply guidance; they do not intercept those paths.
 
 Use an operator-owned policy and pinned Ed25519 public key. Approval receipts
 bind the complete request, policy, actor, provider, scope and 60-second expiry;
 the proxy consumes each nonce once before forwarding. An independent operator
-may issue a receipt with `scripts/approve-guard-request.js` from a terminal.
+may issue a receipt with `scripts/approve-guard-request.js` from an AgentHaus
+repository checkout, in a terminal.
 Without that broker or a valid receipt, approval-required calls stay blocked.
 Keep signing keys, pinned configuration and consumed-nonce storage outside the
 agent's OS identity. File mode 0700 alone does not isolate same-user processes.

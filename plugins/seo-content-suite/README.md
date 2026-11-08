@@ -21,7 +21,7 @@ A meta-plugin that combines four specialized tools into a unified SEO content pr
 
 ```bash
 TEXTFOCUS_API_KEY=your_textfocus_key
-NEURONWRITER_API_KEY=your_neuronwriter_key
+# NeuronWriter: no key needed; sign in to the hosted MCP server with /mcp
 MARKUPGO_API_KEY=your_markupgo_key
 OUTSCRAPER_API_KEY=your_outscraper_key  # optional
 ```

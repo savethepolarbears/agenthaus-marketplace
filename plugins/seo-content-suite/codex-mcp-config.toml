@@ -2,18 +2,16 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.neuronwriter]
-command = "python"
-args = ["-m", "neuronwriter_mcp"]
-env_vars = ["NEURONWRITER_API_KEY"]
+url = "https://app.neuronwriter.com/mcp/http"
 
 [mcp_servers.textfocus]
-command = "python"
+command = "python3"
 args = ["-m", "textfocus_server"]
 env_vars = ["TEXTFOCUS_API_KEY"]
 
 [mcp_servers.markupgo]
 command = "npx"
-args = ["markupgo-mcp-server"]
+args = ["-y", "markupgo-mcp-server"]
 env_vars = ["MARKUPGO_API_KEY"]
 
 [mcp_servers.outscraper]

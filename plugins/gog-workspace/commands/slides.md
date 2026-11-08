@@ -1,5 +1,6 @@
 ---
 description: Create and manage Google Slides presentations. Usage: `/gog-workspace:slides create "Presentation Title"` or `/gog-workspace:slides list <presentation_id>`
+argument-hint: "<create <title> | list <presentation_id>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Google Slides operations using the `gog` CLI.

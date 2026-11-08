@@ -1,5 +1,6 @@
 ---
 description: List albums, folders, people, places, labels, and keywords in your Photos library. Usage: `/apple-photos:albums [albums|persons|places|labels|keywords]`
+argument-hint: "[albums|persons|places|labels|keywords]"
 ---
 When invoked with "$ARGUMENTS" (optional subcommand), run the appropriate osxphotos listing command.
 

@@ -1,5 +1,6 @@
 ---
 description: "Find semantically related keywords and search suggestions. Usage: `/textfocus:related 'email marketing' --lang en`"
+argument-hint: "<keyword> [--lang <code>]"
 ---
 
 # Find Related Keywords

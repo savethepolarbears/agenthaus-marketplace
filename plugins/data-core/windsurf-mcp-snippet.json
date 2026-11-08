@@ -3,12 +3,13 @@
   "mcpServers": {
     "postgres": {
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "${env:NEON_DATABASE_URL}"
+        "postgres-mcp@0.3.0",
+        "--access-mode=unrestricted"
       ],
-      "command": "npx",
-      "env": {}
+      "command": "uvx",
+      "env": {
+        "DATABASE_URI": "${env:NEON_DATABASE_URL}"
+      }
     }
   }
 }

@@ -2,6 +2,4 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.vercel]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-vercel"]
-env_vars = ["VERCEL_TOKEN"]
+url = "https://mcp.vercel.com"

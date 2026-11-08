@@ -1,6 +1,6 @@
 {
   "name": "plugin-auditor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Audit plugins for security risks before installation.",
   "author": {
     "name": "AgentHaus Team"

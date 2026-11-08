@@ -15,7 +15,7 @@ Deploy and manage your Vercel projects from within Claude using the **vercel-dep
 
 * **Trigger deployments** – Use `/vercel-deploy:deploy` to deploy your project.  Optionally specify a project name and branch to deploy a feature branch.
 * **Monitor status** – The plugin polls Vercel’s API for deployment status and reports the final URL or any build failures.
-* **Authentication** – Set the `VERCEL_TOKEN` environment variable to a Vercel personal access token.  The plugin uses the official Vercel MCP server to perform operations.
+* **Authentication** – The plugin uses Vercel's official hosted MCP server (`https://mcp.vercel.com`) with OAuth. Run `/mcp` in Claude Code to authorize; no token is stored in the environment.
 
 ## Installation
 

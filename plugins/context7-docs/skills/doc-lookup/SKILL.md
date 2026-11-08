@@ -18,7 +18,7 @@ Retrieve accurate, up-to-date library documentation to prevent hallucination and
 
 ## Prerequisites
 
-- Context7 MCP server (`@modelcontextprotocol/server-context7`) must be available
+- Context7 MCP server (`@upstash/context7-mcp`, pinned in `.mcp.json`) with optional `CONTEXT7_API_KEY` for higher rate limits
 - `CONTEXT7_API_KEY` environment variable should be set (if required)
 
 ## Steps

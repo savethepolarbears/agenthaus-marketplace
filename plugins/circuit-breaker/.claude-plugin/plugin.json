@@ -1,7 +1,7 @@
 {
   "name": "circuit-breaker",
-  "version": "1.0.1",
-  "description": "Pre-built safety guardrails as reusable hooks for Claude Code workflows.",
+  "version": "1.1.0",
+  "description": "Pre-built safety guardrails as reusable hooks: deploy window, test gate, per-session tool budget and a bounded Stop-hook completion loop.",
   "author": {
     "name": "AgentHaus Team"
   },
@@ -14,7 +14,8 @@
     "hooks"
   ],
   "commands": [
-    "./commands/configure.md"
+    "./commands/configure.md",
+    "./commands/loop.md"
   ],
   "skills": [
     "./skills/safety-guardrails"

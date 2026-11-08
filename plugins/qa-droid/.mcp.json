@@ -7,25 +7,8 @@
       ]
     },
     "slack": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-slack"
-      ],
-      "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
-        "SLACK_DEFAULT_CHANNEL": "${SLACK_CHANNEL}"
-      }
-    },
-    "gmail": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-gmail"
-      ],
-      "env": {
-        "GMAIL_CREDENTIALS": "${GMAIL_CREDENTIALS}"
-      }
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp"
     }
   }
 }

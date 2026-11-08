@@ -3,7 +3,7 @@ description: >
   Retrieve the best posting times for a profile from VistaSocial analytics.
   Compares optimal times against the brand's standard cadence and flags
   any mismatches. Use when evaluating or adjusting posting schedules.
-allowed-tools: VistaSocial:getOptimalPublishTimes
+allowed-tools: mcp__plugin_vistasocial-scheduler_vistasocial__getOptimalPublishTimes
 ---
 
 # Get Optimal Publish Times

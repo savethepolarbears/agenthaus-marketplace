@@ -3,6 +3,7 @@
     "encharge": {
       "command": "npx",
       "args": [
+        "-y",
         "tsx",
         "${CLAUDE_PLUGIN_ROOT}/node_modules/encharge-cli/src/mcp/index.ts"
       ],

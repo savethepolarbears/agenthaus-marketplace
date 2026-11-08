@@ -18,8 +18,7 @@ Full lifecycle task management in ClickUp: create, update, organize, and track t
 
 ## Prerequisites
 
-- `CLICKUP_API_KEY` environment variable must be set
-- ClickUp MCP server (`@modelcontextprotocol/server-clickup`) must be available
+- ClickUp's official MCP server (`https://mcp.clickup.com/mcp`) connected and authorized via OAuth (API keys are not supported by the hosted server)
 
 ## Steps
 
@@ -89,7 +88,7 @@ Before any operation:
 
 ## Error Handling
 
-- If `CLICKUP_API_KEY` is not set, provide setup instructions
+- If the ClickUp server is not authorized, tell the user to run `/mcp` and sign in
 - If workspace/space/list cannot be found, list available options
 - Validate due dates are in the future for new tasks
 - Warn if assigning to users not in the workspace
