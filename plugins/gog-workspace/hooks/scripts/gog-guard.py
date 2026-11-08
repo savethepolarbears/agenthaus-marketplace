@@ -13,7 +13,11 @@ gogcli's command reference with every alias, so positional arguments are never
 mistaken for subcommands (`gog gmail search delete` is not a delete).
 
 This errs toward asking: `echo gog gmail send` or `grep 'gog drive delete'`
-also prompt, while no way of actually running a guarded command is missed.
+also prompt. It is a confirmation prompt, not a security boundary: it catches
+ordinary and common wrapped invocations (quoted spellings such as `g""og`,
+env prefixes, wrappers, `sh -c`, command substitution), but a determined
+shell construct can still avoid it. For hard guarantees, run gogcli with its
+own `--gmail-no-send`, `--readonly` or `--enable-commands` flags.
 
 Usage (stdin is the Claude Code hook payload):
   gog-guard.py ask     PreToolUse: print an "ask" decision when a guarded
@@ -43,6 +47,12 @@ SHELLISH = {"bash", "sh", "zsh", "dash", "ksh", "eval", "ssh", "su", "sudo", "wa
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 DURATION = re.compile(r"^\d+(\.\d+)?[smhd]?$")
 GOG_WORD = re.compile(r"(^|[^A-Za-z0-9_-])gog([^A-Za-z0-9_-]|$)")
+QUOTING = re.compile(r"[\'\"\\]")
+
+
+def mentions_gog(text):
+    """True if `text` names gog once shell quoting is removed (`g""og`, `g\\og`)."""
+    return GOG_WORD.search(QUOTING.sub("", text)) is not None
 MAX_DEPTH = 6
 
 
@@ -79,7 +89,7 @@ def in_command_position(words, i):
     for j, word in enumerate(words[:i]):
         prev = words[j - 1] if j else ""
         if (
-            word in LEADERS
+            os.path.basename(word) in LEADERS
             or ASSIGNMENT.match(word)
             or word.startswith("-")
             or DURATION.match(word)
@@ -115,9 +125,10 @@ def gog_paths(command, table, depth=0, audit=False):
                     for k in range(i + 1, len(words)):
                         if words[k] in table["tree"][""]:
                             yield resolve(words[k:], table, guarded_only=True)
-            elif not audit and word.startswith("$"):
+            elif not audit and ("$" in word or "`" in word):
+                # the program name may come from an expansion: `$G`, `go$X`
                 yield resolve(words[i + 1:], table, guarded_only=True)
-            elif depth < MAX_DEPTH and any(c.isspace() for c in word) and GOG_WORD.search(word):
+            elif depth < MAX_DEPTH and any(c.isspace() for c in word) and mentions_gog(word):
                 if not audit or any(os.path.basename(w) in SHELLISH for w in words[:i]):
                     yield from gog_paths(word, table, depth + 1, audit)
 
@@ -174,7 +185,7 @@ def read_command():
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "ask"
     command = read_command()
-    if "gog" not in command:
+    if not command.strip():
         return 0
     table = load_table()
     try:
@@ -182,7 +193,7 @@ def main():
         unparsed = False
     except ValueError:  # unbalanced quotes: cannot tell, so be careful
         paths = []
-        unparsed = GOG_WORD.search(command) is not None
+        unparsed = mentions_gog(command)
 
     if mode == "audit":
         if any(paths) or unparsed:
