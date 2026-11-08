@@ -325,6 +325,11 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     // Deliberately conservative: text that names a guarded command also asks.
     'echo gog gmail send',
     "grep -r 'gog gmail send' docs/",
+    '$(command -v gog) drive delete f1',
+    '`which gog` gmail send --to a@b.com',
+    'G=gog; $G drive delete f1',
+    'gog keep --impersonate alice@example.com delete n1',
+    'gog gmail --account work@x.com --gmail-no-send send --to a@b.com',
   ];
   const silent = [
     "gog gmail search 'is:unread' --max 10",
@@ -358,6 +363,8 @@ test('gog-workspace PostToolUse hook logs gog commands only', (t) => {
     spawnSync('bash', ['-c', cmd], { input: JSON.stringify({ tool_input: { command } }), encoding: 'utf8', env });
   run('ls -la');
   run('echo gog');
+  run('echo gog gmail search');
+  run("grep -r 'gog drive delete' docs/");
   run('GOG_ACCOUNT=x gog gmail search is:unread');
   const log = fs.readFileSync(path.join(dir, 'gog_audit.log'), 'utf8').trim().split('\n');
   fs.rmSync(dir, { recursive: true, force: true });

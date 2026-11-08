@@ -32,6 +32,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TABLE_PATH = os.path.join(HERE, "..", "guarded-commands.json")
 
 SEPARATORS = set(";&|()<>")
+# Words that may precede a program in command position (used by the audit
+# log only; the "ask" scan does not depend on them).
+LEADERS = {
+    "if", "then", "else", "elif", "while", "until", "do", "!", "{", "time",
+    "env", "sudo", "doas", "command", "builtin", "exec", "nohup", "nice", "timeout",
+    "stdbuf", "xargs",
+}
+SHELLISH = {"bash", "sh", "zsh", "dash", "ksh", "eval", "ssh", "su", "sudo", "watch"}
+ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+DURATION = re.compile(r"^\d+(\.\d+)?[smhd]?$")
 GOG_WORD = re.compile(r"(^|[^A-Za-z0-9_-])gog([^A-Za-z0-9_-]|$)")
 MAX_DEPTH = 6
 
@@ -41,6 +51,7 @@ def load_table():
         table = json.load(fh)
     table["guarded"] = set(table["guarded"])
     table["globalValueFlags"] = set(table["globalValueFlags"])
+    table["boolFlags"] = {node: set(flags) for node, flags in table["boolFlags"].items()}
     return table
 
 
@@ -61,29 +72,64 @@ def split_segments(command):
         yield words
 
 
-def gog_paths(command, depth=0, table=None):
-    """Yield the resolved subcommand path of every possible gog invocation."""
+def in_command_position(words, i):
+    """True when every word before words[i] can precede a program."""
+    for j, word in enumerate(words[:i]):
+        prev = words[j - 1] if j else ""
+        if (
+            word in LEADERS
+            or ASSIGNMENT.match(word)
+            or word.startswith("-")
+            or DURATION.match(word)
+            or prev in ("-u", "-g", "-n", "-I", "-L", "-P", "-k", "-s")
+        ):
+            continue
+        return False
+    return True
+
+
+def gog_paths(command, table, depth=0, audit=False):
+    """Yield the resolved subcommand path of every possible gog invocation.
+
+    For "ask" the scan is deliberately broad: every `gog` word, every word
+    after a `$` expansion, every segment start (the tail of `$(...) drive
+    delete f1`) and every quoted string mentioning gog is tried. For "audit"
+    only `gog` in command position counts, so `echo gog ...` is not logged.
+    """
     for words in split_segments(command):
+        if not audit:
+            yield resolve(words, table, guarded_only=True)
         for i, word in enumerate(words):
             bare = word.lstrip("`$(\"'").rstrip("`)\"'")
             if os.path.basename(bare) == "gog":
-                yield resolve(words[i + 1:], table)
+                if not audit or in_command_position(words, i):
+                    yield resolve(words[i + 1:], table)
+            elif not audit and word.startswith("$"):
+                yield resolve(words[i + 1:], table, guarded_only=True)
             elif depth < MAX_DEPTH and any(c.isspace() for c in word) and GOG_WORD.search(word):
-                yield from gog_paths(word, depth + 1, table)
+                if not audit or any(os.path.basename(w) in SHELLISH for w in words[:i]):
+                    yield from gog_paths(word, table, depth + 1, audit)
 
 
-def resolve(args, table):
-    """Resolve gog arguments to a command path ("" when only flags follow)."""
+def resolve(args, table, guarded_only=False):
+    """Resolve gog arguments to a command path ("" when only flags follow).
+
+    A flag takes a value unless the snapshot lists it as boolean at the
+    current node, so command-level flags such as `keep --impersonate x`
+    are skipped with their value. With guarded_only, return "" unless the
+    path is guarded (used for guesses such as segment starts).
+    """
     tree = table["tree"]
     node = ""
     path = ""
     i = 0
     while i < len(args):
         tok = args[i]
-        if tok.startswith("-"):
-            # kong accepts flags anywhere; skip a value-taking flag's value
-            if "=" not in tok and tok in table["globalValueFlags"]:
-                i += 1
+        if tok.startswith("-") and tok != "-":
+            flag = tok.split("=", 1)[0]
+            bools = table["boolFlags"].get(node, table["boolFlags"][""])
+            if "=" not in tok and flag not in bools:
+                i += 1  # skip the flag's value
             i += 1
             continue
         canonical = tree.get(node, {}).get(tok)
@@ -97,6 +143,8 @@ def resolve(args, table):
         if path in table["guarded"]:
             break
         i += 1
+    if guarded_only and path not in table["guarded"]:
+        return ""
     return path
 
 
@@ -116,7 +164,7 @@ def main():
         return 0
     table = load_table()
     try:
-        paths = list(gog_paths(command, table=table))
+        paths = list(gog_paths(command, table, audit=(mode == "audit")))
         unparsed = False
     except ValueError:  # unbalanced quotes: cannot tell, so be careful
         paths = []

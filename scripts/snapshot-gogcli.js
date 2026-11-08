@@ -121,12 +121,19 @@ function buildGuard(snapshot) {
       if (!(alias in tree[parent])) tree[parent][alias] = name;
     }
   }
+  // Boolean flags valid at each node of the tree; any other flag takes a value.
+  const boolFlags = {};
+  for (const node of ['', ...[...onPath].sort()]) {
+    const own = node ? snapshot.commands[node].boolFlags : [];
+    boolFlags[node] = [...new Set([...snapshot.globalBoolFlags, ...own])].sort();
+  }
   return {
     generatedBy: 'node scripts/snapshot-gogcli.js --guard-only',
     gogcliCommit: snapshot.commit,
     globalValueFlags: snapshot.globalFlags.filter((f) => !snapshot.globalBoolFlags.includes(f)),
     guarded,
     tree,
+    boolFlags,
   };
 }
 
