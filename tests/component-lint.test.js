@@ -68,3 +68,12 @@ test('npx without -y fails and python warns', skip, t => {
     assert.match(r.stdout, /npx without -y/);
     assert.match(r.stdout, /use python3/);
 });
+
+test('hooks that read input with jq need a fallback when jq is missing', skip, t => {
+    const hook = command => ({ hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command, timeout: 5 }] }] } });
+    const bad = plugin(t, { 'hooks/hooks.json': hook("cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null || true); echo \"$cmd\"") });
+    assert.equal(bad.status, 1);
+    assert.match(bad.stdout, /sets cmd from jq with no fallback/);
+    const good = plugin(t, { 'hooks/hooks.json': hook("in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$in; echo \"$cmd\"") });
+    assert.equal(good.status, 0, good.stdout);
+});

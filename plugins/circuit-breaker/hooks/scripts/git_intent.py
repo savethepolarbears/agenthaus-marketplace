@@ -46,23 +46,39 @@ def lines(text):
     return [l for l in text.splitlines() if l]
 
 
+OPS = set(";&|()\n")
+
+
 def segments(cmd):
+    """Split a command into (argv, operator_before) pairs.
+
+    Newlines separate commands like `;` does (shlex would otherwise treat them
+    as whitespace and merge `echo hi<newline>git commit` into one segment);
+    a newline inside quotes stays part of its token.
+    """
     try:
-        lexer = shlex.shlex(cmd, posix=True, punctuation_chars=";&|()")
+        lexer = shlex.shlex(cmd, posix=True, punctuation_chars=";&|()\n")
+        lexer.whitespace = " \t\r"
         lexer.whitespace_split = True
         tokens = list(lexer)
     except ValueError as exc:
         raise Unknown(str(exc))
-    segs, cur = [], []
+    segs, cur, pending = [], [], []
     for tok in tokens:
-        if tok and set(tok) <= set(";&|()"):
+        if tok and set(tok) <= OPS:
             if cur:
-                segs.append(cur)
-            cur = []
+                segs.append((cur, "".join(pending) or None))
+                cur, pending = [], []
+            op = tok.replace("\n", "")
+            if op:
+                pending.append(op)
+            elif not pending:
+                pending.append(";")  # a bare newline ends a command like `;`
+            # a newline right after `&&`/`||`/`|` is a line continuation
         else:
             cur.append(tok)
     if cur:
-        segs.append(cur)
+        segs.append((cur, "".join(pending) or None))
     return segs
 
 
@@ -192,15 +208,23 @@ INDEX_NEUTRAL = {"status", "diff", "log", "show", "branch", "rev-parse", "ls-fil
 
 def commit_set(cmd):
     staged = None
-    for seg in segments(cmd):
+    saw_add, unconditional = False, True
+    for seg, op in segments(cmd):
+        if op is not None and op != "&&":
+            unconditional = False
         sub, args = git_sub(seg)
         if sub is not None and sub not in ("add", "commit") and sub not in INDEX_NEUTRAL:
             raise Unknown("git " + sub + " may change the index before the commit")
         if sub in ("add", "commit") and staged is None:
             staged = set(lines(git("diff", "--cached", "--name-only")))
         if sub == "add":
+            saw_add = True
             simulate_add(args, staged)
         elif sub == "commit":
+            if saw_add and not unconditional:
+                # Only a pure `&&` chain guarantees each earlier add ran when the
+                # commit runs; `;`, `||`, pipes or subshells make that a guess.
+                raise Unknown("git add and git commit are not joined by &&")
             opts, paths = parse_commit(args)
             if "--amend" in opts:
                 # The amended commit keeps HEAD's changes plus the new ones.
@@ -282,6 +306,8 @@ def push_targets(args):
     out = []
     for spec in refspecs:
         spec = spec.lstrip("+")
+        if spec in ("", ":") or "*" in spec:
+            return ["<all>"]  # matching or pattern refspecs can update every branch
         src, colon, dst = spec.partition(":")
         target = dst if colon else src
         if target in ("HEAD", "@", ""):
@@ -294,7 +320,7 @@ def push_targets(args):
 
 
 def push_protected(cmd):
-    for seg in segments(cmd):
+    for seg, _ in segments(cmd):
         sub, args = git_sub(seg)
         if sub == "push":
             for target in push_targets(args):

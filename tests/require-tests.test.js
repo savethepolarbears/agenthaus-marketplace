@@ -200,3 +200,33 @@ test('the commit gate still applies without jq', skip, t => {
     });
     assert.equal(r.status, 2, r.stderr);
 });
+
+test('wildcard and matching refspecs count as protected', skip, t => {
+    const { dir, git } = repo(t);
+    const remote = path.join(dir, '..', path.basename(dir) + '-remote.git');
+    t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+    spawnSync('git', ['init', '-q', '--bare', remote]);
+    git('branch', '-M', 'main');
+    git('remote', 'add', 'origin', remote);
+    git('checkout', '-q', '-b', 'feature');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask("git push origin 'refs/heads/*:refs/heads/*'"), 'yes');
+    assert.equal(ask('git push origin :'), 'yes');
+    assert.equal(ask('git push origin feature'), 'no');
+});
+
+test('git add counts only when joined to the commit by &&', skip, t => {
+    const { run } = repo(t);
+    assert.equal(run('false && git add unrelated.test.js; git commit -am x').status, 2, 'the add may be skipped');
+    assert.equal(run('git add unrelated.test.js || true; git commit -am x').status, 2);
+    assert.equal(run('git add unrelated.test.js && git commit -am x').status, 0);
+});
+
+test('newlines separate commands', skip, t => {
+    const { dir, git, run } = repo(t);
+    assert.equal(run('echo hi\ngit commit -am x').status, 2, 'commit on its own line is seen');
+    assert.equal(run('git add unrelated.test.js &&\n  git commit -am x').status, 0, 'a newline after && continues the chain');
+    git('branch', '-M', 'main');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('echo done\ngit push origin main'), 'yes');
+});

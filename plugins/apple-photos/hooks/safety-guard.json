@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null || true); if printf '%s' \"$cmd\" | grep -qE 'osxphotos[[:space:]]+(import|batch-edit|timewarp|push-exif|sync|add-locations|orphans[[:space:]].*--import|keywords?[[:space:]]+.*--(add|remove))'; then printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"apple-photos: this osxphotos command modifies the Photos library. Confirm a backup exists first.\"}}'; fi",
+            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qE 'osxphotos[[:space:]]+(import|batch-edit|timewarp|push-exif|sync|add-locations|orphans[[:space:]].*--import|keywords?[[:space:]]+.*--(add|remove))'; then printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"apple-photos: this osxphotos command modifies the Photos library. Confirm a backup exists first.\"}}'; fi",
             "timeout": 5
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null || true); if printf '%s' \"$cmd\" | grep -qE 'osxphotos[[:space:]]+(import|export|batch-edit|timewarp|push-exif|sync|add-locations)'; then printf '[%s] apple-photos osxphotos write: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$(printf '%s' \"$cmd\" | head -c 200 | tr -d '\\n')\" >> \"${CLAUDE_PROJECT_DIR:-.}/apple_photos_audit.log\" 2>/dev/null; fi; exit 0",
+            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qE 'osxphotos[[:space:]]+(import|export|batch-edit|timewarp|push-exif|sync|add-locations)'; then printf '[%s] apple-photos osxphotos write: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$(printf '%s' \"$cmd\" | head -c 200 | tr -d '\\n')\" >> \"${CLAUDE_PROJECT_DIR:-.}/apple_photos_audit.log\" 2>/dev/null; fi; exit 0",
             "timeout": 10
           }
         ]
