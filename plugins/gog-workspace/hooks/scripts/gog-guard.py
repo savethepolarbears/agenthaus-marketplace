@@ -137,7 +137,12 @@ def gog_paths(command, table, depth=0, audit=False):
                     # option) can never hide the guarded subcommand after it.
                     for k in range(i + 1, len(words)):
                         if words[k] in table["tree"][""]:
-                            yield resolve(words[k:], table, guarded_only=True)
+                            guess = resolve(words[k:], table)
+                            flag = table["notify"].get(guess)
+                            if flag and sends_updates(words[k:], flag):
+                                yield f"{guess} {flag}"
+                            elif guess in table["guarded"]:
+                                yield guess
             elif not audit and ("$" in word or "`" in word):
                 # the program name may come from an expansion: `$G`, `go$X`
                 yield resolve(words[i + 1:], table, guarded_only=True)
@@ -164,6 +169,24 @@ def sends_updates(args, flag):
     return False
 
 
+def flag_takes_next(tok, bools):
+    """1 if flag token `tok` consumes the following word, else 0 (kong rules).
+
+    `--x=v` and attached short values (`-awork@x`) never do. A single-dash bundle
+    (`-jv`, `-ja`) is read letter by letter: booleans continue the bundle, and
+    the first value-taking letter takes the rest of the token, or the next word
+    when it is the last letter. Unknown flags are assumed to take a value.
+    """
+    if "=" in tok:
+        return 0
+    if tok.startswith("--") or len(tok) == 2:
+        return 0 if tok in bools else 1
+    for k in range(1, len(tok)):
+        if f"-{tok[k]}" not in bools:
+            return 1 if k == len(tok) - 1 else 0
+    return 0
+
+
 def resolve(args, table, guarded_only=False):
     """Resolve gog arguments to a command path ("" when only flags follow).
 
@@ -183,14 +206,8 @@ def resolve(args, table, guarded_only=False):
             i += 1
             continue
         if tok.startswith("-") and tok != "-":
-            flag = tok.split("=", 1)[0]
             bools = table["boolFlags"].get(node) or table["boolFlags"][""]
-            attached = "=" in tok or (not tok.startswith("--") and len(tok) > 2)
-            # `-awork@x` carries its value and `-jv` bundles booleans: neither
-            # takes the next word.
-            if not attached and flag not in bools:
-                i += 1  # skip the flag's value
-            i += 1
+            i += 1 + flag_takes_next(tok, bools)
             continue
         canonical = tree.get(node, {}).get(tok)
         if canonical is None:

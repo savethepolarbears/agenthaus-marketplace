@@ -109,7 +109,9 @@ function buildGuard(snapshot) {
         k &&
         // canonical name or any alias: `watch stop` is also spelled `watch rm` / `watch delete`
         ([k.split(' ').pop(), ...snapshot.commands[k].aliases].some((v) => DESTRUCTIVE_VERBS.has(v)) ||
-          SEND_COMMANDS.includes(k)),
+          SEND_COMMANDS.includes(k) ||
+          // a command spelled `send` by alias: `classroom submissions return` (alias `send`)
+          snapshot.commands[k].aliases.includes('send')),
     )
     .sort();
   for (const k of SEND_COMMANDS) {
