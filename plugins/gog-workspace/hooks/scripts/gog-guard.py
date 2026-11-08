@@ -201,7 +201,7 @@ def main():
             stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
             names = ", ".join(p for p in paths if p) or "gog (unparsed)"
             try:
-                with open(log, "a", encoding="utf-8") as fh:
+                with open(log, "a", encoding="utf-8", newline="\n") as fh:
                     fh.write(f"[{stamp}] gog command executed: {names}\n")
             except OSError:
                 pass
