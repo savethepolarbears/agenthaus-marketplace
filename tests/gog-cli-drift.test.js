@@ -95,7 +95,7 @@ function* invocations(file) {
     const snippets = inFence ? [line] : [...line.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
     for (const snip of snippets) {
       for (const m of snip.matchAll(/(?:^|&&|\|\||[;|(]|\$\()\s*(gog\s+[a-z-][^;&|]*)/g)) {
-        yield { file: path.relative(ROOT, file), line: i + 1, text: m[1].trim() };
+        yield { file: path.relative(ROOT, file), line: i + 1, text: m[1].trim(), mention: !inFence };
       }
     }
   }
@@ -115,7 +115,7 @@ function markdownFiles(dir) {
 // --------------------------------------------------------------- checking --
 
 /** Returns a list of problems for one invocation (empty when valid). */
-function check(text) {
+function check(text, { mention = false } = {}) {
   const tokens = tokenize(text).slice(1); // drop "gog"
   const problems = [];
   const segs = [];
@@ -125,8 +125,8 @@ function check(text) {
     const tok = tokens[i];
     if (tok.startsWith('-')) {
       const flag = tok.split('=')[0];
-      if (!SNAPSHOT.globalFlags.includes(flag) && !/^-[a-z]$/.test(flag)) break;
-      i += tok.includes('=') || SNAPSHOT.globalBoolFlags.includes(flag) || /^-[a-z]$/.test(flag) ? 1 : 2;
+      if (!SNAPSHOT.globalFlags.includes(flag)) break;
+      i += tok.includes('=') || SNAPSHOT.globalBoolFlags.includes(flag) ? 1 : 2;
       continue;
     }
     const map = TREE.get(segs.join(' '));
@@ -145,7 +145,9 @@ function check(text) {
   const known = new Set([...SNAPSHOT.globalFlags, ...cmd.flags]);
   const bools = new Set([...SNAPSHOT.globalBoolFlags, ...cmd.boolFlags]);
 
-  if (rest.length === 0) return []; // a bare name mention such as `gog contacts search`
+  // An inline code span naming a command with no arguments (`gog contacts search`)
+  // is a prose mention; fenced examples are always checked in full.
+  if (mention && rest.length === 0) return [];
   if (hasChildren && cmd.positionals.length === 0) {
     if (rest.every((t) => t === '--help' || t === '-h')) return [];
     if (!rest[0].startsWith('-')) return [`"gog ${key}" has no subcommand "${rest[0]}"`];
@@ -157,8 +159,7 @@ function check(text) {
   for (let j = 0; j < rest.length; j++) {
     const tok = rest[j];
     if (tok === '...' || tok === '…') continue;
-    if (/^-[A-Za-z]$/.test(tok)) continue; // short flags are aliases of long ones
-    if (tok.startsWith('--')) {
+    if (/^--?[A-Za-z]/.test(tok)) {
       const flag = tok.split('=')[0];
       if (!known.has(flag)) problems.push(`"gog ${key}" has no flag ${flag}`);
       seenFlags.add(flag);
@@ -199,6 +200,8 @@ test('checker accepts current forms and rejects stale ones', () => {
     "gog gmail drafts create --to a@b.com --subject 'Hi' --body 'Hello'",
     'gog drive download <file_id> --format pdf --out <path>',
     "gog --json gmail search 'is:unread' --max 10",
+    "gog -a work@example.com gmail search 'x'",
+    "gog gmail trash -q 'older_than:1y' --max 50",
   ];
   const bad = [
     'gog calendar list --from 2026-03-01 --to 2026-03-31 --calendar work',
@@ -206,9 +209,15 @@ test('checker accepts current forms and rejects stale ones', () => {
     "gog gmail draft a@b.com --subject 'Hi' --body 'Hello'",
     'gog drive export <id> --format pdf --out x.pdf',
     "gog gmail send a@b.com --subject 'Hi'",
+    'gog forms create',
+    'gog auth add',
+    'gog drive download',
+    'gog drive ls -Z',
   ];
   for (const t of ok) assert.deepEqual(check(t), [], t);
   for (const t of bad) assert.notDeepEqual(check(t), [], t);
+  // Prose mentions in inline code may name a command without its arguments.
+  assert.deepEqual(check('gog contacts search', { mention: true }), []);
 });
 
 test('every documented gog invocation matches gogcli', () => {
@@ -218,7 +227,7 @@ test('every documented gog invocation matches gogcli', () => {
     for (const file of markdownFiles(path.join(ROOT, 'plugins', plugin))) {
       for (const inv of invocations(file)) {
         count++;
-        for (const p of check(inv.text)) failures.push(`${inv.file}:${inv.line}  ${p}\n    ${inv.text}`);
+        for (const p of check(inv.text, { mention: inv.mention })) failures.push(`${inv.file}:${inv.line}  ${p}\n    ${inv.text}`);
       }
     }
   }
