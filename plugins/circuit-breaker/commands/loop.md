@@ -1,6 +1,6 @@
 ---
 description: Set up, arm, inspect or disarm a bounded "work until the check passes" loop for this project
-argument-hint: "[status | init <completion command> [max-iterations] | arm | disarm]"
+argument-hint: "[status | init <completion command> [max-iterations] | arm | disarm | disarm-all]"
 allowed-tools: Read, Write, Bash(bash *loop-arm.sh*), Bash(cat .agenthaus/loop.json)
 ---
 
@@ -22,7 +22,8 @@ arms it. Arguments: `$ARGUMENTS`
   last 1500 bytes of output, until `maxIterations` (clamped to 1..8) is used up.
 - The budget resets on every new user prompt and on session start/clear, so each
   turn is independent and reproducible.
-- Editing the config disarms it (sha256 pinned). Re-arm after every change.
+- Arming pins this project's physical path plus the config's sha256. Editing the config, or the same
+  config appearing in another checkout, is not trusted until armed there. Re-arm after every change.
 - `chain: false` honours `stop_hook_active` and allows at most one re-prompt per turn.
 
 ## Steps
@@ -33,7 +34,8 @@ arms it. Arguments: `$ARGUMENTS`
    `maxIterations` = `n` (default 5). Show the file to the user, then tell them to arm it.
 3. `arm`: only after the user has explicitly confirmed the exact `completionCommand`,
    run `bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/loop-arm.sh"`.
-4. `disarm`: run `bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/loop-arm.sh" --disarm`.
+4. `disarm`: run `bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/loop-arm.sh" --disarm-project` (this project only).
+5. `disarm-all`: run `bash "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/loop-arm.sh" --disarm` (every project).
 
 Never choose a completion command that is trivially true (`true`, `exit 0`) or that
 skips or deletes tests. The point of the loop is that the check stays fixed and the

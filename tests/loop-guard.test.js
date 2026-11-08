@@ -74,6 +74,30 @@ test('editing the config disarms it', skip, t => {
     assert.equal(fs.existsSync(path.join(project, 'pwned')), false);
 });
 
+test('an identical config armed in another project is not trusted', skip, t => {
+    const config = { completionCommand: 'touch ran; false', maxIterations: 5 };
+    const a = setup(t, config);
+    assert.equal(a.run('loop-arm.sh').status, 0);
+    const other = path.join(path.dirname(a.project), 'other');
+    fs.mkdirSync(path.join(other, '.agenthaus'), { recursive: true });
+    fs.writeFileSync(path.join(other, '.agenthaus', 'loop.json'), JSON.stringify(config));
+    const r = spawnSync('bash', [path.join(scripts, 'loop-guard.sh')], {
+        cwd: other, encoding: 'utf8',
+        env: { ...process.env, TMPDIR: path.dirname(a.project), CLAUDE_PLUGIN_DATA: path.join(path.dirname(a.project), 'data'), CLAUDE_PROJECT_DIR: other },
+        input: JSON.stringify({ session_id: 's', hook_event_name: 'Stop', stop_hook_active: false }),
+    });
+    assert.equal(r.stdout, '');
+    assert.equal(fs.existsSync(path.join(other, 'ran')), false);
+    assert.equal(a.run('loop-guard.sh').json.decision, 'block', 'still armed in the original project');
+});
+
+test('disarm-project removes only this project', skip, t => {
+    const { run } = setup(t, { completionCommand: 'false', maxIterations: 5 });
+    run('loop-arm.sh');
+    assert.equal(run('loop-arm.sh', {}, ['--disarm-project']).status, 0);
+    assert.equal(run('loop-guard.sh').stdout, '');
+});
+
 test('chain=false honours stop_hook_active', skip, t => {
     const { run } = setup(t, { completionCommand: 'false', maxIterations: 5, chain: false });
     run('loop-arm.sh');

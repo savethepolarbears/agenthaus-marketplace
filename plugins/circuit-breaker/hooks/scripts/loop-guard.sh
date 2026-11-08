@@ -6,9 +6,10 @@
 #   1. Create .agenthaus/loop.json in the project:
 #        { "completionCommand": "npm test", "maxIterations": 5,
 #          "timeoutSec": 120, "chain": true }
-#   2. Arm it once with `bash loop-arm.sh` (records the file's sha256). An edited
-#      or planted config is ignored until re-armed, so a repo cannot make the
-#      agent run arbitrary commands on Stop by itself.
+#   2. Arm it once with `bash loop-arm.sh` (records this project's physical path
+#      plus the file's sha256). An edited config, or an identical config in a
+#      different checkout, is ignored until armed there, so a repo cannot make
+#      the agent run arbitrary commands on Stop by itself.
 #
 # On every Stop event:
 #   - no / disabled / un-armed config            -> allow stop (exit 0, no output)
@@ -44,9 +45,9 @@ SESSION_KEY="$(loop_session_key "$(loop_json_field "$STDIN_JSON" session_id)")"
 STATE_FILE="$STATE_DIR/$SESSION_KEY.json"
 TRUST_FILE="$STATE_DIR/trusted"
 
-# Armed?
-CONFIG_SHA="$(loop_sha256 "$CONFIG" 2>/dev/null)" || exit 0
-[ -f "$TRUST_FILE" ] && grep -qx "$CONFIG_SHA" "$TRUST_FILE" 2>/dev/null || exit 0
+# Armed for this exact project path and config content?
+TRUST_KEY="$(loop_trust_key)" || exit 0
+[ -f "$TRUST_FILE" ] && grep -Fqx -- "$TRUST_KEY" "$TRUST_FILE" 2>/dev/null || exit 0
 
 ENABLED="$(jq -r '.enabled // true' "$CONFIG" 2>/dev/null || echo false)"
 [ "$ENABLED" = "true" ] || exit 0

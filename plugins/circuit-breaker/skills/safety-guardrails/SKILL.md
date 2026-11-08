@@ -59,7 +59,7 @@ A `Stop` hook that turns "keep working until done" into a deterministic, bounded
 **How it works:**
 
 - Opt-in per project via `.agenthaus/loop.json` (`completionCommand`, `maxIterations`, `timeoutSec`, `chain`)
-- Must be armed with `/circuit-breaker:loop arm`; the config's sha256 is pinned, so any edit (or a config planted by a cloned repo) is ignored until re-armed
+- Must be armed with `/circuit-breaker:loop arm`; the project's physical path and the config's sha256 are pinned together, so an edit, or the same config in another checkout, is ignored until armed there
 - On Stop, runs `completionCommand`: exit 0 lets the agent stop; otherwise it returns `{"decision":"block","reason":...}` with the failing output, up to `maxIterations` (clamped to 1..8, inside Claude Code's own continuation cap)
 - Iteration state resets on `SessionStart` (startup/clear) and on every `UserPromptSubmit`, so each user turn has a fresh, reproducible budget
 - Fails safe: a missing tool, missing config or internal error lets the agent stop rather than spin

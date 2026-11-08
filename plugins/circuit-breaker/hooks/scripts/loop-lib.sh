@@ -34,6 +34,16 @@ loop_project_dir() {
     printf '%s' "$dir"
 }
 
+# Trust key = "<physical project path> <config sha256>". Binding the path stops
+# an identical loop.json in another checkout from inheriting an arm.
+loop_trust_key() {
+    local project sha
+    project="$(cd "$(loop_project_dir)" 2>/dev/null && pwd -P)" || return 1
+    sha="$(loop_sha256 "$(loop_config_path)" 2>/dev/null)" || return 1
+    [ -n "$project" ] && [ -n "$sha" ] || return 1
+    printf '%s %s' "$project" "$sha"
+}
+
 loop_config_path() {
     printf '%s/.agenthaus/loop.json' "$(loop_project_dir)"
 }
