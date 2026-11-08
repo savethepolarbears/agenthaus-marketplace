@@ -299,3 +299,41 @@ test('a second commit in the same command is not waved through', skip, t => {
     const r = run('git add unrelated.test.js && git commit -m test && git add src.js && git commit -m source');
     assert.equal(r.status, 2, r.stderr);
 });
+
+test('a cd that may be skipped is not followed', skip, t => {
+    const { dir, git, run } = repo(t);
+    git('add', 'src.js');
+    const sibling = path.join(dir, 'sibling');
+    fs.mkdirSync(sibling);
+    const g = (...a) => spawnSync('git', a, { cwd: sibling, encoding: 'utf8' });
+    g('init', '-q'); g('config', 'user.email', 't@example.com'); g('config', 'user.name', 't');
+    fs.writeFileSync(path.join(sibling, 'x.test.js'), 'x\n');
+    g('add', 'x.test.js');
+    assert.equal(run('false && cd sibling; git commit -m x').status, 2, 'the cd may not run');
+    assert.equal(run('cd sibling && git commit -m x').status, 0, 'an && chain is followed into the sibling');
+    git('branch', '-M', 'main');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('false && cd sibling; git push origin main'), 'UNKNOWN');
+});
+
+test('--pathspec-from-file is read where git runs', skip, t => {
+    const { dir, git, run } = repo(t);
+    git('add', 'unrelated.test.js');
+    fs.writeFileSync(path.join(dir, 'paths'), 'unrelated.test.js\n');
+    const sibling = path.join(dir, 'sibling');
+    fs.mkdirSync(sibling);
+    const g = (...a) => spawnSync('git', a, { cwd: sibling, encoding: 'utf8' });
+    g('init', '-q'); g('config', 'user.email', 't@example.com'); g('config', 'user.name', 't');
+    fs.writeFileSync(path.join(sibling, 'src.js'), 'a\n');
+    fs.writeFileSync(path.join(sibling, 'x.test.js'), 'x\n');
+    g('add', 'src.js', 'x.test.js');
+    fs.writeFileSync(path.join(sibling, 'paths'), 'src.js\n');
+    assert.equal(run('git -C sibling commit --pathspec-from-file=paths -m x').status, 2, 'sibling/paths names only src.js');
+});
+
+test('quoted pathspec-file entries are not guessed', skip, t => {
+    const { dir, git, run } = repo(t);
+    git('add', 'unrelated.test.js');
+    fs.writeFileSync(path.join(dir, 'paths'), '"src.js"\n');
+    assert.equal(run('git commit --pathspec-from-file=paths -m x').status, 2);
+});

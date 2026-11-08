@@ -28,6 +28,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/loop-lib.sh" || exit 0
 
 STDIN_JSON="$(cat 2>/dev/null || true)"
+LOOP_ACTIVE_CWD="$(loop_json_field "$STDIN_JSON" cwd)"
 
 BREAKER_CFG="$(loop_project_dir)/.circuit-breaker-config.json"
 if [ -f "$BREAKER_CFG" ] && command -v jq >/dev/null 2>&1; then

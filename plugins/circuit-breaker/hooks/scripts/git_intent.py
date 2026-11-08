@@ -139,7 +139,7 @@ def git_sub(seg):
         break
     if i < len(seg) and seg[i] in ("cd", "pushd") and i + 1 < len(seg):
         chdir(seg[i + 1], shell=True)
-        return None, []
+        return "cd", []
     if i >= len(seg) or os.path.basename(seg[i]) != "git":
         first = os.path.basename(seg[i]) if i < len(seg) else ""
         # A git invocation we cannot see into (`sh -c "git push"`, `xargs git`,
@@ -239,10 +239,17 @@ def parse_commit(args):
         if pathspec_file in ("", "-"):
             raise Unknown("pathspec read from stdin")
         try:
-            data = open(pathspec_file, encoding="utf-8").read()
+            # git reads it after `-C`/`cd`, so resolve it where git runs.
+            data = open(os.path.join(CWD[0], os.path.expanduser(pathspec_file)),
+                        encoding="utf-8").read()
         except OSError as exc:
             raise Unknown(str(exc))
-        paths += [p for p in (data.split("\0") if nul else data.splitlines()) if p]
+        entries = [p for p in (data.split("\0") if nul else data.splitlines()) if p]
+        if not nul and any(e.startswith('"') for e in entries):
+            # core.quotePath-style C quoting; git decodes it, so a literal
+            # comparison would look at different paths than git commits.
+            raise Unknown("quoted entries in the pathspec file")
+        paths += entries
     return opts, paths
 
 
@@ -275,11 +282,14 @@ KNOWN_SUBS = INDEX_NEUTRAL | {"add", "commit", "push", "reset", "restore", "rm",
 
 def commit_set(cmd):
     staged = None
-    saw_add, unconditional, dirty, found = False, True, None, None
+    saw_add, saw_cd, unconditional, dirty, found = False, False, True, None, None
     for seg, op in segments(cmd):
         if op is not None and op != "&&":
             unconditional = False
         sub, args = git_sub(seg)
+        if sub == "cd":
+            saw_cd = True
+            continue
         if sub is not None and sub not in ("add", "commit") and sub not in INDEX_NEUTRAL:
             dirty = dirty or sub  # only matters if a commit follows
         if sub in ("add", "commit") and staged is None:
@@ -294,10 +304,11 @@ def commit_set(cmd):
                 raise Unknown("more than one git commit in one command")
             if dirty:
                 raise Unknown("git " + dirty + " may change the index before the commit")
-            if saw_add and not unconditional:
-                # Only a pure `&&` chain guarantees each earlier add ran when the
-                # commit runs; `;`, `||`, pipes or subshells make that a guess.
-                raise Unknown("git add and git commit are not joined by &&")
+            if (saw_add or saw_cd) and not unconditional:
+                # Only a pure `&&` chain guarantees each earlier add or cd ran
+                # when the commit runs; `;`, `||`, pipes or subshells make that
+                # a guess.
+                raise Unknown("git add/cd and git commit are not joined by &&")
             opts, paths = parse_commit(args)
             if "--amend" in opts:
                 # The amended commit keeps HEAD's changes plus the new ones.
@@ -394,8 +405,16 @@ def push_targets(args):
 
 
 def push_protected(cmd):
-    for seg, _ in segments(cmd):
+    saw_cd, unconditional = False, True
+    for seg, op in segments(cmd):
+        if op is not None and op != "&&":
+            unconditional = False
         sub, args = git_sub(seg)
+        if sub == "cd":
+            saw_cd = True
+        elif sub == "push" and saw_cd and not unconditional:
+            # A cd that may have been skipped leaves the push's repository unknown.
+            raise Unknown("cd and git push are not joined by &&")
         if sub == "push":
             for target in push_targets(args):
                 if target == "<all>" or PROTECTED.match(target):
