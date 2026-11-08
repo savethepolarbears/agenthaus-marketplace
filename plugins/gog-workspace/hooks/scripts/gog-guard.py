@@ -2,7 +2,8 @@
 """gog-workspace Bash hook: find gog invocations by parsing the command.
 
 The command is split with shlex and never evaluated, then cut into shell
-segments at ; & | && || ( ) < > and newlines. The scan deliberately does not
+segments at ; & | && || ( ) and newlines; redirections (`2>/dev/null`) are
+dropped from the segment they belong to. The scan deliberately does not
 try to model shell grammar (wrappers, env assignments, `if`/`while`/`!`,
 `timeout 30s`, `sudo -u x`, `ssh host '...'`): any word whose basename is
 `gog` starts an invocation, wherever it appears in a segment, and any word
@@ -82,11 +83,22 @@ def split_segments(command):
     lexer.whitespace_split = True
     lexer.commenters = ""
     words = []
+    skip_target = False
     for tok in lexer:
-        if set(tok) <= SEPARATORS:
+        if set(tok) <= SEPARATORS and ("<" in tok or ">" in tok):
+            # A redirection (`2>/dev/null`, `>>log`, `2>&1`, `<in`) is part of
+            # the same simple command: drop the operator, its fd number and its
+            # target, and keep reading the command's other words.
+            if words and words[-1].isdigit():
+                words.pop()
+            skip_target = True
+        elif set(tok) <= SEPARATORS:
             if words:
                 yield words
             words = []
+            skip_target = False
+        elif skip_target:
+            skip_target = False
         else:
             words.append(tok)
     if words:

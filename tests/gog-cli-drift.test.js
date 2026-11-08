@@ -427,6 +427,10 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog gmail settings vacation set --enable',
     'gog classroom submissions return c1 w1 s1',
     'gog classroom submissions send c1 w1 s1',
+    'gog gmail settings sendas verify alias@example.com',
+    'gog 2>/dev/null drive delete f1',
+    'gog drive 2>/tmp/err delete f1',
+    'gog drive >>log 2>&1 delete f1',
     'gog -ja work@example.com calendar create primary --summary x --from a --to b --send-updates all',
     'gog -ja work@example.com drive delete f1',
     'gog drive -- delete f1',
@@ -466,20 +470,23 @@ test('gog-workspace PreToolUse hook still asks without python3', (t) => {
   const cmd = hooks.hooks.PreToolUse[0].hooks[0].command;
   const bin = fs.mkdtempSync(path.join(require('os').tmpdir(), 'no-python-'));
   t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
-  for (const tool of ['bash', 'cat', 'grep', 'printf']) {
-    const where = spawnSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
+  // Claude Code runs shell-form hooks with sh, so the fallback must be POSIX.
+  for (const tool of ['sh', 'bash', 'cat', 'grep', 'printf']) {
+    const where = spawnSync('sh', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
     if (where) fs.symlinkSync(where, path.join(bin, tool));
   }
-  const run = (command) =>
-    spawnSync(path.join(bin, 'bash'), ['-c', cmd], {
-      input: JSON.stringify({ tool_input: { command } }),
-      encoding: 'utf8',
-      env: { PATH: bin, CLAUDE_PLUGIN_ROOT: path.join(ROOT, 'plugins/gog-workspace') },
-    }).stdout;
-  for (const c of ['gog drive delete f1', 'g""og drive delete f1', 'g\\og gmail send --to a@b.com']) {
-    assert.match(run(c), /"permissionDecision": "ask"/, `should ask without python3: ${c}`);
+  for (const shell of ['sh', 'bash']) {
+    const run = (command) =>
+      spawnSync(path.join(bin, shell), ['-c', cmd], {
+        input: JSON.stringify({ tool_input: { command } }),
+        encoding: 'utf8',
+        env: { PATH: bin, CLAUDE_PLUGIN_ROOT: path.join(ROOT, 'plugins/gog-workspace') },
+      }).stdout;
+    for (const c of ['gog drive delete f1', 'g""og drive delete f1', 'g\\og gmail send --to a@b.com', "g'o'g drive delete f1"]) {
+      assert.match(run(c), /"permissionDecision": "ask"/, `${shell} should ask without python3: ${c}`);
+    }
+    assert.equal(run('ls -la'), '', `${shell}: ls -la`);
   }
-  assert.equal(run('ls -la'), '');
 });
 
 test('gog-workspace PostToolUse hook logs gog commands only', (t) => {
