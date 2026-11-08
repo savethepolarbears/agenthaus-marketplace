@@ -55,3 +55,12 @@ for (const withPython of [true, false]) {
         });
     }
 }
+
+test('devops-flow asks before wrangler however it is launched', skip, () => {
+    const command = commandOf('plugins/devops-flow/hooks/pre-deploy-confirmation.json', 'PreToolUse', 1);
+    const run = c => spawnSync('bash', ['-c', command], { encoding: 'utf8', input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: c } }) }).stdout;
+    for (const c of ['npx wrangler deploy', 'wrangler deploy --env prod', 'pnpm dlx wrangler deploy', 'cd app && npx -y wrangler deploy']) {
+        assert.match(run(c), /"permissionDecision": ?"ask"/, c);
+    }
+    for (const c of ['cat wrangler.toml', 'ls', 'npm test']) assert.equal(run(c), '', c);
+});

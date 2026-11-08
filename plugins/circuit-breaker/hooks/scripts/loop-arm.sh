@@ -9,6 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=loop-lib.sh
 . "$SCRIPT_DIR/loop-lib.sh"
 
+LOOP_ACTIVE_CWD="$(pwd)"  # arm the worktree the session is in
 CONFIG="$(loop_config_path)"
 STATE_DIR="$(loop_state_root)" || { echo "loop-arm: cannot create state directory" >&2; exit 1; }
 TRUST_FILE="$STATE_DIR/trusted"

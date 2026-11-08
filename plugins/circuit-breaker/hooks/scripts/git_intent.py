@@ -244,7 +244,12 @@ def parse_commit(args):
                         encoding="utf-8").read()
         except OSError as exc:
             raise Unknown(str(exc))
-        paths += [p for p in (data.split("\0") if nul else data.splitlines()) if p]
+        entries = [p for p in (data.split("\0") if nul else data.splitlines()) if p]
+        if not nul and any(e.startswith('"') for e in entries):
+            # core.quotePath-style C quoting; git decodes it, so a literal
+            # comparison would look at different paths than git commits.
+            raise Unknown("quoted entries in the pathspec file")
+        paths += entries
     return opts, paths
 
 

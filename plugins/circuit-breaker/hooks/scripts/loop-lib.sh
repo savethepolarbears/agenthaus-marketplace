@@ -31,6 +31,25 @@ loop_session_key() {
 loop_project_dir() {
     local dir="${CLAUDE_PROJECT_DIR:-}"
     [ -n "$dir" ] || dir="$(pwd)"
+    # CLAUDE_PROJECT_DIR stays on the main checkout when the session moves into
+    # a git worktree; LOOP_ACTIVE_CWD (the hook payload's cwd, or the shell's
+    # cwd for loop-arm) follows it. Map the project's path inside its own
+    # worktree onto the active worktree, so loop.json, trust and the check all
+    # refer to the checkout being worked on.
+    if [ -n "${LOOP_ACTIVE_CWD:-}" ] && [ -d "$LOOP_ACTIVE_CWD" ] && command -v git >/dev/null 2>&1; then
+        local proj_top active_top proj_common active_common rel
+        proj_top="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)" || proj_top=""
+        active_top="$(git -C "$LOOP_ACTIVE_CWD" rev-parse --show-toplevel 2>/dev/null)" || active_top=""
+        proj_common="$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || proj_common=""
+        active_common="$(git -C "$LOOP_ACTIVE_CWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || active_common=""
+        # Only another worktree of the same repository, never an unrelated repo.
+        if [ -n "$proj_top" ] && [ -n "$active_top" ] && [ "$proj_top" != "$active_top" ] \
+            && [ -n "$proj_common" ] && [ "$proj_common" = "$active_common" ]; then
+            rel="$(cd "$dir" && pwd -P)"
+            rel="${rel#"$(cd "$proj_top" && pwd -P)"}"
+            [ -d "$active_top$rel" ] && dir="$active_top$rel"
+        fi
+    fi
     printf '%s' "$dir"
 }
 

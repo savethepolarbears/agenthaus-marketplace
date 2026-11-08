@@ -160,3 +160,23 @@ test('timeoutSec 0 is clamped instead of disabling the timeout', skip, t => {
     assert.ok(Date.now() - started < 10000, 'the check was cut off');
     assert.match(r.json.reason, /exit 124/);
 });
+
+test('the guard follows the active git worktree, not CLAUDE_PROJECT_DIR', skip, t => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'loop-wt-'));
+    t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+    const main = path.join(dir, 'main'), wt = path.join(dir, 'wt');
+    const git = (cwd, ...a) => spawnSync('git', a, { cwd, encoding: 'utf8' });
+    fs.mkdirSync(main);
+    git(main, 'init', '-q'); git(main, 'config', 'user.email', 't@example.com'); git(main, 'config', 'user.name', 't');
+    fs.writeFileSync(path.join(main, 'a'), 'a\n');
+    git(main, 'add', 'a'); git(main, 'commit', '-qm', 'init');
+    git(main, 'worktree', 'add', '-q', wt);
+    const config = JSON.stringify({ completionCommand: 'test -f done.txt', maxIterations: 3 });
+    for (const d of [main, wt]) { fs.mkdirSync(path.join(d, '.agenthaus')); fs.writeFileSync(path.join(d, '.agenthaus', 'loop.json'), config); }
+    fs.writeFileSync(path.join(main, 'done.txt'), '');   // main passes, the worktree does not
+    const env = { ...process.env, TMPDIR: dir, CLAUDE_PLUGIN_DATA: path.join(dir, 'data'), CLAUDE_PROJECT_DIR: main };
+    const sh = (script, cwd, input) => spawnSync('bash', [path.join(scripts, script)], { env, cwd, encoding: 'utf8', input: JSON.stringify(input || {}) });
+    assert.equal(sh('loop-arm.sh', wt).status, 0);
+    const r = sh('loop-guard.sh', main, { session_id: 's', hook_event_name: 'Stop', stop_hook_active: false, cwd: wt });
+    assert.equal(JSON.parse(r.stdout).decision, 'block', 'the worktree check is the one that runs');
+});

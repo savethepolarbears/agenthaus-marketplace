@@ -330,3 +330,10 @@ test('--pathspec-from-file is read where git runs', skip, t => {
     fs.writeFileSync(path.join(sibling, 'paths'), 'src.js\n');
     assert.equal(run('git -C sibling commit --pathspec-from-file=paths -m x').status, 2, 'sibling/paths names only src.js');
 });
+
+test('quoted pathspec-file entries are not guessed', skip, t => {
+    const { dir, git, run } = repo(t);
+    git('add', 'unrelated.test.js');
+    fs.writeFileSync(path.join(dir, 'paths'), '"src.js"\n');
+    assert.equal(run('git commit --pathspec-from-file=paths -m x').status, 2);
+});
