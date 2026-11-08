@@ -118,6 +118,28 @@ function markdownFiles(dir) {
 // --------------------------------------------------------------- checking --
 
 /** Returns a list of problems for one invocation (empty when valid). */
+/**
+ * Parse one flag token the way kong does. A single-dash token longer than two
+ * characters is a bundle: boolean short flags (`-jv`), optionally ending in a
+ * value flag that takes the rest of the token (`-awork@x`) or the next word
+ * (`-ja work@x`). Returns { flags, takesNext, unknown }.
+ */
+function parseFlagToken(tok, known, bools) {
+  if (tok.startsWith('--') || tok.length <= 2 || tok.includes('=')) {
+    const flag = tok.split('=')[0];
+    if (!known.has(flag)) return { flags: [flag], takesNext: false, unknown: flag };
+    return { flags: [flag], takesNext: !tok.includes('=') && !bools.has(flag), unknown: null };
+  }
+  const flags = [];
+  for (let k = 1; k < tok.length; k++) {
+    const flag = `-${tok[k]}`;
+    if (!known.has(flag)) return { flags, takesNext: false, unknown: flag };
+    flags.push(flag);
+    if (!bools.has(flag)) return { flags, takesNext: k === tok.length - 1, unknown: null };
+  }
+  return { flags, takesNext: false, unknown: null };
+}
+
 function check(text, { mention = false } = {}) {
   const tokens = tokenize(text).slice(1); // drop "gog"
   const problems = [];
@@ -127,14 +149,16 @@ function check(text, { mention = false } = {}) {
   while (i < tokens.length) {
     const tok = tokens[i];
     if (tok.startsWith('-')) {
-      const flag = tok.split('=')[0];
-      if (!SNAPSHOT.globalFlags.includes(flag)) break;
-      if (tok.includes('=') || SNAPSHOT.globalBoolFlags.includes(flag)) {
+      const parsed = parseFlagToken(tok, new Set(SNAPSHOT.globalFlags), new Set(SNAPSHOT.globalBoolFlags));
+      if (parsed.unknown) break;
+      if (!parsed.takesNext) {
         i++;
         continue;
       }
       const value = tokens[i + 1];
-      if (value === undefined || /^--?[A-Za-z]/.test(value)) return [`global flag ${flag} needs a value`];
+      if (value === undefined || /^--?[A-Za-z]/.test(value)) {
+        return [`global flag ${parsed.flags[parsed.flags.length - 1]} needs a value`];
+      }
       i += 2;
       continue;
     }
@@ -169,18 +193,19 @@ function check(text, { mention = false } = {}) {
     const tok = rest[j];
     if (tok === '...' || tok === '…') continue;
     if (/^--?[A-Za-z]/.test(tok)) {
-      const flag = tok.split('=')[0];
-      if (!known.has(flag)) problems.push(`"gog ${key}" has no flag ${flag}`);
-      if (tok.includes('=') || bools.has(flag) || !known.has(flag)) {
-        seenFlags.add(flag);
+      const parsed = parseFlagToken(tok, known, bools);
+      if (parsed.unknown) problems.push(`"gog ${key}" has no flag ${parsed.unknown}`);
+      if (!parsed.takesNext) {
+        parsed.flags.forEach((f) => seenFlags.add(f));
         continue;
       }
+      const flag = parsed.flags[parsed.flags.length - 1];
       const value = rest[j + 1];
       if (value === undefined || /^--?[A-Za-z]/.test(value)) {
         problems.push(`"gog ${key}" flag ${flag} needs a value`);
         continue;
       }
-      seenFlags.add(flag);
+      parsed.flags.forEach((f) => seenFlags.add(f));
       j++; // consume the flag value
       continue;
     }
@@ -220,6 +245,10 @@ test('checker accepts current forms and rejects stale ones', () => {
     "gog --json gmail search 'is:unread' --max 10",
     "gog -a work@example.com gmail search 'x'",
     "gog gmail trash -q 'older_than:1y' --max 50",
+    'gog -jv gmail search x',
+    'gog -ja work@example.com gmail search x',
+    'gog -awork@example.com gmail search x',
+    "gog gmail trash -jq 'older_than:1y'",
   ];
   const bad = [
     'gog calendar list --from 2026-03-01 --to 2026-03-31 --calendar work',
@@ -231,6 +260,8 @@ test('checker accepts current forms and rejects stale ones', () => {
     'gog auth add',
     'gog drive download',
     'gog drive ls -Z',
+    'gog -jZ gmail search x',
+    'gog gmail search x -ja',
     'gog forms create --title',
     'gog gmail send --to --subject x',
     'gog --account --json gmail search x',
@@ -341,6 +372,8 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     "bash -lc 'g\"\"og gmail send --to a@b.com'",
     'gog classroom courses leave c1',
     'gog class courses unenroll c1',
+    'gog drive \\\ndelete f1',
+    'gog \\\r\n  gmail send --to a@b.com',
   ];
   const silent = [
     "gog gmail search 'is:unread' --max 10",

@@ -22,8 +22,12 @@ own `--gmail-no-send`, `--readonly` or `--enable-commands` flags.
 Usage (stdin is the Claude Code hook payload):
   gog-guard.py ask     PreToolUse: print an "ask" decision when a guarded
                        send/share/delete command may run
-  gog-guard.py audit   PostToolUse: append a line to gog_audit.log when any
-                       gog command ran
+  gog-guard.py audit   PostToolUse: append a line to gog_audit.log for each
+                       gog invocation in the command that just ran. The hook
+                       sees only the command text, so this records what was
+                       issued: a branch the shell skipped (`false && gog ...`)
+                       is still logged, and `ssh host gog ...` without quotes
+                       is not.
 """
 import json
 import os
@@ -69,6 +73,9 @@ def load_table():
 
 def split_segments(command):
     """Yield the word list of each simple command in `command`."""
+    # A backslash-newline continues the line in the shell, so join it before
+    # turning the remaining newlines into command separators.
+    command = command.replace("\\\r\n", " ").replace("\\\n", " ")
     lexer = shlex.shlex(command.replace("\n", " ; "), posix=True, punctuation_chars=";&|()<>")
     lexer.whitespace_split = True
     lexer.commenters = ""
