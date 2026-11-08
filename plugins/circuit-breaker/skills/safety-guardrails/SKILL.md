@@ -26,7 +26,8 @@ Prevents deployments outside business hours (Monday-Friday, 9 AM - 5 PM local ti
 **How it works:**
 
 - Intercepts deployment tool calls via PreToolUse hooks
-- Resolves `git push` destinations the way git does (`hooks/scripts/git_intent.py`), so a bare `git push` from a branch tracking `main` is gated and a feature-branch push is not
+- Resolves `git push` destinations the way git does (`hooks/scripts/git_intent.py`), so a bare `git push` from a branch tracking `main` is gated and a feature-branch push is not; `push.default=matching` counts as pushing every branch, and configured push refspecs fail closed; wildcard (`refs/heads/*:…`) and matching (`:`) refspecs count as protected
+- Treats package scripts named `*deploy*` / `*release*` (`npm run deploy`, `yarn deploy:prod`) as deploys
 - Checks the current day and time against the allowed window
 - Blocks the deployment with a clear message if outside hours
 - Can be overridden by disabling the breaker
@@ -39,7 +40,7 @@ Ensures test files are included in staged changes before allowing commits.
 
 - Intercepts git commit operations via PreToolUse hooks
 - Computes exactly what the commit records (staged files, chained `git add`, `-a`, `--amend`, and `git commit <paths>`, which commits only those paths) and scans it for test patterns (`*.test.*`, `*.spec.*`)
-- Blocks when the commit contents cannot be determined (fail closed)
+- Blocks when the commit contents cannot be determined (fail closed), including when git runs through a wrapper it cannot see into (`sh -c`, `xargs`, `eval`; `env`, `sudo`, `timeout`, `nice` are followed), when python3 is missing, or when an index-changing command such as `git reset`, `git restore --staged` or `git stash` runs before the commit in the same call, or when a chained `git add` is joined to the commit by anything other than `&&` (newlines, `;`, `||`, pipes, subshells)
 - Blocks the commit if no test files are staged alongside code changes
 - Encourages test-driven development practices
 

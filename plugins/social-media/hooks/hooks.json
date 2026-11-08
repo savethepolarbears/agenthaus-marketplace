@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "in=$(cat); skill=$(printf '%s' \"$in\" | jq -r '.tool_input.skill // empty' 2>/dev/null || true); case \"$skill\" in social-media:*) args=$(printf '%s' \"$in\" | jq -r '.tool_input.args // empty' 2>/dev/null | head -c 200 | tr -d '\\n'); printf '[%s] %s %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$skill\" \"$args\" >> \"${CLAUDE_PROJECT_DIR:-.}/social_audit.log\" 2>/dev/null;; esac; exit 0",
+            "command": "in=$(cat); skill=$(printf '%s' \"$in\" | jq -r '.tool_input.skill // empty' 2>/dev/null) || skill=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"skill\") or \"\")' 2>/dev/null) || skill=''; case \"$skill\" in social-media:*) args=$(printf '%s' \"$in\" | jq -r '.tool_input.args // empty' 2>/dev/null) || args=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"args\") or \"\")' 2>/dev/null) || args=''; args=$(printf '%s' \"$args\" | head -c 200 | tr -d '\\n'); printf '[%s] %s %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$skill\" \"$args\" >> \"${CLAUDE_PROJECT_DIR:-.}/social_audit.log\" 2>/dev/null;; esac; exit 0",
             "timeout": 10
           }
         ]

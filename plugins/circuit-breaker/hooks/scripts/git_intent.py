@@ -27,6 +27,8 @@ UNKNOWN = "UNKNOWN"
 NOCOMMIT = "NOCOMMIT"
 # Working directory for git calls; follows `cd` segments and `git -C`.
 CWD = [os.getcwd()]
+# `git -c key=value` overrides seen on the current git segment (lower-cased keys).
+CONFIG = {}
 
 
 class Unknown(Exception):
@@ -44,23 +46,39 @@ def lines(text):
     return [l for l in text.splitlines() if l]
 
 
+OPS = set(";&|()\n")
+
+
 def segments(cmd):
+    """Split a command into (argv, operator_before) pairs.
+
+    Newlines separate commands like `;` does (shlex would otherwise treat them
+    as whitespace and merge `echo hi<newline>git commit` into one segment);
+    a newline inside quotes stays part of its token.
+    """
     try:
-        lexer = shlex.shlex(cmd, posix=True, punctuation_chars=";&|()")
+        lexer = shlex.shlex(cmd, posix=True, punctuation_chars=";&|()\n")
+        lexer.whitespace = " \t\r"
         lexer.whitespace_split = True
         tokens = list(lexer)
     except ValueError as exc:
         raise Unknown(str(exc))
-    segs, cur = [], []
+    segs, cur, pending = [], [], []
     for tok in tokens:
-        if tok and set(tok) <= set(";&|()"):
+        if tok and set(tok) <= OPS:
             if cur:
-                segs.append(cur)
-            cur = []
+                segs.append((cur, "".join(pending) or None))
+                cur, pending = [], []
+            op = tok.replace("\n", "")
+            if op:
+                pending.append(op)
+            elif not pending:
+                pending.append(";")  # a bare newline ends a command like `;`
+            # a newline right after `&&`/`||`/`|` is a line continuation
         else:
             cur.append(tok)
     if cur:
-        segs.append(cur)
+        segs.append((cur, "".join(pending) or None))
     return segs
 
 
@@ -76,6 +94,17 @@ GIT_VALUE_OPTS = {"-c", "--config-env", "--exec-path", "--namespace", "--super-p
                   "--list-cmds", "--attr-source"}
 
 
+# Command wrappers and their options that take a separate value.
+WRAPPERS = {
+    "command": set(), "exec": {"-a"}, "nice": {"-n"}, "time": set(), "nohup": set(),
+    "env": {"-u", "-C", "-S", "--unset", "--chdir"}, "sudo": {"-u", "-g", "-h", "-p", "-C", "-D", "-r", "-t", "-U"},
+    "doas": {"-u", "-C"}, "stdbuf": {"-i", "-o", "-e"}, "ionice": {"-c", "-n", "-p"},
+    "timeout": {"-s", "-k", "--signal", "--kill-after"},
+}
+PRINTERS = {"echo", "printf", "cat", "grep", "rg", "less", "head", "tail", "man", "true", ":"}
+GIT_WORD = re.compile(r"(^|[\s;&|(/'\"])git\s+(\S+\s+)*?(push|commit)(\s|$|['\"])")
+
+
 def git_sub(seg):
     """Return (subcommand, args) for a `git ...` segment, else (None, []).
 
@@ -84,14 +113,34 @@ def git_sub(seg):
     redirect git in ways we do not model, so they are UNKNOWN.
     """
     i = 0
-    while i < len(seg) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]):
-        i += 1  # env assignments (FOO=bar git commit ...)
+    CONFIG.clear()
+    while True:
+        while i < len(seg) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]):
+            if seg[i].startswith(("GIT_CONFIG", "GIT_DIR=", "GIT_WORK_TREE=", "GIT_INDEX_FILE=")):
+                raise Unknown("git configured through the environment")
+            i += 1  # env assignments (FOO=bar git commit ...)
+        if i < len(seg) and seg[i] in WRAPPERS:
+            # Wrappers that run their argument as a command: skip the wrapper
+            # and its own options, then look again (`sudo env FOO=1 git ...`).
+            name, i = seg[i], i + 1
+            while i < len(seg) and seg[i].startswith("-") and seg[i] != "--":
+                i += 2 if seg[i] in WRAPPERS[name] else 1
+            if i < len(seg) and seg[i] == "--":
+                i += 1
+            if name == "timeout" and i < len(seg):
+                i += 1  # the duration
+            continue
+        break
     if i < len(seg) and seg[i] in ("cd", "pushd") and i + 1 < len(seg):
         chdir(seg[i + 1])
         return None, []
-    if i < len(seg) and seg[i] in ("command", "exec", "nice", "time"):
-        i += 1
     if i >= len(seg) or os.path.basename(seg[i]) != "git":
+        first = os.path.basename(seg[i]) if i < len(seg) else ""
+        # A git invocation we cannot see into (`sh -c "git push"`, `xargs git`,
+        # `eval`, a function) is not a guess we make: fail closed. Plain output
+        # commands that merely mention git are not invocations.
+        if first not in PRINTERS and GIT_WORD.search(" ".join(seg[i + 1:])):
+            raise Unknown(first + " runs git indirectly")
         return None, []
     i += 1
     while i < len(seg) and seg[i].startswith("-"):
@@ -102,8 +151,11 @@ def git_sub(seg):
             chdir(seg[i + 1])
             i += 2
             continue
-        if opt.split("=", 1)[0] in ("--git-dir", "--work-tree"):
-            raise Unknown("git invoked against another repository")
+        if opt.split("=", 1)[0] in ("--git-dir", "--work-tree", "--config-env"):
+            raise Unknown("git invoked against another repository or config")
+        if opt == "-c" and i + 1 < len(seg):
+            key, _, val = seg[i + 1].partition("=")
+            CONFIG[key.lower()] = val
         i += 2 if opt in GIT_VALUE_OPTS else 1
     if i >= len(seg):
         return None, []
@@ -167,19 +219,40 @@ def simulate_add(args, staged):
     paths = [a for a in args if not a.startswith("-")]
     cmd = ["add", "--dry-run", *flags] + (["--", *paths] if paths else [])
     for line in lines(git(*cmd)):
-        if line.startswith("add '") and line.endswith("'"):
-            staged.add(line[5:-1])
+        # Dry-run records are "add '<path>'" and, for deleted files, "remove '<path>'".
+        m = re.match(r"^(add|remove) '(.*)'$", line)
+        if m:
+            staged.add(m.group(2))
+
+
+# Subcommands that cannot change the index, so they are safe to ignore before a
+# commit. Anything else (reset, restore, rm, mv, stash, checkout, merge, ...) may
+# change what gets committed in ways we do not simulate, so it makes the answer
+# UNKNOWN rather than a guess.
+INDEX_NEUTRAL = {"status", "diff", "log", "show", "branch", "rev-parse", "ls-files",
+                 "describe", "fetch", "remote", "config", "blame", "grep", "shortlog",
+                 "reflog", "help", "version", "var", "cat-file", "for-each-ref"}
 
 
 def commit_set(cmd):
     staged = None
-    for seg in segments(cmd):
+    saw_add, unconditional = False, True
+    for seg, op in segments(cmd):
+        if op is not None and op != "&&":
+            unconditional = False
         sub, args = git_sub(seg)
+        if sub is not None and sub not in ("add", "commit") and sub not in INDEX_NEUTRAL:
+            raise Unknown("git " + sub + " may change the index before the commit")
         if sub in ("add", "commit") and staged is None:
             staged = set(lines(git("diff", "--cached", "--name-only")))
         if sub == "add":
+            saw_add = True
             simulate_add(args, staged)
         elif sub == "commit":
+            if saw_add and not unconditional:
+                # Only a pure `&&` chain guarantees each earlier add ran when the
+                # commit runs; `;`, `||`, pipes or subshells make that a guess.
+                raise Unknown("git add and git commit are not joined by &&")
             opts, paths = parse_commit(args)
             if "--amend" in opts:
                 # The amended commit keeps HEAD's changes plus the new ones.
@@ -212,11 +285,15 @@ def current_branch():
 def push_targets(args):
     """Return the destination branch names a `git push` would update."""
     value_opts = {"--repo", "--receive-pack", "--exec", "-o", "--push-option"}
-    positional, i = [], 0
+    positional, i, repo_opt = [], 0, False
     while i < len(args):
         a = args[i]
         if a in ("--all", "--mirror", "--tags", "--branches"):
             return ["<all>"]
+        if a == "--repo" or a.startswith("--repo="):
+            repo_opt = True  # repository given by option: every positional is a refspec
+            i += 1 if "=" in a else 2
+            continue
         if a in value_opts:
             i += 2
             continue
@@ -226,10 +303,29 @@ def push_targets(args):
         if not a.startswith("-"):
             positional.append(a)
         i += 1
-    refspecs = positional[1:]
+    refspecs = positional if repo_opt else positional[1:]
     if not refspecs:
-        # No refspec: push.default (simple/upstream/current) pushes the current
-        # branch to its upstream, so resolve the effective destination.
+        # Configured remote.<name>.push refspecs replace push.default; we do not
+        # model them, so treat their presence as unknown.
+        if any(k.startswith("remote.") and k.endswith(".push") for k in CONFIG):
+            raise Unknown("remote push refspec override")
+        r = subprocess.run(["git", "config", "--get-regexp", r"^remote\..*\.push$"],
+                           capture_output=True, text=True, timeout=15, cwd=CWD[0])
+        if r.returncode == 0 and r.stdout.strip():
+            raise Unknown("configured remote push refspecs")
+        mode = CONFIG.get("push.default")
+        if mode is None:
+            r = subprocess.run(["git", "config", "--get", "push.default"],
+                               capture_output=True, text=True, timeout=15, cwd=CWD[0])
+            mode = r.stdout.strip() if r.returncode == 0 else "simple"
+        if mode == "matching":
+            return ["<all>"]  # updates every branch that exists on both sides
+        if mode == "nothing":
+            return []
+        if mode not in ("simple", "current", "upstream", "tracking"):
+            raise Unknown("unrecognised push.default " + mode)
+        # simple/current/upstream push the current branch, to its upstream
+        # where one is set, so resolve the effective destination.
         try:
             upstream = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}").strip()
             return [upstream.split("/", 1)[1] if "/" in upstream else upstream, current_branch()]
@@ -238,6 +334,8 @@ def push_targets(args):
     out = []
     for spec in refspecs:
         spec = spec.lstrip("+")
+        if spec in ("", ":") or "*" in spec:
+            return ["<all>"]  # matching or pattern refspecs can update every branch
         src, colon, dst = spec.partition(":")
         target = dst if colon else src
         if target in ("HEAD", "@", ""):
@@ -250,7 +348,7 @@ def push_targets(args):
 
 
 def push_protected(cmd):
-    for seg in segments(cmd):
+    for seg, _ in segments(cmd):
         sub, args = git_sub(seg)
         if sub == "push":
             for target in push_targets(args):

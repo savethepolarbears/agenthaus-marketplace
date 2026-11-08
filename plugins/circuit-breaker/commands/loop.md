@@ -8,7 +8,8 @@ allowed-tools: Read, Write, Bash(bash *loop-arm.sh*), Bash(cat .agenthaus/loop.j
 
 The circuit-breaker `Stop` hook can keep the agent working until a deterministic
 completion check passes, with a hard iteration cap. It is **off** until a human
-arms it. Arguments: `$ARGUMENTS`
+arms it. Requires `jq` (without it the loop cannot be armed and the Stop hook
+never continues a session). Arguments: `$ARGUMENTS`
 
 ## Contract
 

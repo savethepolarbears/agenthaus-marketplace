@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file_path=$(jq -r '.tool_input.file_path // empty' 2>/dev/null || true); root=\"${CLAUDE_PROJECT_DIR:-.}\"; if printf '%s\\n' \"$file_path\" | grep -q '\\.context/.*\\.json$' && [ -d \"$root/.context\" ]; then printf '%s | TASK_TRANSITION | file=%s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$file_path\" >> \"$root/.context/audit.log\" 2>/dev/null; fi; exit 0",
+            "command": "in=$(cat); file_path=$(printf '%s' \"$in\" | jq -r '.tool_input.file_path // empty' 2>/dev/null) || file_path=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"file_path\") or \"\")' 2>/dev/null) || file_path=''; root=\"${CLAUDE_PROJECT_DIR:-.}\"; if printf '%s\\n' \"$file_path\" | grep -q '\\.context/.*\\.json$' && [ -d \"$root/.context\" ]; then printf '%s | TASK_TRANSITION | file=%s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$file_path\" >> \"$root/.context/audit.log\" 2>/dev/null; fi; exit 0",
             "timeout": 10
           }
         ]

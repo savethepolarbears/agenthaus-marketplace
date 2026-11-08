@@ -9,6 +9,14 @@ STDIN_JSON="$(cat 2>/dev/null || true)"
 CMD=""
 if [ -n "$STDIN_JSON" ] && command -v jq >/dev/null 2>&1; then
     CMD="$(printf '%s' "$STDIN_JSON" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
+elif [ -n "$STDIN_JSON" ] && command -v python3 >/dev/null 2>&1; then
+    CMD="$(printf '%s' "$STDIN_JSON" | python3 -I -c 'import json,sys
+try:
+    print((json.load(sys.stdin).get("tool_input") or {}).get("command") or "")
+except Exception:
+    pass' 2>/dev/null || true)"
+elif [ -n "$STDIN_JSON" ]; then
+    CMD="$STDIN_JSON"  # no JSON parser: scan the raw payload so the gate still applies
 fi
 
 # Check if this breaker is disabled
@@ -34,7 +42,11 @@ if [ -n "$CMD" ] && command -v python3 >/dev/null 2>&1; then
     STAGED_FILES="$(python3 -I "$SCRIPT_DIR/git_intent.py" commit-set "$CMD" 2>/dev/null || echo UNKNOWN)"
     [ "$STAGED_FILES" = "NOCOMMIT" ] && exit 0
 else
-    STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
+    # Without python3 the commit set (commit -a, chained adds, pathspecs) cannot
+    # be computed; the staged index alone would under-count it, so fail closed.
+    echo "CIRCUIT BREAKER: python3 is required to check what this commit records." >&2
+    echo "Install python3, or disable this breaker with /configure disable require-tests" >&2
+    exit 2
 fi
 if [ "$STAGED_FILES" = "UNKNOWN" ]; then
     echo "CIRCUIT BREAKER: Could not determine which files this commit records" >&2

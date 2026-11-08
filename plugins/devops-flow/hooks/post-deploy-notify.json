@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tool=$(jq -r '.tool_name // \"unknown\"' 2>/dev/null || echo unknown); printf '[%s] devops-flow deploy tool completed: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$tool\" >> \"${CLAUDE_PROJECT_DIR:-.}/devops-deploy-audit.log\" 2>/dev/null || true",
+            "command": "in=$(cat); tool=$(printf '%s' \"$in\" | jq -r '.tool_name // \"unknown\"' 2>/dev/null) || tool=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print(json.load(sys.stdin).get(\"tool_name\") or \"unknown\")' 2>/dev/null) || tool=unknown; printf '[%s] devops-flow deploy tool completed: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$tool\" >> \"${CLAUDE_PROJECT_DIR:-.}/devops-deploy-audit.log\" 2>/dev/null || true",
             "timeout": 10
           }
         ]

@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "tool=$(jq -r '.tool_name // \"unknown\"' 2>/dev/null || echo unknown); printf '[%s] apple-workflows tool: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$tool\" >> \"${CLAUDE_PROJECT_DIR:-.}/apple_workflows_audit.log\" 2>/dev/null; exit 0",
+            "command": "in=$(cat); tool=$(printf '%s' \"$in\" | jq -r '.tool_name // \"unknown\"' 2>/dev/null) || tool=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print(json.load(sys.stdin).get(\"tool_name\") or \"unknown\")' 2>/dev/null) || tool=unknown; printf '[%s] apple-workflows tool: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$tool\" >> \"${CLAUDE_PROJECT_DIR:-.}/apple_workflows_audit.log\" 2>/dev/null; exit 0",
             "timeout": 10
           }
         ]

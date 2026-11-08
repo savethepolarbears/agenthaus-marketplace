@@ -13,7 +13,10 @@ Pre-built safety guardrails as reusable hooks for Claude Code workflows. Prevent
 
 ## Prerequisites
 
-No external dependencies or environment variables required. Shell scripts use standard POSIX utilities.
+No environment variables are required. The hooks are POSIX shell plus:
+
+- **python3**: required by `require-tests` and by the `git push` check in `block-prod-deploy`, which compute what a git command will really do (`hooks/scripts/git_intent.py`). Without it, both fail closed: commits are blocked and pushes are treated as deploys.
+- **jq**: required by the `/loop` guard (`loop-arm.sh`, `loop-guard.sh`). Without it `/loop arm` refuses to arm and the Stop hook never continues a session. The other hooks fall back to python3 when jq is missing.
 
 ## Installation
 

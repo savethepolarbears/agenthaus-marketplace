@@ -114,3 +114,148 @@ test('push-protected resolves the effective destination', skip, t => {
     assert.equal(askIn(`cd ${name} && git push`), 'yes', 'cd is followed');
     assert.equal(askIn(`git --no-pager -C ${name} push`), 'yes');
 });
+
+test('index-changing commands before the commit are not guessed', skip, t => {
+    const { git, run } = repo(t);
+    git('add', 'src.js', 'unrelated.test.js');
+    const r = run('git reset unrelated.test.js && git commit -m change');
+    assert.equal(r.status, 2, 'reset may unstage the test, so the hook fails closed');
+    assert.equal(run('git status && git commit -m change').status, 0, 'read-only git commands are ignored');
+});
+
+test('push.default=matching counts as updating every branch', skip, t => {
+    const { dir, git } = repo(t);
+    const remote = path.join(dir, '..', path.basename(dir) + '-remote.git');
+    t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+    spawnSync('git', ['init', '-q', '--bare', remote]);
+    git('branch', '-M', 'main');
+    git('remote', 'add', 'origin', remote);
+    git('push', '-q', '-u', 'origin', 'main');
+    git('checkout', '-q', '-b', 'feature');
+    git('push', '-q', '-u', 'origin', 'feature');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('git push origin'), 'no');
+    assert.equal(ask('git -c push.default=matching push origin'), 'yes');
+    assert.equal(ask('git -c remote.origin.push=refs/heads/*:refs/heads/* push'), 'UNKNOWN');
+    git('config', 'push.default', 'matching');
+    assert.equal(ask('git push'), 'yes', 'configured matching mode is honoured');
+    git('config', '--unset', 'push.default');
+    git('config', 'remote.origin.push', 'refs/heads/feature:refs/heads/main');
+    assert.equal(ask('git push'), 'UNKNOWN', 'configured push refspecs are not guessed');
+});
+
+const deploy = path.resolve(__dirname, '..', 'plugins', 'circuit-breaker', 'hooks', 'scripts', 'block-prod-deploy.sh');
+
+test('package-manager deploy scripts are gated outside the window', skip, t => {
+    const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-date-'));
+    t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    // Pin the clock to a Saturday so every deploy is outside the window.
+    fs.writeFileSync(path.join(bin, 'date'), '#!/bin/sh\ncase "$1" in +%u) echo 6;; +%H) echo 12;; *) exec /bin/date "$@";; esac\n', { mode: 0o755 });
+    const run = command => spawnSync('bash', [deploy], {
+        cwd: bin, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
+        input: JSON.stringify({ tool_name: 'Bash', tool_input: { command } }),
+    });
+    for (const c of ['npm run deploy', 'pnpm run deploy:prod', 'yarn deploy', 'npm run-script release', 'bun run deploy']) {
+        assert.equal(run(c).status, 2, c);
+    }
+    for (const c of ['npm run build', 'yarn add release-it', 'npm test', 'cat deploy-notes.md']) {
+        assert.equal(run(c).status, 0, c);
+    }
+});
+
+test('git push --repo treats every positional as a refspec', skip, t => {
+    const { dir, git } = repo(t);
+    const remote = path.join(dir, '..', path.basename(dir) + '-remote.git');
+    t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+    spawnSync('git', ['init', '-q', '--bare', remote]);
+    git('branch', '-M', 'main');
+    git('remote', 'add', 'origin', remote);
+    git('push', '-q', '-u', 'origin', 'main');
+    git('checkout', '-q', '-b', 'feature');
+    git('push', '-q', '-u', 'origin', 'feature');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('git push --repo origin main'), 'yes');
+    assert.equal(ask('git push --repo=origin main'), 'yes');
+    assert.equal(ask('git push --repo origin feature'), 'no');
+});
+
+test('a chained add that records a deletion counts the deleted file', skip, t => {
+    const { dir, run } = repo(t);
+    fs.rmSync(path.join(dir, 'src.js'));
+    assert.equal(run('git add src.js && git commit -m "drop src"').status, 2);
+});
+
+test('the commit gate still applies without jq', skip, t => {
+    const { dir } = repo(t);
+    const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'no-jq-'));
+    t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    for (const tool of ['bash', 'cat', 'dirname', 'grep', 'git', 'python3', 'head']) {
+        const where = spawnSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
+        fs.symlinkSync(where, path.join(bin, tool));
+    }
+    const bash = path.join(bin, 'bash');
+    const r = spawnSync(bash, [script], {
+        cwd: dir, encoding: 'utf8', env: { ...process.env, PATH: bin },
+        input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git commit -am change' } }),
+    });
+    assert.equal(r.status, 2, r.stderr);
+});
+
+test('wildcard and matching refspecs count as protected', skip, t => {
+    const { dir, git } = repo(t);
+    const remote = path.join(dir, '..', path.basename(dir) + '-remote.git');
+    t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+    spawnSync('git', ['init', '-q', '--bare', remote]);
+    git('branch', '-M', 'main');
+    git('remote', 'add', 'origin', remote);
+    git('checkout', '-q', '-b', 'feature');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask("git push origin 'refs/heads/*:refs/heads/*'"), 'yes');
+    assert.equal(ask('git push origin :'), 'yes');
+    assert.equal(ask('git push origin feature'), 'no');
+});
+
+test('git add counts only when joined to the commit by &&', skip, t => {
+    const { run } = repo(t);
+    assert.equal(run('false && git add unrelated.test.js; git commit -am x').status, 2, 'the add may be skipped');
+    assert.equal(run('git add unrelated.test.js || true; git commit -am x').status, 2);
+    assert.equal(run('git add unrelated.test.js && git commit -am x').status, 0);
+});
+
+test('newlines separate commands', skip, t => {
+    const { dir, git, run } = repo(t);
+    assert.equal(run('echo hi\ngit commit -am x').status, 2, 'commit on its own line is seen');
+    assert.equal(run('git add unrelated.test.js &&\n  git commit -am x').status, 0, 'a newline after && continues the chain');
+    git('branch', '-M', 'main');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('echo done\ngit push origin main'), 'yes');
+});
+
+test('git behind wrappers is followed or fails closed', skip, t => {
+    const { dir, git, run } = repo(t);
+    assert.equal(run('sudo -u root git commit -am x').status, 2, 'sudo is followed');
+    assert.equal(run('env FOO=1 git commit -am x').status, 2, 'env is followed');
+    assert.equal(run('sh -c "git commit -am x"').status, 2, 'sh -c is unknown, so blocked');
+    git('branch', '-M', 'main');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('env git push origin main'), 'yes');
+    assert.equal(ask('timeout 30 git push origin main'), 'yes');
+    assert.equal(ask('xargs git push origin'), 'UNKNOWN');
+    assert.equal(ask('echo git push is mentioned'), 'no');
+});
+
+test('the commit gate fails closed without python3', skip, t => {
+    const { dir } = repo(t);
+    const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'no-py-'));
+    t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    for (const tool of ['bash', 'cat', 'dirname', 'grep', 'git', 'head', 'jq']) {
+        const where = spawnSync('bash', ['-c', `command -v ${tool}`], { encoding: 'utf8' }).stdout.trim();
+        if (where) fs.symlinkSync(where, path.join(bin, tool));
+    }
+    const r = spawnSync(path.join(bin, 'bash'), [script], {
+        cwd: dir, encoding: 'utf8', env: { ...process.env, PATH: bin },
+        input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git commit -am change' } }),
+    });
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /python3 is required/);
+});

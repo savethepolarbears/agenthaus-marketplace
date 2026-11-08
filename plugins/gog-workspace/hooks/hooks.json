@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/gog-guard.py\" ask",
+            "command": "in=$(cat); printf '%s' \"$in\" | python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/gog-guard.py\" ask || { printf '%s' \"$in\" | grep -q 'gog' && printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"gog-workspace: python3 is unavailable, so this gog command could not be checked. Confirm it before running.\"}}'; }; exit 0",
             "timeout": 5
           }
         ]

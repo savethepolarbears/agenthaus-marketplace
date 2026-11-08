@@ -415,6 +415,11 @@ for hook_file in hook_files:
                 for var in ("$TOOL_NAME", "$CLAUDE_OUTPUT", "$TOOL_INPUT"):
                     if var in command:
                         fails.append(f"{rel}: {event} hook reads {var}, which Claude Code never sets (input is JSON on stdin)")
+                # `X=$(... jq ...)` with no `|| X=` fallback is silently empty
+                # when jq is not installed, which disables the hook.
+                for m in re.finditer(r"\b(\w+)=\$\(([^()]|\([^()]*\))*\bjq\b([^()]|\([^()]*\))*\)", command):
+                    if not re.match(r"\s*\|\|\s*" + re.escape(m.group(1)) + "=", command[m.end():]):
+                        fails.append(f"{rel}: {event} hook sets {m.group(1)} from jq with no fallback when jq is missing")
                 if handler.get("type", "command") == "command" and "timeout" not in handler:
                     warns.append(f"{rel}: {event} hook has no explicit timeout")
 
