@@ -423,6 +423,8 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'gog gmail settings filters add --query x --trash',
     'gog gmail settings watch stop',
     'gog gmail settings watch rm',
+    "gog gmail settings vacation update --enable --subject away --body 'Back Monday'",
+    'gog gmail settings vacation set --enable',
     'gog drive -- delete f1',
     "G=gog bash -c '$G drive delete f1'",
     "gog calendar create primary --summary x --from a --to b --attendees c@d.com --send-updates all",
