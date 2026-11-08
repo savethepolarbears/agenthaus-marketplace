@@ -330,6 +330,10 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     'G=gog; $G drive delete f1',
     'gog keep --impersonate alice@example.com delete n1',
     'gog gmail --account work@x.com --gmail-no-send send --to a@b.com',
+    'gog -awork@example.com drive delete f1',
+    'gog -jv drive delete f1',
+    'gog -ja work@example.com drive delete f1',
+    'gog --made-up-option drive delete f1',
   ];
   const silent = [
     "gog gmail search 'is:unread' --max 10",
@@ -366,10 +370,14 @@ test('gog-workspace PostToolUse hook logs gog commands only', (t) => {
   run('echo gog gmail search');
   run("grep -r 'gog drive delete' docs/");
   run('GOG_ACCOUNT=x gog gmail search is:unread');
+  run('sudo --user root gog drive ls');
+  run('timeout --signal TERM 30s gog tasks lists list');
   const log = fs.readFileSync(path.join(dir, 'gog_audit.log'), 'utf8').trim().split('\n');
   fs.rmSync(dir, { recursive: true, force: true });
-  assert.equal(log.length, 1);
-  assert.match(log[0], /gog command executed: gmail search$/);
+  assert.deepEqual(
+    log.map((l) => l.replace(/^\[[^\]]+\] /, '')),
+    ['gog command executed: gmail search', 'gog command executed: drive ls', 'gog command executed: tasks lists'],
+  );
 });
 
 module.exports = { check, tokenize };

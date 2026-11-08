@@ -81,7 +81,9 @@ def in_command_position(words, i):
             or ASSIGNMENT.match(word)
             or word.startswith("-")
             or DURATION.match(word)
-            or prev in ("-u", "-g", "-n", "-I", "-L", "-P", "-k", "-s")
+            # a wrapper option's separate value: `sudo -u root`, `sudo --user root`,
+            # `timeout --signal TERM`, `env --unset FOO`
+            or (prev.startswith("-") and "=" not in prev)
         ):
             continue
         return False
@@ -104,6 +106,13 @@ def gog_paths(command, table, depth=0, audit=False):
             if os.path.basename(bare) == "gog":
                 if not audit or in_command_position(words, i):
                     yield resolve(words[i + 1:], table)
+                if not audit:
+                    # Also start from every top-level command word, so a flag
+                    # whose value we misjudge (`-awork@x`, `-jv`, an unknown
+                    # option) can never hide the guarded subcommand after it.
+                    for k in range(i + 1, len(words)):
+                        if words[k] in table["tree"][""]:
+                            yield resolve(words[k:], table, guarded_only=True)
             elif not audit and word.startswith("$"):
                 yield resolve(words[i + 1:], table, guarded_only=True)
             elif depth < MAX_DEPTH and any(c.isspace() for c in word) and GOG_WORD.search(word):
@@ -128,7 +137,10 @@ def resolve(args, table, guarded_only=False):
         if tok.startswith("-") and tok != "-":
             flag = tok.split("=", 1)[0]
             bools = table["boolFlags"].get(node, table["boolFlags"][""])
-            if "=" not in tok and flag not in bools:
+            attached = "=" in tok or (not tok.startswith("--") and len(tok) > 2)
+            # `-awork@x` carries its value and `-jv` bundles booleans: neither
+            # takes the next word.
+            if not attached and flag not in bools:
                 i += 1  # skip the flag's value
             i += 1
             continue
