@@ -17,8 +17,10 @@ fi
 
 # Only gate commands that actually look like a deploy/publish.
 # Match deploy/publish verbs as whole words at a command position so that e.g.
-# `cat release-notes.md` is not gated; git pushes are resolved by git_intent.py.
-DEPLOY_RE='(^|[;&|[:space:]])((npm|pnpm|yarn)[[:space:]]+publish|wrangler[[:space:]]+(deploy|publish|pages[[:space:]]+deploy)|vercel([[:space:]]+deploy)?[[:space:]]+--prod|netlify[[:space:]]+deploy[[:space:]]+--prod|fly[[:space:]]+deploy|kubectl[[:space:]]+(apply|rollout)|helm[[:space:]]+(upgrade|install)|terraform[[:space:]]+apply|gh[[:space:]]+release[[:space:]]+create|[a-z0-9_.-]*deploy[a-z0-9_.-]*\.sh|make[[:space:]]+(deploy|release))'
+# `cat release-notes.md` is not gated; package scripts named *deploy*/*release*
+# (npm run deploy, yarn deploy:prod) count as deploys; git pushes are resolved
+# by git_intent.py.
+DEPLOY_RE='(^|[;&|[:space:]])((npm|pnpm|yarn|bun)[[:space:]]+publish|(npm|pnpm|yarn|bun)[[:space:]]+((run|run-script)[[:space:]]+)?[a-z0-9:_.-]*(deploy|release)[a-z0-9:_.-]*|wrangler[[:space:]]+(deploy|publish|pages[[:space:]]+deploy)|vercel([[:space:]]+deploy)?[[:space:]]+--prod|netlify[[:space:]]+deploy[[:space:]]+--prod|fly[[:space:]]+deploy|kubectl[[:space:]]+(apply|rollout)|helm[[:space:]]+(upgrade|install)|terraform[[:space:]]+apply|gh[[:space:]]+release[[:space:]]+create|[a-z0-9_.-]*deploy[a-z0-9_.-]*\.sh|make[[:space:]]+(deploy|release))'
 IS_DEPLOY=no
 printf '%s\n' "$CMD" | grep -qiE "$DEPLOY_RE" && IS_DEPLOY=yes
 # git push: resolve the effective destination (including a bare `git push` that

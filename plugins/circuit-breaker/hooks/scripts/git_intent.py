@@ -27,6 +27,8 @@ UNKNOWN = "UNKNOWN"
 NOCOMMIT = "NOCOMMIT"
 # Working directory for git calls; follows `cd` segments and `git -C`.
 CWD = [os.getcwd()]
+# `git -c key=value` overrides seen on the current git segment (lower-cased keys).
+CONFIG = {}
 
 
 class Unknown(Exception):
@@ -84,7 +86,10 @@ def git_sub(seg):
     redirect git in ways we do not model, so they are UNKNOWN.
     """
     i = 0
+    CONFIG.clear()
     while i < len(seg) and re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]):
+        if seg[i].startswith(("GIT_CONFIG", "GIT_DIR=", "GIT_WORK_TREE=", "GIT_INDEX_FILE=")):
+            raise Unknown("git configured through the environment")
         i += 1  # env assignments (FOO=bar git commit ...)
     if i < len(seg) and seg[i] in ("cd", "pushd") and i + 1 < len(seg):
         chdir(seg[i + 1])
@@ -102,8 +107,11 @@ def git_sub(seg):
             chdir(seg[i + 1])
             i += 2
             continue
-        if opt.split("=", 1)[0] in ("--git-dir", "--work-tree"):
-            raise Unknown("git invoked against another repository")
+        if opt.split("=", 1)[0] in ("--git-dir", "--work-tree", "--config-env"):
+            raise Unknown("git invoked against another repository or config")
+        if opt == "-c" and i + 1 < len(seg):
+            key, _, val = seg[i + 1].partition("=")
+            CONFIG[key.lower()] = val
         i += 2 if opt in GIT_VALUE_OPTS else 1
     if i >= len(seg):
         return None, []
@@ -171,10 +179,21 @@ def simulate_add(args, staged):
             staged.add(line[5:-1])
 
 
+# Subcommands that cannot change the index, so they are safe to ignore before a
+# commit. Anything else (reset, restore, rm, mv, stash, checkout, merge, ...) may
+# change what gets committed in ways we do not simulate, so it makes the answer
+# UNKNOWN rather than a guess.
+INDEX_NEUTRAL = {"status", "diff", "log", "show", "branch", "rev-parse", "ls-files",
+                 "describe", "fetch", "remote", "config", "blame", "grep", "shortlog",
+                 "reflog", "help", "version", "var", "cat-file", "for-each-ref"}
+
+
 def commit_set(cmd):
     staged = None
     for seg in segments(cmd):
         sub, args = git_sub(seg)
+        if sub is not None and sub not in ("add", "commit") and sub not in INDEX_NEUTRAL:
+            raise Unknown("git " + sub + " may change the index before the commit")
         if sub in ("add", "commit") and staged is None:
             staged = set(lines(git("diff", "--cached", "--name-only")))
         if sub == "add":
@@ -228,8 +247,27 @@ def push_targets(args):
         i += 1
     refspecs = positional[1:]
     if not refspecs:
-        # No refspec: push.default (simple/upstream/current) pushes the current
-        # branch to its upstream, so resolve the effective destination.
+        # Configured remote.<name>.push refspecs replace push.default; we do not
+        # model them, so treat their presence as unknown.
+        if any(k.startswith("remote.") and k.endswith(".push") for k in CONFIG):
+            raise Unknown("remote push refspec override")
+        r = subprocess.run(["git", "config", "--get-regexp", r"^remote\..*\.push$"],
+                           capture_output=True, text=True, timeout=15, cwd=CWD[0])
+        if r.returncode == 0 and r.stdout.strip():
+            raise Unknown("configured remote push refspecs")
+        mode = CONFIG.get("push.default")
+        if mode is None:
+            r = subprocess.run(["git", "config", "--get", "push.default"],
+                               capture_output=True, text=True, timeout=15, cwd=CWD[0])
+            mode = r.stdout.strip() if r.returncode == 0 else "simple"
+        if mode == "matching":
+            return ["<all>"]  # updates every branch that exists on both sides
+        if mode == "nothing":
+            return []
+        if mode not in ("simple", "current", "upstream", "tracking"):
+            raise Unknown("unrecognised push.default " + mode)
+        # simple/current/upstream push the current branch, to its upstream
+        # where one is set, so resolve the effective destination.
         try:
             upstream = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}").strip()
             return [upstream.split("/", 1)[1] if "/" in upstream else upstream, current_branch()]

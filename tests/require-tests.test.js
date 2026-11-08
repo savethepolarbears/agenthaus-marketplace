@@ -114,3 +114,51 @@ test('push-protected resolves the effective destination', skip, t => {
     assert.equal(askIn(`cd ${name} && git push`), 'yes', 'cd is followed');
     assert.equal(askIn(`git --no-pager -C ${name} push`), 'yes');
 });
+
+test('index-changing commands before the commit are not guessed', skip, t => {
+    const { git, run } = repo(t);
+    git('add', 'src.js', 'unrelated.test.js');
+    const r = run('git reset unrelated.test.js && git commit -m change');
+    assert.equal(r.status, 2, 'reset may unstage the test, so the hook fails closed');
+    assert.equal(run('git status && git commit -m change').status, 0, 'read-only git commands are ignored');
+});
+
+test('push.default=matching counts as updating every branch', skip, t => {
+    const { dir, git } = repo(t);
+    const remote = path.join(dir, '..', path.basename(dir) + '-remote.git');
+    t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+    spawnSync('git', ['init', '-q', '--bare', remote]);
+    git('branch', '-M', 'main');
+    git('remote', 'add', 'origin', remote);
+    git('push', '-q', '-u', 'origin', 'main');
+    git('checkout', '-q', '-b', 'feature');
+    git('push', '-q', '-u', 'origin', 'feature');
+    const ask = c => spawnSync('python3', ['-I', intent, 'push-protected', c], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+    assert.equal(ask('git push origin'), 'no');
+    assert.equal(ask('git -c push.default=matching push origin'), 'yes');
+    assert.equal(ask('git -c remote.origin.push=refs/heads/*:refs/heads/* push'), 'UNKNOWN');
+    git('config', 'push.default', 'matching');
+    assert.equal(ask('git push'), 'yes', 'configured matching mode is honoured');
+    git('config', '--unset', 'push.default');
+    git('config', 'remote.origin.push', 'refs/heads/feature:refs/heads/main');
+    assert.equal(ask('git push'), 'UNKNOWN', 'configured push refspecs are not guessed');
+});
+
+const deploy = path.resolve(__dirname, '..', 'plugins', 'circuit-breaker', 'hooks', 'scripts', 'block-prod-deploy.sh');
+
+test('package-manager deploy scripts are gated outside the window', skip, t => {
+    const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-date-'));
+    t.after(() => fs.rmSync(bin, { recursive: true, force: true }));
+    // Pin the clock to a Saturday so every deploy is outside the window.
+    fs.writeFileSync(path.join(bin, 'date'), '#!/bin/sh\ncase "$1" in +%u) echo 6;; +%H) echo 12;; *) exec /bin/date "$@";; esac\n', { mode: 0o755 });
+    const run = command => spawnSync('bash', [deploy], {
+        cwd: bin, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
+        input: JSON.stringify({ tool_name: 'Bash', tool_input: { command } }),
+    });
+    for (const c of ['npm run deploy', 'pnpm run deploy:prod', 'yarn deploy', 'npm run-script release', 'bun run deploy']) {
+        assert.equal(run(c).status, 2, c);
+    }
+    for (const c of ['npm run build', 'yarn add release-it', 'npm test', 'cat deploy-notes.md']) {
+        assert.equal(run(c).status, 0, c);
+    }
+});
