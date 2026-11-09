@@ -8,23 +8,23 @@ Given "$ARGUMENTS" as user input, execute Google Classroom operations using the 
 ## Supported Operations
 
 ### Courses
-- **List courses**: `gog classroom courses --json`
+- **List courses**: `gog classroom courses list --json`
 
 ### Roster
 - **List students/teachers**: `gog classroom roster <course_id> --json`
 
 ### Coursework
-- **List assignments**: `gog classroom coursework <course_id> --json`
-- **List materials**: `gog classroom materials <course_id> --json`
+- **List assignments**: `gog classroom coursework list <course_id> --json`
+- **List materials**: `gog classroom materials list <course_id> --json`
 
 ### Communication
-- **List announcements**: `gog classroom announcements <course_id> --json`
-- **List topics**: `gog classroom topics <course_id> --json`
+- **List announcements**: `gog classroom announcements list <course_id> --json`
+- **List topics**: `gog classroom topics list <course_id> --json`
 
 ### Administration
-- **List invitations**: `gog classroom invitations <course_id> --json`
-- **List guardians**: `gog classroom guardians --json`
-- **View profiles**: `gog classroom profiles --json`
+- **List invitations**: `gog classroom invitations list --course <course_id> --json`
+- **List guardians**: `gog classroom guardians list <student_id> --json`
+- **View profiles**: `gog classroom profile get <user_id> --json`
 
 ## Instructions
 

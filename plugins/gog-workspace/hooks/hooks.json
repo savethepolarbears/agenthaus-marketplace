@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qE '(^|[;&|(\"][[:space:]]*)gog[[:space:]]+(gmail[[:space:]]+(send|delete|trash)|drive[[:space:]]+(delete|rm|trash)|calendar[[:space:]]+delete|tasks[[:space:]]+delete|chat[[:space:]]+send|sheets[[:space:]]+(clear|delete))'; then printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"gog-workspace: this sends a message or deletes Google Workspace data. Confirm recipients/targets first.\"}}'; fi",
+            "command": "in=$(cat); printf '%s' \"$in\" | python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/gog-guard.py\" ask || { printf '%s' \"$in\" | grep -q \"g[\\$\\\"'\\\\\\\\]*o[\\$\\\"'\\\\\\\\]*g\" && printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"gog-workspace: python3 is unavailable, so this gog command could not be checked. Confirm it before running.\"}}'; }; exit 0",
             "timeout": 5
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "in=$(cat); cmd=$(printf '%s' \"$in\" | jq -r '.tool_input.command // empty' 2>/dev/null) || cmd=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print((json.load(sys.stdin).get(\"tool_input\") or {}).get(\"command\") or \"\")' 2>/dev/null) || cmd=$in; if printf '%s' \"$cmd\" | grep -qE '(^|[;&|(\"][[:space:]]*)gog[[:space:]]'; then printf '[%s] gog command executed\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" >> \"${CLAUDE_PROJECT_DIR:-.}/gog_audit.log\" 2>/dev/null; fi; exit 0",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/gog-guard.py\" audit || true",
             "timeout": 10
           }
         ]

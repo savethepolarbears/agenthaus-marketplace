@@ -8,14 +8,14 @@ Given "$ARGUMENTS" as user input, execute Google Docs operations using the `gog`
 ## Supported Operations
 
 ### Read & List
-- **Read document**: `gog docs read <doc_id>`
-- **Read as markdown**: `gog docs read <doc_id> --markdown`
-- **List tabs**: `gog docs tabs <doc_id>`
+- **Read document**: `gog docs cat <doc_id>`
+- **Read as markdown**: `gog docs export <doc_id> --format md --out <path>`
+- **List tabs**: `gog docs tabs list <doc_id>`
 
 ### Create & Import
 - **Create empty doc**: `gog docs create '<title>'`
-- **Import from markdown**: `gog docs create --file <path.md>`
-- **Import with images**: `gog docs create --file <path.md>` (inline images auto-uploaded)
+- **Import from markdown**: `gog docs create '<title>' --file <path.md>`
+- **Import with images**: `gog docs create '<title>' --file <path.md>` (inline images auto-uploaded)
 
 ### Export
 - **Export as PDF**: `gog docs export <doc_id> --format pdf --out <path>`
@@ -24,10 +24,10 @@ Given "$ARGUMENTS" as user input, execute Google Docs operations using the `gog`
 - **Export as plain text**: `gog docs export <doc_id> --format txt --out <path>`
 
 ### Comments
-- **List comments**: `gog docs comments <doc_id>`
-- **Add comment**: `gog docs comment <doc_id> '<text>'`
-- **Reply to comment**: `gog docs comment reply <comment_id> '<text>'`
-- **Resolve comment**: `gog docs comment resolve <comment_id>`
+- **List comments**: `gog docs comments list <doc_id>`
+- **Add comment**: `gog docs comments add <doc_id> '<text>'`
+- **Reply to comment**: `gog docs comments reply <doc_id> <comment_id> '<text>'`
+- **Resolve comment**: `gog docs comments resolve <doc_id> <comment_id>`
 
 ## Instructions
 
