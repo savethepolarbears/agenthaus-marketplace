@@ -101,6 +101,8 @@ const SEND_COMMANDS = [
   'gmail settings vacation update', 'gmail settings sendas create', 'chat messages send', 'chat dm send', 'drive share',
   // comments email collaborators (and anyone @mentioned)
   'docs comments add', 'docs comments reply', 'drive comments create', 'drive comments reply',
+  // invitations email the invitee
+  'classroom guardian-invitations create', 'classroom invitations create',
 ];
 
 /** Build the hook's table: canonical guarded paths plus the alias tree that reaches them. */

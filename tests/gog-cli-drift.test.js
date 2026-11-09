@@ -434,10 +434,13 @@ test('gog-workspace PreToolUse hook asks before send and delete subcommands', (t
     "gog $'drive' delete f1",
     "gog drive $'\\x64elete' f1",
     'gog drive $"delete" f1',
+    "g$'o'g drive delete f1",
     "gog docs comments add d1 'Looks good'",
     'gog docs comments reply d1 c1 thanks',
     'gog drive comments create f1 --content hi',
     'gog drive comments reply f1 c1 --content hi',
+    'gog classroom guardian-invitations create s1 --email g@example.com',
+    'gog classroom invitations create c1 --user u@example.com --role STUDENT',
     'gog 2>/dev/null drive delete f1',
     'gog drive 2>/tmp/err delete f1',
     'gog drive >>log 2>&1 delete f1',
@@ -492,7 +495,7 @@ test('gog-workspace PreToolUse hook still asks without python3', (t) => {
         encoding: 'utf8',
         env: { PATH: bin, CLAUDE_PLUGIN_ROOT: path.join(ROOT, 'plugins/gog-workspace') },
       }).stdout;
-    for (const c of ['gog drive delete f1', 'g""og drive delete f1', 'g\\og gmail send --to a@b.com', "g'o'g drive delete f1"]) {
+    for (const c of ['gog drive delete f1', 'g""og drive delete f1', 'g\\og gmail send --to a@b.com', "g'o'g drive delete f1", "g$'o'g drive delete f1", 'g$"o"g gmail send --to a@b.com']) {
       assert.match(run(c), /"permissionDecision": "ask"/, `${shell} should ask without python3: ${c}`);
     }
     assert.equal(run('ls -la'), '', `${shell}: ls -la`);
