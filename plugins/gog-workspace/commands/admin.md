@@ -8,13 +8,13 @@ Given "$ARGUMENTS" as user input, execute Google Workspace Admin operations usin
 ## Supported Operations
 
 ### Users
-- **List users**: `gog admin users list --json`
+- **List users**: `gog admin users list --domain <domain> --json` (`--domain` is required)
 - **Get user**: `gog admin users get <user_email> --json`
 - **Create user**: `gog admin users create <user_email> --given '<first>' --family '<last>'`
 - **Suspend user**: `gog admin users suspend <user_email>`
 
 ### Groups
-- **List groups**: `gog admin groups list --json`
+- **List groups**: `gog admin groups list --domain <domain> --json` (`--domain` is required)
 - **List members**: `gog admin groups members list <group_email> --json`
 - **Add member**: `gog admin groups members add <group_email> <member_email>`
 - **Remove member**: `gog admin groups members remove <group_email> <member_email>`

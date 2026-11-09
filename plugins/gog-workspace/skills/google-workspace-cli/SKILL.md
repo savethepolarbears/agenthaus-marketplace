@@ -204,11 +204,11 @@ gog appscript run <script_id> <function>                # Run deployed function
 
 ### Admin (Workspace)
 ```bash
-gog admin users list --json                             # List users
+gog admin users list --domain <domain> --json           # List users
 gog admin users get <user_email> --json                 # Get user
 gog admin users create <user_email> --given '<first>' --family '<last>'   # Create user
 gog admin users suspend <user_email>                    # Suspend user
-gog admin groups list --json                            # List groups
+gog admin groups list --domain <domain> --json          # List groups
 gog admin groups members list <group_email>             # List members
 gog admin groups members add <group_email> <member_email>      # Add member
 gog admin groups members remove <group_email> <member_email>   # Remove member
