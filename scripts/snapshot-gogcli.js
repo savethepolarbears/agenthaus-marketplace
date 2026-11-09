@@ -103,6 +103,11 @@ const SEND_COMMANDS = [
   'docs comments add', 'docs comments reply', 'drive comments create', 'drive comments reply',
   // invitations email the invitee
   'classroom guardian-invitations create', 'classroom invitations create',
+  // direct access grants
+  'admin groups members add', 'admin users create', 'classroom students add', 'classroom teachers add',
+  // course-wide posts students see (published or scheduled)
+  'classroom announcements create', 'classroom announcements update',
+  'classroom coursework create', 'classroom coursework update',
 ];
 
 /** Build the hook's table: canonical guarded paths plus the alias tree that reaches them. */

@@ -21,7 +21,7 @@ Manage your entire Google Workspace from the terminal — Gmail, Calendar, Drive
 * **Workspace Assistant agent** — Multi-service workflow orchestration (morning briefings, meeting prep, email-to-task pipelines)
 * **Email Composer agent** — Context-aware email drafting with tone matching and thread awareness
 * **Google Workspace CLI skill** — Comprehensive command reference automatically invoked when you mention Google services
-* **Confirmation and audit hooks** — Claude Code asks before gog send, share and delete commands, and before calendar changes that notify attendees (`--send-updates` other than `none`) (a best-effort prompt, not a security boundary), and `gog_audit.log` records each gog invocation issued. The log works from the command text, so it records what was issued, not what the shell actually ran.
+* **Confirmation and audit hooks** — Claude Code asks before gog commands that send, share, invite, grant access or delete (including Docs/Drive comments and Classroom posts), and before calendar changes that notify attendees (`--send-updates` other than `none`) (a best-effort prompt, not a security boundary), and `gog_audit.log` records each gog invocation issued. The log works from the command text, so it records what was issued, not what the shell actually ran.
 
 ### Installation
 
