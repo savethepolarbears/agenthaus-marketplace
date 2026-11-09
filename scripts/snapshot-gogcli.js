@@ -108,6 +108,15 @@ const SEND_COMMANDS = [
   // course-wide posts students see (published or scheduled)
   'classroom announcements create', 'classroom announcements update',
   'classroom coursework create', 'classroom coursework update',
+  'classroom materials create', 'classroom materials update', 'classroom submissions turn-in',
+  // replies and declines that reach the organizer; ending a call for everyone
+  'calendar respond', 'calendar propose-time', 'calendar out-of-office', 'meet end',
+  // publishing or adding people
+  'forms publish', 'chat spaces create',
+  // removes a stored token (top-level alias of auth remove)
+  'logout',
+  // escape hatches that can do any of the above
+  'api call', 'appscript run',
 ];
 
 /** Build the hook's table: canonical guarded paths plus the alias tree that reaches them. */
