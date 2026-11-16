@@ -1,6 +1,6 @@
 ---
-name: claim
 description: Claim an authorized legacy task and validate its typed claim and result transitions
+argument-hint: "[task-id]"
 ---
 
 Read pending legacy tasks from `.context/inbox/`. Select the task specified by `$ARGUMENTS`, otherwise show tasks and select the oldest `created_at`. Report an empty board without inventing work. Resolve project root, runtime identity and authorized execution scope before acting.

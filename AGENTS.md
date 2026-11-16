@@ -24,7 +24,7 @@ agenthaus-marketplace/
 bash scripts/validate-plugins.sh         # Validate all plugins and marketplace
 bash scripts/generate-skills-index.sh    # Re-generate skills index
 bash scripts/install-plugins.sh          # Interactively install plugins
-bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
+node scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 ```
 
 ## Tech Stack & Conventions
@@ -52,12 +52,12 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 
 | Plugin | Description | MCP | Hooks |
 | :--- | :--- | :--- | :--- |
-| activepieces | Agent p... | no | no |
-| agent-handoff | State-b... | no | no |
+| activepieces | Agent p... | no | yes |
+| agent-handoff | State-b... | no | yes |
 | agent-memory | Shared ... | yes | no |
 | apple-photos | Manage ... | no | yes |
-| apple-workflows | Manage ... | yes | no |
-| circuit-breaker | Pre-bui... | no | no |
+| apple-workflows | Manage ... | yes | yes |
+| circuit-breaker | Pre-bui... | no | yes |
 | clickup-tasks | Manage ... | yes | no |
 | cloudflare-platform | Manage ... | yes | no |
 | context7-docs | Fetch u... | yes | no |
@@ -66,7 +66,7 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 | encharge | Encharg... | yes | no |
 | fleet-commander | Visuali... | no | no |
 | github-integration | Full Gi... | yes | no |
-| gog-workspace | Google ... | no | no |
+| gog-workspace | Google ... | no | yes |
 | knowledge-synapse | RAG Age... | yes | no |
 | marketplace-cli | Utility... | no | no |
 | markupgo | Generat... | yes | no |
@@ -81,34 +81,34 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 | qa-droid | Automat... | yes | no |
 | seo-content-suite | Unified... | yes | no |
 | seo-geo-rag | Six-pha... | no | no |
-| shadow-mode | Agents ... | no | no |
-| social-media | Generat... | no | no |
+| shadow-mode | Agents ... | no | yes |
+| social-media | Generat... | no | yes |
 | task-commander | ClickUp... | yes | no |
 | textfocus | SEO key... | yes | no |
 | ux-ui | Polish ... | no | no |
 | vercel-deploy | Manage ... | yes | no |
-| vistasocial-scheduler | Social ... | yes | no |
-| wp-cli-fleet | Agentic... | no | no |
+| vistasocial-scheduler | Social ... | yes | yes |
+| wp-cli-fleet | Agentic... | no | yes |
 
 ## Platform Support
 
 | Platform | MCP | Hooks | Commands | Skills |
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | full | full | full |
-| Codex CLI | config.toml | none | partial | full |
-| Antigravity / Gemini | mcp_config.json / settings.json | none | partial | full |
-| Cursor | .cursor/mcp.json | none | partial | full |
-| Windsurf / Devin | mcp_config.json | none | partial | full |
-| Copilot | .vscode/mcp.json | none | prompts | full |
+| Codex CLI | config.toml | native* | partial | full |
+| Antigravity / Gemini | mcp_config.json / settings.json | native* | partial | full |
+| Cursor | .cursor/mcp.json | native* | partial | full |
+| Windsurf / Devin | mcp_config.json | native* | partial | full |
+| Copilot | .vscode/mcp.json | native* | prompts | full |
 
-> Hooks are Claude Code-exclusive. `agenthaus install` writes each provider's MCP config.
+> *Each provider has its own hook system; agenthaus does not translate Claude hooks. `agenthaus install` writes each provider's MCP config.
 
 ## Provider Lifecycle Invariants
 
 1. **Cursor Discovery**: Reads `.cursor/rules/*.mdc` and `.cursor/mcp.json`. `postInstall` mirrors rules and MCP; never rely solely on `.cursor/plugins/`.
 2. **MCP Collision Namespacing**: Conflicting keys become `<plugin>-<key>`; ownership lives in `~/.agenthaus/state.json` (legacy `_agenthaus_mcp` markers migrate) so uninstalls never drop shared or user servers.
 3. **Symlink Update Hook Refresh**: In `updatePlugin`, when symlink target matches source (`isSame`), re-run `postInstall` to refresh derived provider files.
-4. **Provider-Scoped Sync Coverage**: Provider sync (`sync --target <p>`) executes `repairTargetHooks` on copied plugin dirs.
+4. **Provider-Scoped Sync Coverage**: Provider sync (`sync --target <p>`) executes `repairInstalledHooks` on copied plugin dirs.
 
 ## Gemini Context Caching
 

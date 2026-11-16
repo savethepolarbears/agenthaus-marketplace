@@ -1,6 +1,6 @@
 # qa-droid
 
-Automated Playwright tests with Slack/Gmail notifications.
+Automated Playwright tests with Slack notifications and gog CLI email reports.
 
 > **MCP setup:** `agenthaus install --target <provider>` registers these MCP servers in the provider's config (Codex: `config.toml` via `codex-mcp-config.toml`).
 

@@ -1,5 +1,6 @@
 ---
 description: "Analyze keyword metrics — search volume, CPC, difficulty, and competition. Usage: `/textfocus:keyword 'project management software' --lang en`"
+argument-hint: "<keyword> [--lang <code>]"
 ---
 
 # Analyze Keyword Metrics

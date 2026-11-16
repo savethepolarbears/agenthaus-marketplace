@@ -1,22 +1,10 @@
 ---
-name: improve-ui
 description: |
   Analyze and polish your front‑end code to enhance user experience, accessibility,
   visual design, and responsiveness. This command inspects provided files and
   recommends Tailwind CSS improvements, accessibility fixes (ARIA labels,
   semantic HTML), and responsive layout adjustments.
-arguments:
-  files:
-    description: >-
-      File paths or glob patterns to analyze for UX/UI improvements. When omitted,
-      the command defaults to scanning all files under `src/` in the current project.
-    type: string[]
-  dry_run:
-    description: >-
-      If true, the command will only report suggested changes without applying
-      them. When false or omitted, the command will prepare unified diff patches
-      ready for application after user confirmation.
-    type: boolean
+argument-hint: "[file-or-directory ...]"
 ---
 
 # System Prompt

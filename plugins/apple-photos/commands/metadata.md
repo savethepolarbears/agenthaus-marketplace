@@ -1,5 +1,6 @@
 ---
 description: Batch edit photo metadata — titles, captions, keywords, favorites, locations, and albums. Usage: `/apple-photos:metadata <operation> [options]`
+argument-hint: "<operation> [options]"
 ---
 When invoked with "$ARGUMENTS" (operation and options), build and execute an `osxphotos batch-edit` command.
 

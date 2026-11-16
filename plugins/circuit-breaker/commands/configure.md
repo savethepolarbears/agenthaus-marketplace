@@ -1,6 +1,6 @@
 ---
-name: configure
-description: Enable or disable specific circuit breaker guardrails
+description: Enable or disable specific circuit breaker guardrails, set the budget threshold, or reset counters
+argument-hint: "[status | enable <name> | disable <name> | enable all | disable all | threshold <n> | reset]"
 ---
 
 # Configure Circuit Breakers
@@ -9,10 +9,11 @@ You are configuring circuit breaker safety guardrails.
 
 Follow these steps:
 
-1. **List available breakers**: Present the three built-in circuit breakers:
+1. **List available breakers**: Present the four built-in circuit breakers:
    - `block-prod-deploy` -- Blocks deployments outside business hours (Mon-Fri 9am-5pm)
    - `require-tests` -- Requires test files in staged changes before committing
-   - `budget-guard` -- Warns when tool usage exceeds threshold (default: 100 calls)
+   - `budget-guard` -- Asks for confirmation when per-session tool usage reaches the threshold (default: 100 calls)
+   - `loop-guard` -- Bounded Stop-hook loop driven by `.agenthaus/loop.json` (see `/circuit-breaker:loop`)
 
 2. **Read current config**: Check if `.circuit-breaker-config.json` exists. If it does, load and display current state. If not, all breakers default to enabled.
 

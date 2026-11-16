@@ -1,16 +1,17 @@
 {
   "_comment": "Paste the \"mcpServers\" entries below into your claude_desktop_config.json",
   "_plugin": "data-core",
-  "_version": "1.0.0",
+  "_version": "1.1.0",
   "mcpServers": {
     "postgres": {
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "${NEON_DATABASE_URL}"
+        "postgres-mcp@0.3.0",
+        "--access-mode=unrestricted"
       ],
-      "command": "npx",
-      "env": {}
+      "command": "uvx",
+      "env": {
+        "DATABASE_URI": "${NEON_DATABASE_URL}"
+      }
     }
   }
 }

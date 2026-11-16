@@ -1,6 +1,6 @@
 {
   "name": "notion-workspace",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Interact with your Notion workspace - search pages, query databases and create new content.",
   "author": {
     "name": "AgentHaus Team"

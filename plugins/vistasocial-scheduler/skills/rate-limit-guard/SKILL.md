@@ -23,9 +23,9 @@ When scheduling multiple posts in sequence (e.g., a week of daily posts):
 
 Each post typically requires 2–3 MCP calls:
 
-1. `searchPosts` — conflict check (~1 call)
-2. `schedulePost` — create the post (~1 call)
-3. Optional: verify via `searchPosts` (~1 call)
+1. `listPosts` — conflict check (~1 call)
+2. `createOrUpdatePost` — create the post (~1 call)
+3. Optional: verify via `listPosts` (~1 call)
 
 A 7-post weekly batch = ~14–21 MCP calls. Safe within limits if paced.
 
@@ -48,14 +48,14 @@ If at any point during batch scheduling:
 
 | Operation | Typical MCP Calls | Notes |
 | ----------- | ------------------- | ------- |
-| Look up one profile | 1 | `listProfiles` with query |
-| List all profiles in a group | 1 | `listProfilesInGroup` |
-| List all profile groups | 1 | `listProfileGroups` |
-| Check for scheduling conflicts | 1 | `searchPosts` with date range |
-| Schedule one post | 1 | `schedulePost` |
-| Schedule one post with first comment | 1 | `schedulePost` with comments array |
+| Look up one profile | 1 | `findProfiles` with query |
+| List all profiles in a group | 1 | `findProfiles` |
+| List all profile groups | 1 | `findProfileGroups` |
+| Check for scheduling conflicts | 1 | `listPosts` with date range |
+| Schedule one post | 1 | `createOrUpdatePost` |
+| Schedule one post with first comment | 1 | `createOrUpdatePost` with comments array |
 | Get optimal publish times | 1 | `getOptimalPublishTimes` |
-| Verify a scheduled post | 1 | `searchPosts` post-scheduling |
+| Verify a scheduled post | 1 | `listPosts` post-scheduling |
 | Full weekly batch (7 posts) | 14–21 | Conflict check + schedule + verify each |
 | Full two-week batch (14 posts) | 28–42 | MUST split into two batches |
 
@@ -65,7 +65,7 @@ If at any point during batch scheduling:
 - **NEVER** schedule 20+ posts without pacing delays
 - **NEVER** ignore a 429 response and retry immediately
 - **NEVER** assume the rate limit has reset without waiting a full 60 seconds
-- **NEVER** run `searchPosts` with broad date ranges across multiple profiles simultaneously
+- **NEVER** run `listPosts` with broad date ranges across multiple profiles simultaneously
 
 ## Logging Guidance
 

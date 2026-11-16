@@ -1,12 +1,14 @@
 {
+  "description": "Append an audit line after Cloudflare deploy tools run. It does not send notifications; use /deploy's Slack step for that.",
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "cloudflare.*deploy",
+        "matcher": "mcp__.*[Cc]loudflare.*__(execute|.*(deploy|publish|create_version|rollback).*)$",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[post-deploy] Deployment completed. Notifying team...' && exit 0"
+            "command": "in=$(cat); tool=$(printf '%s' \"$in\" | jq -r '.tool_name // \"unknown\"' 2>/dev/null) || tool=$(printf '%s' \"$in\" | python3 -I -c 'import json,sys; print(json.load(sys.stdin).get(\"tool_name\") or \"unknown\")' 2>/dev/null) || tool=unknown; printf '[%s] devops-flow deploy tool completed: %s\\n' \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\" \"$tool\" >> \"${CLAUDE_PROJECT_DIR:-.}/devops-deploy-audit.log\" 2>/dev/null || true",
+            "timeout": 10
           }
         ]
       }

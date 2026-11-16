@@ -1,7 +1,8 @@
 ---
 name: flow-operator
-description: the execution specialist for ActivePieces mutations
+description: "Executes approved ActivePieces mutations (create, update, test, publish flows) step by step, validating after each change. Use only after a blueprint has been approved and the user wants it built or changed. Example: 'build the approved Stripe-to-Slack flow and test it'."
 model: sonnet
+maxTurns: 60
 ---
 
 # Agent: Flow Operator

@@ -4,7 +4,7 @@ description: >
   post copy following the format library and caption SOPs, respects the
   utility/scenic mix ratio, applies seasonal hooks, and optionally schedules
   all posts via batch-schedule. Use when building a content calendar from scratch.
-allowed-tools: VistaSocial:schedulePost, VistaSocial:searchPosts, VistaSocial:listProfiles, VistaSocial:getOptimalPublishTimes, WebSearch, GoogleDrive
+allowed-tools: mcp__plugin_vistasocial-scheduler_vistasocial__createOrUpdatePost, mcp__plugin_vistasocial-scheduler_vistasocial__listPosts, mcp__plugin_vistasocial-scheduler_vistasocial__findProfiles, mcp__plugin_vistasocial-scheduler_vistasocial__getOptimalPublishTimes, WebSearch
 ---
 
 # Plan a Content Week
@@ -23,7 +23,7 @@ Collect from the user:
 
 ## Step 2: Check Existing Content
 
-1. **Search VistaSocial** via `searchPosts` for the brand + date range to see if anything is already scheduled
+1. **Search VistaSocial** via `listPosts` for the brand + date range to see if anything is already scheduled
 2. **Search recent posts** from the past 2 weeks to avoid topic repetition
 3. **Check project documents** for any pre-planned content or editorial calendars
 

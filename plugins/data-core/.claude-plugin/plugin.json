@@ -1,6 +1,6 @@
 {
   "name": "data-core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Serverless Postgres database management via Neon.",
   "author": {
     "name": "AgentHaus Team"
@@ -13,17 +13,6 @@
     "postgres",
     "migrations"
   ],
-  "mcpServers": {
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "${NEON_DATABASE_URL}"
-      ],
-      "env": {}
-    }
-  },
   "skills": [
     "./skills/postgres-operations"
   ]

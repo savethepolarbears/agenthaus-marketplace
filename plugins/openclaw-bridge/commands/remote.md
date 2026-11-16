@@ -1,6 +1,6 @@
 ---
-name: remote
 description: Send a command to a remote OpenClaw instance
+argument-hint: "<instance_url> <command>"
 ---
 
 You are sending a command to a remote OpenClaw instance.

@@ -1,6 +1,6 @@
 ---
-name: dispatch
 description: Launch a new headless agent task via the blackboard protocol
+argument-hint: "<task description> [--priority <p>]"
 ---
 
 You are dispatching a new task to the agent fleet.

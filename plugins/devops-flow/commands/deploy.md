@@ -1,9 +1,14 @@
 ---
 description: Deploy current project to Cloudflare and notify team
+argument-hint: "[environment]"
 ---
-# /devops:deploy
-1. Use the `cloudflare.list_workers` tool to check existing scripts and ensure no naming conflicts.
-2. Read `wrangler.toml` to confirm the environment and account IDs match the target environment.
-3. Run `npx wrangler deploy` via the Cloudflare MCP to upload and activate your Worker.
-4. After deployment succeeds, call `github.create_issue_comment` to post the deployment URL to the active pull request so that reviewers see the result.
-5. Call `slack.post_message` to send a summary of the deployment (including the new URL) to the configured channel.  Mention who initiated the deploy and any relevant environment details.
+# /devops-flow:deploy
+
+Target environment: `$ARGUMENTS` (default: the `wrangler.toml` default environment).
+
+1. Use the Cloudflare API MCP server (`search` to find the Workers scripts endpoint, then `execute`) to list existing Worker scripts and confirm there is no naming conflict.
+2. Read `wrangler.toml` (or `wrangler.jsonc`) to confirm the environment and account IDs match the target environment. Stop if they do not.
+3. Run `npx wrangler deploy [--env <environment>]` with Bash. The pre-deploy hook asks for confirmation, and circuit-breaker (if installed) enforces the deploy window.
+4. After the deploy succeeds, use the GitHub MCP server's add-issue-comment tool to post the deployment URL on the active pull request.
+5. Use the Slack MCP server's send-message tool to post a summary (new URL, environment, who initiated it) to `${SLACK_CHANNEL}` or the channel the user names.
+6. If any step fails, stop and report the failing step. Never retry a deploy automatically.

@@ -1,6 +1,6 @@
 ---
-name: remember
 description: Store a memory in persistent Postgres storage
+argument-hint: "<content to remember>"
 ---
 
 You are storing a new memory using the Postgres MCP server.

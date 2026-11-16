@@ -1,29 +1,35 @@
 {
   "mcpServers": {
     "neuronwriter": {
-      "command": "python",
-      "args": ["-m", "neuronwriter_mcp"],
-      "env": {
-        "NEURONWRITER_API_KEY": "${NEURONWRITER_API_KEY}"
-      }
+      "type": "http",
+      "url": "https://app.neuronwriter.com/mcp/http"
     },
     "textfocus": {
-      "command": "python",
-      "args": ["-m", "textfocus_server"],
+      "command": "python3",
+      "args": [
+        "-m",
+        "textfocus_server"
+      ],
       "env": {
         "TEXTFOCUS_API_KEY": "${TEXTFOCUS_API_KEY}"
       }
     },
     "markupgo": {
       "command": "npx",
-      "args": ["markupgo-mcp-server"],
+      "args": [
+        "-y",
+        "markupgo-mcp-server"
+      ],
       "env": {
         "MARKUPGO_API_KEY": "${MARKUPGO_API_KEY}"
       }
     },
     "outscraper": {
       "command": "npx",
-      "args": ["-y", "outscraper-mcp@0.2.5"],
+      "args": [
+        "-y",
+        "outscraper-mcp@0.2.5"
+      ],
       "env": {
         "OUTSCRAPER_API_KEY": "${OUTSCRAPER_API_KEY}"
       }

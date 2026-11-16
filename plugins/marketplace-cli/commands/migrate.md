@@ -1,5 +1,4 @@
 ---
-name: migrate
 description: Convert an AgentHaus plugin to OpenClaw skill format
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "encharge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Encharge.io marketing automation — manage people, tags, emails, segments, custom objects, and multi-account workflows via 55 MCP tools and CLI commands.",
   "author": {
     "name": "AgentHaus Team"

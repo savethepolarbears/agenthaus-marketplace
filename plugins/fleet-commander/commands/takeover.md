@@ -1,6 +1,6 @@
 ---
-name: takeover
 description: Attach to a running agent session and take over execution
+argument-hint: "<task-id>"
 ---
 
 You are taking over an active agent session.

@@ -1,6 +1,6 @@
 ---
-name: status
 description: Read the legacy task board and separately report validated typed handoff evidence
+argument-hint: "[json]"
 ---
 
 Read `.context/inbox/`, `.context/active/` and `.context/completed/` without modification. Missing directories are empty; malformed files are invalid, not completed. Show task ID, requirements summary, legacy status, assigned runtime actor, timestamps and result/error. `$ARGUMENTS` containing `json` requests the same scoped observation as JSON. Do not print secrets from inputs/outputs.

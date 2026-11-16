@@ -3,5 +3,5 @@
 
 [mcp_servers.markupgo]
 command = "npx"
-args = ["markupgo-mcp-server"]
+args = ["-y", "markupgo-mcp-server"]
 env_vars = ["MARKUPGO_API_KEY"]

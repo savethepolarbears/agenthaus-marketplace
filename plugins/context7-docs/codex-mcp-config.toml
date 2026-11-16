@@ -3,5 +3,5 @@
 
 [mcp_servers.context7]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-context7"]
+args = ["-y", "@upstash/context7-mcp@4.5.1"]
 env_vars = ["CONTEXT7_API_KEY"]

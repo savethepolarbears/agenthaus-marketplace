@@ -1,5 +1,4 @@
 ---
-name: generate-faq
 description: Generate an AI-FAQ.md file for the current project optimized for Generative Engine Optimization (GEO). Creates 5–7 Q&A pairs targeting the questions users ask AI search engines (Perplexity, ChatGPT, Google AI Overviews) about this type of project. Each answer is self-contained, pronoun-free, and structured for AI extraction. Usage: `/seo-geo-rag:generate-faq`
 ---
 

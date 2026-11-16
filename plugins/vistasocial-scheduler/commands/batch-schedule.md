@@ -3,7 +3,7 @@ description: >
   Schedule a full week (or custom range) of posts for a brand with rate-limit
   pacing and batch safety. Use when scheduling 3+ posts at once for a single
   brand or across the Greece cluster.
-allowed-tools: VistaSocial:schedulePost, VistaSocial:searchPosts, VistaSocial:listProfiles, VistaSocial:getOptimalPublishTimes
+allowed-tools: mcp__plugin_vistasocial-scheduler_vistasocial__createOrUpdatePost, mcp__plugin_vistasocial-scheduler_vistasocial__listPosts, mcp__plugin_vistasocial-scheduler_vistasocial__findProfiles, mcp__plugin_vistasocial-scheduler_vistasocial__getOptimalPublishTimes
 ---
 
 # Batch Schedule Posts
@@ -46,13 +46,13 @@ Proceed? (y/n)
 
 ## Step 3: Pre-Flight Conflict Scan
 
-Run ONE `searchPosts` call covering the entire date range:
+Run ONE `listPosts` call covering the entire date range:
 
 ```yaml
 profile_ids: ["<target_profile_id>"]
 dateFrom: "<start_date>"
 dateTo: "<end_date>"
-status: ["APPROVED", "NEEDS_APPROVAL"]
+status: ["SCHEDULED", "IN_REVIEW"]
 timezone: "<brand_timezone>"
 ```
 
@@ -63,8 +63,8 @@ Parse results and flag any dates that already have scheduled posts. Present conf
 For each post in the batch:
 
 1. **Validate content** — confirm message text, check character count for Threads (<500)
-2. **Build parameters** — profile_id, network_code, message, publish_at (with correct offset), labels, comments
-3. **Call `schedulePost`** — capture response
+2. **Build parameters** — profile_id, message, publish_at (with correct offset), timezone, tags, customization.comments
+3. **Call `createOrUpdatePost`** — capture response
 4. **Log result** — report success/failure with rate limit remaining
 5. **Pace** — wait the required delay before next post
 

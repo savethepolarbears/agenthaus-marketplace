@@ -1,7 +1,8 @@
 ---
 name: flow-architect
-description: the planning specialist for ActivePieces flow generation
+description: "Plans ActivePieces flows before anything is built: maps triggers, pieces, connections and branches into a reviewable blueprint. Use when the user wants to design, scope or refactor an ActivePieces automation and no mutation should happen yet. Example: 'plan a flow that posts new Stripe payments to Slack'."
 model: sonnet
+maxTurns: 30
 ---
 
 # Agent: Flow Architect

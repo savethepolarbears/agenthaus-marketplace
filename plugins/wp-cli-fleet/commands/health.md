@@ -1,5 +1,6 @@
 ---
 description: Check WordPress site health including core checksums, plugin integrity, and database status. Usage: /wp-cli-fleet:health <@alias | URL>
+argument-hint: "<@alias | URL>"
 ---
 
 Run a comprehensive health check on the specified WordPress site.

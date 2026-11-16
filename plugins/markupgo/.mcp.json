@@ -3,6 +3,7 @@
     "markupgo": {
       "command": "npx",
       "args": [
+        "-y",
         "markupgo-mcp-server"
       ],
       "env": {

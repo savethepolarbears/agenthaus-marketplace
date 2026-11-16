@@ -1,5 +1,6 @@
 ---
 description: Search and manage Google Contacts and People directory. Usage: `/gog-workspace:contacts search "John"` or `/gog-workspace:contacts list`
+argument-hint: "<list | search <query>>"
 ---
 
 Given "$ARGUMENTS" as user input, execute Contacts/People operations using the `gog` CLI.
@@ -9,12 +10,12 @@ Given "$ARGUMENTS" as user input, execute Contacts/People operations using the `
 ### Contacts
 - **List contacts**: `gog contacts list`
 - **Search contacts**: `gog contacts search '<query>'`
-- **Contact details**: `gog contacts get <contact_id>`
+- **Contact details**: `gog contacts get people/<contact_id>`
 
 ### People (Workspace Directory)
 - **Search directory**: `gog people search '<query>'`
 - **Get person**: `gog people get <email>`
-- **List directory**: `gog people list`
+- **List directory**: `gog contacts directory list`
 
 ## Instructions
 

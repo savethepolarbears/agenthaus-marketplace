@@ -1,12 +1,5 @@
 # Add to ~/.codex/config.toml (or .codex/config.toml in a trusted project),
 # or run: agenthaus install --target codex --plugin <name>
 
-[mcp_servers.google-ads]
-command = "npx"
-args = ["-y", "@nowork-studio/google-ads-mcp"]
-env_vars = ["GOOGLE_ADS_DEVELOPER_TOKEN", "GOOGLE_ADS_CLIENT_ID", "GOOGLE_ADS_CLIENT_SECRET", "GOOGLE_ADS_REFRESH_TOKEN", "GOOGLE_ADS_LOGIN_CUSTOMER_ID"]
-
-[mcp_servers.meta-ads]
-command = "npx"
-args = ["-y", "@nowork-studio/meta-ads-mcp"]
-env_vars = ["META_ACCESS_TOKEN", "META_AD_ACCOUNT_ID"]
+[mcp_servers.notfair]
+url = "https://notfair.co/api/mcp/notfair"

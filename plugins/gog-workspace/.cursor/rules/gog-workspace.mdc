@@ -7,3 +7,4 @@ alwaysApply: true
 # gog-workspace
 
 Google Workspace CLI integration for Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks, Contacts, Chat, Forms, and Apps Script using gogcli.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

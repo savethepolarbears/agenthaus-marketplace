@@ -1,5 +1,6 @@
 ---
 description: Create an engaging Instagram caption for a topic with an optional tone.
+argument-hint: "<topic> [, tone]"
 ---
 Given "$ARGUMENTS" as input (topic[, tone]), write an Instagram caption:
 

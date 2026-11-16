@@ -1,8 +1,10 @@
 ## Environment Configuration
 
-Required environment variables:
+The MCP connection itself uses OAuth (hosted server at `https://app.neuronwriter.com/mcp/http`), so no key is needed for MCP tools.
 
-- `NEURONWRITER_API_KEY` — Your NeuronWriter API key
+Environment variables for the optional direct-API and publishing steps:
+
+- `NEURONWRITER_API_KEY` — NeuronWriter REST API key (only for direct API calls outside MCP)
 - `NEURONWRITER_WP_SITES` — WordPress credentials (JSON)
 - `NEURONWRITER_OLLAMA_URL` — Ollama LLM endpoint (optional)
 - `NEURONWRITER_LLM_MODEL` — Default LLM model (default: llama3.3)

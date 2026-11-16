@@ -17,8 +17,7 @@ Deploy projects, monitor builds, and manage Vercel hosting configurations.
 
 ## Prerequisites
 
-- `VERCEL_TOKEN` environment variable must be set
-- Vercel MCP server (`@modelcontextprotocol/server-vercel`) must be available
+- Vercel's official MCP server (`https://mcp.vercel.com`) connected and authorized via OAuth
 
 ## Steps
 
@@ -77,7 +76,7 @@ When triggering a redeployment:
 
 ## Error Handling
 
-- If `VERCEL_TOKEN` is not set, provide setup instructions
+- If the Vercel server is not authorized, tell the user to run `/mcp` and sign in
 - If the project is not found, list available projects
 - If a build fails, summarize the error from build logs and suggest fixes
 - Rate limit errors should be reported with retry guidance

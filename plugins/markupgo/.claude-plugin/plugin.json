@@ -1,6 +1,6 @@
 {
   "name": "markupgo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Generate images, PDFs, and social media asset packs from HTML, URLs, Markdown, and reusable templates via MarkupGo's 16 MCP tools.",
   "author": {
     "name": "AgentHaus Team"

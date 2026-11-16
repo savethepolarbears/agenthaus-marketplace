@@ -1,6 +1,6 @@
 # GOG Workspace Plugin
 
-Google Workspace CLI integration for Claude Code using [gogcli](https://github.com/steipete/gogcli) (`gog`).
+Google Workspace CLI integration for Claude Code using [gogcli](https://github.com/openclaw/gogcli) (`gog`).
 
 ## Platform Support
 
@@ -21,7 +21,7 @@ Manage your entire Google Workspace from the terminal — Gmail, Calendar, Drive
 * **Workspace Assistant agent** — Multi-service workflow orchestration (morning briefings, meeting prep, email-to-task pipelines)
 * **Email Composer agent** — Context-aware email drafting with tone matching and thread awareness
 * **Google Workspace CLI skill** — Comprehensive command reference automatically invoked when you mention Google services
-* **Advisory hooks** — Reminders for recognized send/delete command prefixes and metadata audit logging; these do not enforce confirmation or cover all command forms
+* **Confirmation and audit hooks** — Claude Code asks before gog commands that send, share, invite, grant access or delete (including Docs/Drive comments, Classroom posts, calendar responses, and the generic `api call` and `appscript run`), and before calendar changes that notify attendees (`--send-updates` other than `none`) (a best-effort prompt, not a security boundary), and `gog_audit.log` records each gog invocation issued. The log works from the command text, so it records what was issued, not what the shell actually ran.
 
 ### Installation
 
@@ -39,10 +39,10 @@ Install and authenticate the `gog` CLI before using this plugin:
 
 ```bash
 # Install gog CLI
-brew install gogcli
+brew install openclaw/tap/gogcli
 
 # Store your OAuth credentials (from Google Cloud Console)
-gog auth credentials ~/Downloads/client_secret_*.json
+gog auth credentials set ~/Downloads/client_secret_*.json
 
 # Add your Google account
 gog auth add you@gmail.com
@@ -51,7 +51,7 @@ gog auth add you@gmail.com
 export GOG_ACCOUNT=you@gmail.com
 ```
 
-See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detailed OAuth configuration.
+See the [gogcli setup guide](https://github.com/openclaw/gogcli#readme) for detailed OAuth configuration.
 
 ### Usage Examples
 
@@ -102,9 +102,9 @@ See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detai
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `GOG_ACCOUNT` | Default Google account email | Recommended |
-| `GOG_ACCESS_TOKEN` | Direct access token (CI/headless) | Optional |
-| `GOG_CLIENT` | OAuth client name (multi-client setups) | Optional |
-| `GOG_KEYRING_BACKEND` | Keyring backend (`file` or `keychain`) | Optional |
+| `GOG_HOME` | Override the gogcli config/data/state/cache root | Optional |
+
+For CI or headless use, pass `--access-token <token>`; for multi-client setups, pass `--client <name>`.
 
 ### Supported Google Services
 
@@ -126,15 +126,14 @@ See the [gogcli setup guide](https://github.com/steipete/gogcli#setup) for detai
 | Admin | `gog admin` | Users, groups, members (Workspace) |
 | Keep | `gog keep` | Create, delete notes (Workspace) |
 
-### Latest Release
+### gogcli Version
 
-**v0.12.0** (March 9, 2025) — Full Workspace Admin coverage, spreadsheet editing enhancements with named ranges and formatting, Docs comment management, Sheets cell notes.
-
-See [all releases](https://github.com/steipete/gogcli/releases) for the complete changelog.
+The command examples match the gogcli command reference at [openclaw/gogcli `docs/commands`](https://github.com/openclaw/gogcli/tree/main/docs/commands). `tests/gog-cli-drift.test.js` checks them against a snapshot of that reference. See [all releases](https://github.com/openclaw/gogcli/releases) for the changelog.
 
 ### Customization
 
 Adjust the safety hooks in `hooks/hooks.json` to:
-- Add or remove advisory reminders for recognized operations; hooks do not enforce confirmation
+- Change which `gog` subcommands trigger the PreToolUse confirmation prompt. `hooks/scripts/gog-guard.py` splits each Bash command with shlex and treats every `gog` word, and every quoted command string that mentions gog (`bash -lc '…'`, `ssh host '…'`), as a possible invocation. So env prefixes, `if`/`while`/`!`, `timeout`, `sudo`, `xargs` and full paths are all covered. It asks before any command listed in `hooks/guarded-commands.json`: sends, replies, forwards, shares, mail forwarding changes, deletes, trash and clears. Regenerate that table with `node scripts/snapshot-gogcli.js --guard-only`. It errs toward asking, so text that merely names a guarded command (`echo gog gmail send`) also prompts. It is a confirmation prompt, not a security boundary: a determined shell construct can still avoid it. For hard guarantees, run gogcli with its own `--gmail-no-send`, `--readonly` or `--enable-commands` flags.
+- The hooks need `python3` on `PATH`
 - Customize the audit log location and format
 - Add notifications for specific Gmail or Calendar events

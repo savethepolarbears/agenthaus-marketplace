@@ -4,7 +4,7 @@ description: >
   Uses the built-in reference table first to save MCP calls, falling back to
   live API queries only when needed. Use when you need to find or verify a
   profile ID before scheduling.
-allowed-tools: VistaSocial:listProfiles, VistaSocial:listProfileGroups, VistaSocial:listProfilesInGroup
+allowed-tools: mcp__plugin_vistasocial-scheduler_vistasocial__findProfiles, mcp__plugin_vistasocial-scheduler_vistasocial__findProfileGroups
 ---
 
 # Profile Lookup
@@ -15,7 +15,7 @@ Quickly resolve brand names to VistaSocial profile IDs.
 
 1. **Check the `profile-lookup` skill reference table first** — check local cache before querying API
 2. If the profile is found, return it immediately with no MCP calls
-3. If not found (new profile or suspected change), call `listProfiles` with `q: "<brand name>"`
+3. If not found (new profile or suspected change), call `findProfiles` with `q: "<brand name>"`
 4. Report the profile ID, network code, group membership, and operator
 
 ## Output Format

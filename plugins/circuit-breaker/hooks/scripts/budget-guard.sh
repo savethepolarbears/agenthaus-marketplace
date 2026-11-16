@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
-# Track tool usage count and warn when threshold is exceeded.
-# Always exits 0 (warning only, never blocks).
+# Track tool usage per session and ask the user to confirm once the budget is hit.
+# PreToolUse hook. Reads the hook payload (JSON) from stdin; the counter is keyed
+# by session_id so parallel sessions never share a budget. Never exits non-zero:
+# at the threshold (and every 25 calls past it) it emits a structured
+# permissionDecision "ask" so a human decides whether the loop continues.
 
 set -euo pipefail
+
+STDIN_JSON="$(cat 2>/dev/null || true)"
+SESSION_ID=""
+if [ -n "$STDIN_JSON" ]; then
+    if command -v jq >/dev/null 2>&1; then
+        SESSION_ID="$(printf '%s' "$STDIN_JSON" | jq -r '.session_id // empty' 2>/dev/null || true)"
+    elif command -v python3 >/dev/null 2>&1; then
+        SESSION_ID="$(printf '%s' "$STDIN_JSON" | python3 -c 'import json,sys
+try: print(json.load(sys.stdin).get("session_id",""))
+except Exception: pass' 2>/dev/null || true)"
+    fi
+fi
+# Only allow a conservative character set in the file name (no traversal).
+SESSION_ID="$(printf '%s' "$SESSION_ID" | tr -cd 'A-Za-z0-9_-' | cut -c1-128)"
 
 # CWE-377 mitigation: Isolate counter inside a verified, owner-only directory.
 # Reject symlinks and alien-owned directories or files, exiting 0 gracefully on storage failure.
@@ -29,7 +46,11 @@ else
     fi
 fi
 
-COUNTER_FILE="$STATE_DIR/counter"
+if [ -n "$SESSION_ID" ]; then
+    COUNTER_FILE="$STATE_DIR/counter-$SESSION_ID"
+else
+    COUNTER_FILE="$STATE_DIR/counter"
+fi
 
 # Verify counter file integrity if present
 if [ -L "$COUNTER_FILE" ]; then
@@ -56,7 +77,9 @@ if [ -f "$CONFIG_FILE" ]; then
 
     # Read custom threshold
     CUSTOM_THRESHOLD=$(jq -r '.breakers?."budget-guard"?.threshold? // 100' "$CONFIG_FILE" 2>/dev/null || echo "100")
-    THRESHOLD="$CUSTOM_THRESHOLD"
+    if [[ "$CUSTOM_THRESHOLD" =~ ^[0-9]+$ ]] && [ "$CUSTOM_THRESHOLD" -gt 0 ]; then
+        THRESHOLD="$CUSTOM_THRESHOLD"
+    fi
 fi
 
 # Read current counter
@@ -75,12 +98,17 @@ COUNT=$((COUNT + 1))
 TMP_COUNTER="$STATE_DIR/counter.tmp.$$"
 echo "$COUNT" > "$TMP_COUNTER" 2>/dev/null && mv -f "$TMP_COUNTER" "$COUNTER_FILE" 2>/dev/null || { rm -f "$TMP_COUNTER" 2>/dev/null; exit 0; }
 
-# Warn at threshold
+# Ask for confirmation at the threshold and every 25 calls past it.
+# PreToolUse stdout is only honoured as structured JSON, so plain echo would be
+# invisible to both the model and the user.
+REASON=""
 if [ "$COUNT" -eq "$THRESHOLD" ]; then
-    echo "BUDGET GUARD: Tool usage has reached $THRESHOLD calls this session."
-    echo "Consider reviewing progress and whether continued tool use is needed."
+    REASON="BUDGET GUARD: tool usage reached $THRESHOLD calls this session. Review progress before continuing."
 elif [ "$COUNT" -gt "$THRESHOLD" ] && [ $(( COUNT % 25 )) -eq 0 ]; then
-    echo "BUDGET GUARD: Tool usage at $COUNT calls (threshold: $THRESHOLD)."
+    REASON="BUDGET GUARD: tool usage at $COUNT calls (threshold: $THRESHOLD)."
+fi
+if [ -n "$REASON" ]; then
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"%s"}}\n' "$REASON"
 fi
 
 exit 0

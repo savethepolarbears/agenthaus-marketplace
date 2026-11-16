@@ -2,6 +2,6 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.textfocus]
-command = "python"
+command = "python3"
 args = ["-m", "textfocus_server"]
 env_vars = ["TEXTFOCUS_API_KEY"]

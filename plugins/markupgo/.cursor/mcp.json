@@ -2,6 +2,7 @@
   "mcpServers": {
     "markupgo": {
       "args": [
+        "-y",
         "markupgo-mcp-server"
       ],
       "command": "npx",

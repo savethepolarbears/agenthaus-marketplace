@@ -11,3 +11,5 @@ Social media scheduling and management plugin using VistaSocial MCP. Handles pos
 ## MCP Configuration
 
 MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.
+
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

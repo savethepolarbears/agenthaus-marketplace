@@ -1,5 +1,6 @@
 ---
 description: Import photos and videos into Apple Photos with metadata and album placement. Usage: `/apple-photos:import <path> [--album "Name"]`
+argument-hint: "<path> [--album \"Name\"]"
 ---
 When invoked with "$ARGUMENTS" (file/directory path and options), build and execute an `osxphotos import` command.
 

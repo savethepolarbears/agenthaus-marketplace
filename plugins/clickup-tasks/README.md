@@ -23,7 +23,7 @@ The **clickup-tasks** plugin connects Claude to ClickUp so you can manage tasks,
 /plugin install clickup-tasks@AgentHaus
 ```
 
-Set the `CLICKUP_API_KEY` environment variable to a ClickUp personal access token with necessary scopes.  After installation, you can issue natural‑language requests about your ClickUp workspace and Claude will use the MCP tools to perform them.
+The plugin connects to ClickUp's official hosted MCP server (`https://mcp.clickup.com/mcp`), which supports OAuth only. Run `/mcp` in Claude Code to authorize your workspace. After installation, you can issue natural‑language requests about your ClickUp workspace and Claude will use the MCP tools to perform them.
 
 ### Example usage
 

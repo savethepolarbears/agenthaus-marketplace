@@ -83,7 +83,10 @@ function loadPlugin(dir, name) {
     ...(mcpFile ? (mcpFile.mcpServers || {}) : {})
   };
   const hasMcp = Object.keys(mcpServers).length > 0;
-  const hasHooks = Array.isArray(manifest.hooks) && manifest.hooks.length > 0;
+  // Claude Code auto-loads hooks/hooks.json; manifest `hooks` adds extra files.
+  const hasHooks = (Array.isArray(manifest.hooks) && manifest.hooks.length > 0)
+    || (typeof manifest.hooks === 'string' && manifest.hooks.length > 0)
+    || fs.existsSync(path.join(dir, 'hooks', 'hooks.json'));
   return { dir, name, manifest, mcpServers, hasMcp, hasHooks };
 }
 
@@ -168,7 +171,7 @@ function renderAgentsMd(plugin) {
   let content = `# ${name}\n\n${desc}`;
 
   if (plugin.hasHooks) {
-    content += '\n\n> **Platform note:** This plugin uses Claude Code hooks. Hook-based automation is not available on Codex CLI, Windsurf, Gemini CLI, or Cursor. Commands and skills remain usable.';
+    content += '\n\n> **Platform note:** This plugin ships Claude Code-format hooks. Other providers have their own hook systems; agenthaus does not translate these hooks, so the guardrails only run in Claude Code. Commands and skills remain usable.';
   }
 
   if (plugin.hasMcp) {
@@ -186,11 +189,11 @@ function renderAgentsMd(plugin) {
   content += '| Platform | MCP | Hooks | Commands/Agents | Skills |\n';
   content += '| :--- | :--- | :--- | :--- | :--- |\n';
   content += `| Claude Code | ${mcpCell('full')} | ${hooksCell('full')} | full | full |\n`;
-  content += `| Codex CLI | ${mcpCell('via config.toml')} | ${hooksCell('none')} | partial | full |\n`;
-  content += `| Antigravity / Gemini CLI | ${mcpCell('via mcp_config.json / settings.json')} | ${hooksCell('none')} | partial | full |\n`;
-  content += `| Cursor | ${mcpCell('via .cursor/mcp.json')} | ${hooksCell('none')} | partial | full |\n`;
-  content += `| Windsurf / Devin | ${mcpCell('via mcp_config.json')} | ${hooksCell('none')} | partial | full |\n`;
-  content += `| GitHub Copilot | ${mcpCell('via .vscode/mcp.json')} | ${hooksCell('none')} | prompts | full |`;
+  content += `| Codex CLI | ${mcpCell('via config.toml')} | ${hooksCell('not translated')} | partial | full |\n`;
+  content += `| Antigravity / Gemini CLI | ${mcpCell('via mcp_config.json / settings.json')} | ${hooksCell('not translated')} | partial | full |\n`;
+  content += `| Cursor | ${mcpCell('via .cursor/mcp.json')} | ${hooksCell('not translated')} | partial | full |\n`;
+  content += `| Windsurf / Devin | ${mcpCell('via mcp_config.json')} | ${hooksCell('not translated')} | partial | full |\n`;
+  content += `| GitHub Copilot | ${mcpCell('via .vscode/mcp.json')} | ${hooksCell('not translated')} | prompts | full |`;
 
   // Env vars section
   if (plugin.hasMcp) {
@@ -239,7 +242,7 @@ function renderGeminiMd(plugin) {
   }
 
   if (plugin.hasHooks) {
-    content += '\n> **Note:** Hook-based automation requires Claude Code. Hooks are not executed by Gemini CLI.\n';
+    content += '\n> **Note:** Hooks are Claude Code-format and are not translated to Gemini CLI or Antigravity hooks.\n';
   }
 
   if (!content.endsWith('\n')) {
@@ -266,7 +269,7 @@ function renderCursorMdc(plugin) {
   }
 
   if (plugin.hasHooks) {
-    content += '\n> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.\n';
+    content += '\n> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.\n';
   }
 
   return content;
@@ -346,7 +349,7 @@ agenthaus-marketplace/
 bash scripts/validate-plugins.sh         # Validate all plugins and marketplace
 bash scripts/generate-skills-index.sh    # Re-generate skills index
 bash scripts/install-plugins.sh          # Interactively install plugins
-bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
+node scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 \`\`\`
 
 ## Tech Stack & Conventions
@@ -377,20 +380,20 @@ bash scripts/generate-cross-platform.js  # Generate MCP and cross-platform files
 | Platform | MCP | Hooks | Commands | Skills |
 | :--- | :--- | :--- | :--- | :--- |
 | Claude Code | full | full | full | full |
-| Codex CLI | config.toml | none | partial | full |
-| Antigravity / Gemini | mcp_config.json / settings.json | none | partial | full |
-| Cursor | .cursor/mcp.json | none | partial | full |
-| Windsurf / Devin | mcp_config.json | none | partial | full |
-| Copilot | .vscode/mcp.json | none | prompts | full |
+| Codex CLI | config.toml | native* | partial | full |
+| Antigravity / Gemini | mcp_config.json / settings.json | native* | partial | full |
+| Cursor | .cursor/mcp.json | native* | partial | full |
+| Windsurf / Devin | mcp_config.json | native* | partial | full |
+| Copilot | .vscode/mcp.json | native* | prompts | full |
 
-> Hooks are Claude Code-exclusive. \`agenthaus install\` writes each provider's MCP config.
+> *Each provider has its own hook system; agenthaus does not translate Claude hooks. \`agenthaus install\` writes each provider's MCP config.
 
 ## Provider Lifecycle Invariants
 
 1. **Cursor Discovery**: Reads \`.cursor/rules/*.mdc\` and \`.cursor/mcp.json\`. \`postInstall\` mirrors rules and MCP; never rely solely on \`.cursor/plugins/\`.
 2. **MCP Collision Namespacing**: Conflicting keys become \`<plugin>-<key>\`; ownership lives in \`~/.agenthaus/state.json\` (legacy \`_agenthaus_mcp\` markers migrate) so uninstalls never drop shared or user servers.
 3. **Symlink Update Hook Refresh**: In \`updatePlugin\`, when symlink target matches source (\`isSame\`), re-run \`postInstall\` to refresh derived provider files.
-4. **Provider-Scoped Sync Coverage**: Provider sync (\`sync --target <p>\`) executes \`repairTargetHooks\` on copied plugin dirs.
+4. **Provider-Scoped Sync Coverage**: Provider sync (\`sync --target <p>\`) executes \`repairInstalledHooks\` on copied plugin dirs.
 
 ## Gemini Context Caching
 

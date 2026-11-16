@@ -1,6 +1,6 @@
 {
   "name": "agent-memory",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Shared persistent memory across agent sessions using Neon Postgres.",
   "author": {
     "name": "AgentHaus Team"
@@ -20,16 +20,5 @@
   ],
   "skills": [
     "./skills/memory-protocol"
-  ],
-  "mcpServers": {
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "${NEON_DATABASE_URL}"
-      ],
-      "env": {}
-    }
-  }
+  ]
 }

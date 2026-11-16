@@ -12,4 +12,4 @@ Orchestrate Cloudflare deployments, GitHub PRs, and Slack notifications.
 
 MCP servers for this plugin are in `.cursor/mcp.json`. Environment variables use `${env:VAR_NAME}` syntax in Cursor.
 
-> **Note:** This plugin uses Claude Code hooks which are not available in Cursor.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

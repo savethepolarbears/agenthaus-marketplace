@@ -1,5 +1,6 @@
 ---
 description: "Analyze a URL's SEO performance against a target keyword. Usage: `/textfocus:seo 'https://example.com/page' 'target keyword' --lang en`"
+argument-hint: "<url> <target keyword> [--lang <code>]"
 ---
 
 # Analyze URL SEO Performance

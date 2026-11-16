@@ -1,9 +1,10 @@
 ---
-description: "Pre-built safety guardrails as reusable hooks for Claude Code workflows."
+description: "Pre-built safety guardrails as reusable hooks: deploy window, test gate, per-session tool budget and a bounded Stop-hook completion loop."
 globs: "**/*"
 alwaysApply: true
 ---
 
 # circuit-breaker
 
-Pre-built safety guardrails as reusable hooks for Claude Code workflows.
+Pre-built safety guardrails as reusable hooks: deploy window, test gate, per-session tool budget and a bounded Stop-hook completion loop.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

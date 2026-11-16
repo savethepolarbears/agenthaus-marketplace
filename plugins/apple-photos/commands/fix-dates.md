@@ -1,5 +1,6 @@
 ---
 description: Fix incorrect timestamps, dates, or timezones on photos using osxphotos timewarp. Usage: `/apple-photos:fix-dates <options>`
+argument-hint: "<options>"
 ---
 When invoked with "$ARGUMENTS" (date/time correction options), build and execute an `osxphotos timewarp` command.
 

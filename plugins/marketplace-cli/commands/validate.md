@@ -1,5 +1,4 @@
 ---
-name: validate
 description: Validate a plugin directory for correctness and completeness
 ---
 

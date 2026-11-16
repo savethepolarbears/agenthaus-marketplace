@@ -1,5 +1,6 @@
 ---
 description: Manage reusable MarkupGo templates — create, list, browse, render with data. Usage `/markupgo:template list` or `/markupgo:template create 'My Card' '<html>'`
+argument-hint: "<list | create <name> <html>>"
 ---
 
 # Template Management

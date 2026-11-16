@@ -101,7 +101,7 @@ function checkMcpCommands(plugins) {
 
 function checkHookSecurity(hookScriptPath) {
   const results = [];
-  if (!fs.existsSync(hookScriptPath)) return results;
+  if (!fs.existsSync(hookScriptPath) || !fs.statSync(hookScriptPath).isFile()) return results;
   const content = fs.readFileSync(hookScriptPath, 'utf8');
   
   const lines = content.split('\n');

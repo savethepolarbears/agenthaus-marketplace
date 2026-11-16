@@ -1,5 +1,6 @@
 ---
 description: Generate platform-optimized social media asset packs for Facebook, Instagram, and Pinterest. Usage `/markupgo:social-pack '<html>' --platforms facebook,instagram`
+argument-hint: "<html> [--platforms <list>]"
 ---
 
 # Generate Social Media Asset Packs

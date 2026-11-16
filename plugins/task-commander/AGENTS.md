@@ -1,6 +1,6 @@
 # task-commander
 
-ClickUp task management with Slack, Gmail and Calendar notifications.
+ClickUp task management with Slack notifications, plus Gmail and Calendar steps through the gog CLI.
 
 > **MCP setup:** `agenthaus install --target <provider>` registers these MCP servers in the provider's config (Codex: `config.toml` via `codex-mcp-config.toml`).
 

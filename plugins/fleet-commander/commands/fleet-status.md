@@ -1,6 +1,6 @@
 ---
-name: fleet-status
 description: Show all active agent sessions and their current tasks
+argument-hint: "[--watch]"
 ---
 
 You are displaying the fleet status of all running agent sessions.

@@ -1,5 +1,6 @@
 ---
 description: Publish optimized content to WordPress from NeuronWriter. Usage: `/neuronwriter:publish <query-id> --site mysite.com --status draft`
+argument-hint: "<query-id> --site <domain> [--status draft|publish]"
 ---
 
 # Publish to WordPress
@@ -113,8 +114,8 @@ After publishing:
 ## Environment Variables
 
 Required:
-- `NEURONWRITER_API_KEY` — Your NeuronWriter API key
-- `NEURONWRITER_WP_SITES` — WordPress site credentials (JSON)
+- NeuronWriter MCP connected via OAuth (`/mcp`)
+- `NEURONWRITER_WP_SITES` — WordPress site credentials (JSON) for the WordPress REST publish step
 
 Optional:
 - `NEURONWRITER_LLM_MODEL` — Default LLM for content generation

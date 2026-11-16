@@ -19,7 +19,7 @@ Deploy Workers, manage KV storage, and configure AI Gateway through Cloudflare's
 
 - `CLOUDFLARE_API_TOKEN` environment variable must be set
 - `CLOUDFLARE_ACCOUNT_ID` environment variable must be set
-- Cloudflare MCP server (`@cloudflare/mcp-server-cloudflare`) must be available
+- Cloudflare API MCP server (`https://mcp.cloudflare.com/mcp`) with `CLOUDFLARE_API_TOKEN` sent as a Bearer token (it exposes code-mode `search`/`execute` tools over the full Cloudflare API)
 
 ## Steps
 

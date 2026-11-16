@@ -1,5 +1,6 @@
 ---
 description: Run WP-CLI search-replace with optional regex support. Always dry-runs first. Usage: /wp-cli-fleet:search-replace <@alias | URL> <old> <new> [--regex] [--regex-flags=<flags>]
+argument-hint: "<@alias | URL> <old> <new> [--regex] [--regex-flags=<flags>]"
 ---
 
 Perform a database search-replace operation on a WordPress site. Always runs in **dry-run mode first** for safety.

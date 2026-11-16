@@ -1,6 +1,6 @@
 ---
-name: query
 description: Execute a SQL query against a Neon Postgres database. Usage: `/neon-db:query <SQL>`
+argument-hint: "<SQL>"
 ---
 
 # Query Neon Database

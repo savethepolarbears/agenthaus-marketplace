@@ -2,7 +2,12 @@
 # Claude Code PreToolUse: exit 0 allows; exit 2 blocks. Hooks are guidance,
 # not a universal execution boundary or protection against same-user bypass.
 set -euo pipefail
-[ -f .shadow-mode-enabled ] || exit 0
+# Hooks may run from a subdirectory; anchor state to the project root.
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+    cd "$CLAUDE_PROJECT_DIR"
+fi
+# Drain stdin before an early exit so the writer never sees EPIPE.
+[ -f .shadow-mode-enabled ] || { cat >/dev/null 2>&1 || true; exit 0; }
 
 # Keep raw input exclusively in memory; never persist commands, paths, content,
 # arbitrary tool names, or alleged redacted versions. Missing dependencies and
@@ -31,7 +36,7 @@ try:
         requested_tool = json.loads(raw).get('tool_name')
     except (ValueError, AttributeError):
         requested_tool = None
-    tool = requested_tool if requested_tool in ('Write', 'Edit', 'Bash') else 'unknown'
+    tool = requested_tool if requested_tool in ('Write', 'Edit', 'MultiEdit', 'Bash') else 'unknown'
     queue = 'review_queue'
     os.makedirs(queue, mode=0o700, exist_ok=True)
     if not stat.S_ISDIR(os.lstat(queue).st_mode):

@@ -2,14 +2,8 @@
   "_comment": "Add mcpServers entries to ~/.config/devin/mcp_config.json (legacy Windsurf: ~/.codeium/windsurf/mcp_config.json)",
   "mcpServers": {
     "notion": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-notion"
-      ],
-      "command": "npx",
-      "env": {
-        "NOTION_API_KEY": "${env:NOTION_API_KEY}"
-      }
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
     }
   }
 }

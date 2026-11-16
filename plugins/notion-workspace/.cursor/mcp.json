@@ -1,14 +1,8 @@
 {
   "mcpServers": {
     "notion": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-notion"
-      ],
-      "command": "npx",
-      "env": {
-        "NOTION_API_KEY": "${env:NOTION_API_KEY}"
-      }
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
     }
   }
 }

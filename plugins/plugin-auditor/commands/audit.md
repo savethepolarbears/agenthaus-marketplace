@@ -1,6 +1,6 @@
 ---
-name: audit
 description: Scan a plugin directory for security risks and configuration issues
+argument-hint: "[path/to/plugin]"
 ---
 
 You are auditing a plugin for security risks before installation.

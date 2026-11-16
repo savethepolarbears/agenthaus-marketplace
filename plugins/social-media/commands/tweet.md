@@ -1,5 +1,6 @@
 ---
 description: Craft a high‑engagement tweet about a specified topic. Accepts an optional tone (e.g., `/social-media:tweet AI trends, witty`).
+argument-hint: "<topic> [, tone]"
 ---
 Given "$ARGUMENTS" as the user input (topic[, tone]), generate a Twitter post:
 

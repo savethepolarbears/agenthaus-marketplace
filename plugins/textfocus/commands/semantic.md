@@ -1,5 +1,6 @@
 ---
 description: "Get semantic vocabulary and coverage data for a keyword — find the terms search engines associate with your topic. Usage: `/textfocus:semantic 'machine learning' --lang en`"
+argument-hint: "<keyword> [--lang <code>]"
 ---
 
 # Analyze Semantic Vocabulary

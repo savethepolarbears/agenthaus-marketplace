@@ -131,7 +131,7 @@ Not every task needs all four tools. Here's when to use each:
 | Variable | Tool | Required |
 | --- | --- | --- |
 | `TEXTFOCUS_API_KEY` | TextFocus | Yes (for keyword/semantic analysis) |
-| `NEURONWRITER_API_KEY` | NeuronWriter | Yes (for content analysis/scoring) |
+| (none — OAuth via `/mcp`) | NeuronWriter hosted MCP (`https://app.neuronwriter.com/mcp/http`) | Yes (for content analysis/scoring) |
 | `MARKUPGO_API_KEY` | MarkupGo | Yes (for visual asset generation) |
 | `OUTSCRAPER_API_KEY` | Outscraper | Optional (for market research) |
 

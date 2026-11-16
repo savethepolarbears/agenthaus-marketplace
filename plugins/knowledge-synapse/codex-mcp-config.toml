@@ -3,15 +3,8 @@
 
 [mcp_servers.context7]
 command = "npx"
-args = ["-y", "@upstash/context7-mcp"]
+args = ["-y", "@upstash/context7-mcp@4.5.1"]
 env_vars = ["CONTEXT7_API_KEY"]
 
 [mcp_servers.notion]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-notion"]
-env_vars = ["NOTION_API_KEY"]
-
-[mcp_servers.google-drive]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-google-drive"]
-env_vars = ["GOOGLE_DRIVE_TOKEN"]
+url = "https://mcp.notion.com/mcp"

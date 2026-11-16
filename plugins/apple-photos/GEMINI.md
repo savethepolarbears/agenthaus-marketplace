@@ -5,4 +5,4 @@ Manage Apple Photos libraries using the osxphotos CLI — query, export, import,
 ## Plugin Reference
 
 @plugins/apple-photos/README.md
-> **Note:** Hook-based automation requires Claude Code. Hooks are not executed by Gemini CLI.
+> **Note:** Hooks are Claude Code-format and are not translated to Gemini CLI or Antigravity hooks.

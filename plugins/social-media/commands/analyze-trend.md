@@ -1,5 +1,6 @@
 ---
 description: Analyze current social media trends for a given topic and suggest high‑impact content strategies. Usage: `/social-media:analyze-trend <topic>`
+argument-hint: "<topic>"
 ---
 When invoked with "$ARGUMENTS" (the topic), perform a trend analysis:
 

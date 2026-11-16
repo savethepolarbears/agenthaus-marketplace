@@ -3,32 +3,16 @@
     "context7": {
       "args": [
         "-y",
-        "@upstash/context7-mcp"
+        "@upstash/context7-mcp@4.5.1"
       ],
       "command": "npx",
       "env": {
         "CONTEXT7_API_KEY": "${env:CONTEXT7_API_KEY}"
       }
     },
-    "google-drive": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-google-drive"
-      ],
-      "command": "npx",
-      "env": {
-        "GOOGLE_DRIVE_TOKEN": "${env:GOOGLE_DRIVE_TOKEN}"
-      }
-    },
     "notion": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-notion"
-      ],
-      "command": "npx",
-      "env": {
-        "NOTION_API_KEY": "${env:NOTION_API_KEY}"
-      }
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
     }
   }
 }

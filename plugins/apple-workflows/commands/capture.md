@@ -1,5 +1,6 @@
 ---
 description: Quick capture to Apple Notes or Reminders. Usage: `/apple-workflows:capture <text> [--reminder|--note] [--list <list>] [--due <date>]`
+argument-hint: "<text> [--reminder|--note] [--list <list>] [--due <date>]"
 ---
 Given "$ARGUMENTS" as the user input, quickly capture the text to either Apple Notes or Apple Reminders using the `apple-productivity` MCP tools.
 

@@ -1,5 +1,6 @@
 ---
 description: Get, import, and evaluate content in NeuronWriter. Usage: `/neuronwriter:content get <query-id>`, `/neuronwriter:content evaluate <query-id> '<html>'`
+argument-hint: "<get <query-id> | evaluate <query-id> <html>>"
 ---
 
 # Content Evaluation

@@ -7,3 +7,4 @@ alwaysApply: true
 # activepieces
 
 Agent plugin pack for designing, building, operating, and releasing ActivePieces flows.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

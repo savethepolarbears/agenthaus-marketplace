@@ -2,14 +2,8 @@
   "_comment": "Add mcpServers entries to ~/.config/devin/mcp_config.json (legacy Windsurf: ~/.codeium/windsurf/mcp_config.json)",
   "mcpServers": {
     "clickup": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-clickup"
-      ],
-      "command": "npx",
-      "env": {
-        "CLICKUP_API_KEY": "${env:CLICKUP_API_KEY}"
-      }
+      "type": "http",
+      "url": "https://mcp.clickup.com/mcp"
     }
   }
 }

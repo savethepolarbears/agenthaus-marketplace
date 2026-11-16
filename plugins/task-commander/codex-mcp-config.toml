@@ -2,22 +2,7 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.clickup]
-command = "npx"
-args = ["-y", "@taazkareem/clickup-mcp-server"]
-env_vars = ["CLICKUP_API_KEY"]
+url = "https://mcp.clickup.com/mcp"
 
-# NOTE: export SLACK_DEFAULT_CHANNEL="$SLACK_CHANNEL" before starting Codex
 [mcp_servers.slack]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-slack"]
-env_vars = ["SLACK_BOT_TOKEN", "SLACK_DEFAULT_CHANNEL"]
-
-[mcp_servers.gmail]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-gmail"]
-env_vars = ["GMAIL_CREDENTIALS"]
-
-[mcp_servers.google-calendar]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-google-calendar"]
-env_vars = ["GOOGLE_CALENDAR_TOKEN"]
+url = "https://mcp.slack.com/mcp"

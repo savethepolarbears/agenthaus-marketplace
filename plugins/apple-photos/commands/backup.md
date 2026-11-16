@@ -1,5 +1,6 @@
 ---
 description: Run an incremental backup of your Photos library to a folder with full metadata. Usage: `/apple-photos:backup <destination>`
+argument-hint: "<destination>"
 ---
 When invoked with "$ARGUMENTS" (destination path), run an opinionated incremental backup of the Apple Photos library.
 

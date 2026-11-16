@@ -1,5 +1,4 @@
 ---
-name: enable
 description: Enable shadow mode to queue all actions for review
 ---
 

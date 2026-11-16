@@ -15,7 +15,7 @@ The **notion-workspace** plugin connects Claude to Notion, allowing you to searc
 
 * **Search** – Use `/notion-workspace:search <query>` to find pages or database entries matching your query.  Claude will call the Notion MCP search API and return a list of results with titles and links.
 * **Create pages** – Use `/notion-workspace:create-page` to create a new page or database entry.  Claude will prompt you for required fields (parent location, title, content) and then call the Notion API to create the record.
-* **Secure integration** – Authentication is handled via the Notion MCP server.  Provide your Notion API key as the `NOTION_API_KEY` environment variable when starting Claude.
+* **Secure integration** – Authentication uses OAuth with Notion's hosted MCP server (`https://mcp.notion.com/mcp`). Run `/mcp` in Claude Code to sign in; no API key is stored in the environment.
 
 ## Installation
 

@@ -6,7 +6,7 @@
         "-m",
         "textfocus_server"
       ],
-      "command": "python",
+      "command": "python3",
       "env": {
         "TEXTFOCUS_API_KEY": "${env:TEXTFOCUS_API_KEY}"
       }

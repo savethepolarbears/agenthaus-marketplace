@@ -7,3 +7,4 @@ alwaysApply: true
 # social-media
 
 Generate high-engagement social media content with trend analysis and platform-specific commands.
+> **Note:** Hooks are Claude Code-format and are not translated to Cursor `.cursor/hooks.json`.

@@ -3,6 +3,7 @@
   "mcpServers": {
     "markupgo": {
       "args": [
+        "-y",
         "markupgo-mcp-server"
       ],
       "command": "npx",
@@ -11,14 +12,8 @@
       }
     },
     "neuronwriter": {
-      "args": [
-        "-m",
-        "neuronwriter_mcp"
-      ],
-      "command": "python",
-      "env": {
-        "NEURONWRITER_API_KEY": "${env:NEURONWRITER_API_KEY}"
-      }
+      "type": "http",
+      "url": "https://app.neuronwriter.com/mcp/http"
     },
     "outscraper": {
       "args": [
@@ -35,7 +30,7 @@
         "-m",
         "textfocus_server"
       ],
-      "command": "python",
+      "command": "python3",
       "env": {
         "TEXTFOCUS_API_KEY": "${env:TEXTFOCUS_API_KEY}"
       }

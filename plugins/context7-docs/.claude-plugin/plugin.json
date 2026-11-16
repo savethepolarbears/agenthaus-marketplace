@@ -1,6 +1,6 @@
 {
   "name": "context7-docs",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Fetch up-to-date, hallucination-free documentation for any library via Context7.",
   "author": {
     "name": "AgentHaus Team"

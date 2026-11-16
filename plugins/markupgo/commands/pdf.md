@@ -1,5 +1,6 @@
 ---
 description: Generate PDFs from HTML, URLs, or convert documents. Usage `/markupgo:pdf from-url https://example.com` or `/markupgo:pdf from-html '<h1>Invoice</h1>'`
+argument-hint: "<from-url <url> | from-html <html>> [options]"
 ---
 
 # Generate PDFs

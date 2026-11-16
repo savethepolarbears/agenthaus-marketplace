@@ -1,5 +1,6 @@
 ---
 description: Transform and resize generated images — crop, filter, resize for specific platforms. Usage `/markupgo:transform <image-id> --resize 1200x630`
+argument-hint: "<image-id> [--resize WxH]"
 ---
 
 # Transform Images

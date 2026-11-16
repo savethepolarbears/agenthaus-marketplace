@@ -19,7 +19,7 @@ Run SQL queries, inspect schemas, and manage data on Neon serverless Postgres da
 ## Prerequisites
 
 - `NEON_DATABASE_URL` or `DATABASE_URL` environment variable must be set
-- Postgres MCP server (`@modelcontextprotocol/server-postgres`) must be available
+- Postgres MCP Pro server (`uvx postgres-mcp`, needs [uv](https://docs.astral.sh/uv/)) with `NEON_DATABASE_URL` mapped to `DATABASE_URI`; tools include `list_schemas`, `list_objects`, `get_object_details`, `execute_sql`, `explain_query`
 
 ## Steps
 

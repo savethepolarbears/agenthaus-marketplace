@@ -1,5 +1,6 @@
 ---
 description: Inspect detailed metadata for a specific photo or selection of photos. Usage: `/apple-photos:info <filename or filter>`
+argument-hint: "<filename or filter>"
 ---
 When invoked with "$ARGUMENTS" (filename, UUID, or filter criteria), retrieve and display detailed metadata.
 

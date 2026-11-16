@@ -1,5 +1,4 @@
 ---
-name: generate-llms
 description: Generate a production-ready llms.txt file for the current repository to improve RAG ingestion by AI coding agents (Cursor, GitHub Copilot, Windsurf) and vector databases. Reads the project structure and README, then produces a structured manifest at the repository root. Usage: `/seo-geo-rag:generate-llms`
 ---
 

@@ -2,6 +2,5 @@
 # or run: agenthaus install --target codex --plugin <name>
 
 [mcp_servers.cloudflare]
-command = "npx"
-args = ["-y", "@cloudflare/mcp-server-cloudflare"]
-env_vars = ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]
+url = "https://mcp.cloudflare.com/mcp"
+bearer_token_env_var = "CLOUDFLARE_API_TOKEN"

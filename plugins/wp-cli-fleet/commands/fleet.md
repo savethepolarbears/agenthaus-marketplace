@@ -1,5 +1,6 @@
 ---
 description: Manage fleet manifests, list aliases and groups, run commands across fleets, and generate alias files. Usage: /wp-cli-fleet:fleet <list | run | generate-aliases | add-site>
+argument-hint: "<list | run <group-or-alias> -- <wp-cli-command> | generate-aliases | add-site>"
 ---
 
 Manage WordPress fleet operations using fleet manifest files and WP-CLI aliases.

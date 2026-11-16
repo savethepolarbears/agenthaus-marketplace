@@ -1,5 +1,6 @@
 ---
 description: Organize Apple Notes into folders and triage reminders by priority, due date, or list. Usage: `/apple-workflows:organize [notes|reminders]`
+argument-hint: "[notes|reminders]"
 ---
 Given "$ARGUMENTS" as the user input, help organize their Apple Notes and/or Reminders using the `apple-productivity` MCP tools.
 

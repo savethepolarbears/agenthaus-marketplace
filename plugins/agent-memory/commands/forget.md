@@ -1,6 +1,6 @@
 ---
-name: forget
 description: Delete a memory from persistent storage
+argument-hint: "<memory-id | search text>"
 ---
 
 You are deleting a memory from the Postgres MCP server.

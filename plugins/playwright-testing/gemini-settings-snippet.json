@@ -4,7 +4,7 @@
     "playwright": {
       "args": [
         "-y",
-        "@modelcontextprotocol/server-playwright"
+        "@playwright/mcp@0.0.84"
       ],
       "command": "npx"
     }

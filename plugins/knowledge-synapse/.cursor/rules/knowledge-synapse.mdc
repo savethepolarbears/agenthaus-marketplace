@@ -1,12 +1,12 @@
 ---
-description: "RAG Agent combining Context7 docs, Notion memory and Google Drive search."
+description: "RAG Agent combining Context7 docs, Notion memory and Google Drive search via the gog CLI."
 globs: "**/*"
 alwaysApply: true
 ---
 
 # knowledge-synapse
 
-RAG Agent combining Context7 docs, Notion memory and Google Drive search.
+RAG Agent combining Context7 docs, Notion memory and Google Drive search via the gog CLI.
 
 ## MCP Configuration
 

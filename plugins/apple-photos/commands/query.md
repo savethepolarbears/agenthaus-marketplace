@@ -1,5 +1,6 @@
 ---
 description: Search and filter photos by person, keyword, album, place, date, or EXIF data. Usage: `/apple-photos:query <filters>`
+argument-hint: "<filters>"
 ---
 When invoked with "$ARGUMENTS" (filter criteria), build and execute an `osxphotos query` command.
 

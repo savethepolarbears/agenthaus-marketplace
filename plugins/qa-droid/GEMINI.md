@@ -1,6 +1,6 @@
 # qa-droid
 
-Automated Playwright tests with Slack/Gmail notifications.
+Automated Playwright tests with Slack notifications and gog CLI email reports.
 
 ## Plugin Reference
 

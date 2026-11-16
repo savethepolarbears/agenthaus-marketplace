@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "textfocus": {
-      "command": "python",
-      "args": ["-m", "textfocus_server"],
+      "command": "python3",
+      "args": [
+        "-m",
+        "textfocus_server"
+      ],
       "env": {
         "TEXTFOCUS_API_KEY": "${TEXTFOCUS_API_KEY}"
       }

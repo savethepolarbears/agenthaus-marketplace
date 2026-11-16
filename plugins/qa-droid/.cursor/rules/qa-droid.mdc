@@ -1,12 +1,12 @@
 ---
-description: "Automated Playwright tests with Slack/Gmail notifications."
+description: "Automated Playwright tests with Slack notifications and gog CLI email reports."
 globs: "**/*"
 alwaysApply: true
 ---
 
 # qa-droid
 
-Automated Playwright tests with Slack/Gmail notifications.
+Automated Playwright tests with Slack notifications and gog CLI email reports.
 
 ## MCP Configuration
 

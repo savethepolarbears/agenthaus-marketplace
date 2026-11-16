@@ -2,14 +2,10 @@
   "_comment": "Add mcpServers entries to your Gemini CLI settings",
   "mcpServers": {
     "github": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "command": "npx",
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      },
+      "httpUrl": "https://api.githubcopilot.com/mcp/"
     }
   }
 }

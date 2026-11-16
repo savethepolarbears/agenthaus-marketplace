@@ -1,5 +1,6 @@
 ---
 description: Get plugin, theme, and core inventory for a WordPress site or fleet group. Usage: /wp-cli-fleet:inventory <@alias | URL | @group>
+argument-hint: "<@alias | URL | @group>"
 ---
 
 Gather a complete inventory of plugins, themes, and WordPress core version for the specified target.

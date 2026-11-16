@@ -18,8 +18,8 @@ Search, create, and manage Notion pages and databases for knowledge management a
 
 ## Prerequisites
 
-- `NOTION_API_KEY` environment variable must be set
-- Notion MCP server (`@modelcontextprotocol/server-notion`) must be available
+- Notion's hosted MCP server (`https://mcp.notion.com/mcp`) connected and authorized via OAuth (`/mcp` in Claude Code)
+- Tools: `notion-search`, `notion-fetch`, `notion-create-pages`, `notion-update-page` (verify the live tool list before calling)
 - Notion integration must have access to the relevant pages/databases
 
 ## Steps
@@ -95,7 +95,7 @@ Present Notion content in clean markdown that mirrors the page structure. Includ
 
 ## Error Handling
 
-- API key invalid: Verify `NOTION_API_KEY` and integration permissions
+- Authorization expired or page not shared: re-run `/mcp` to re-authorize and confirm the page is accessible to your account
 - Page not found: Check if the integration has access to the page
 - Rate limited: Back off and retry after the indicated interval
 - Schema mismatch: Report which properties don't match the database schema
